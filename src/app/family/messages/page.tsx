@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/dal";
-import { createServerSupabase } from "@/lib/supabase/server";
 import { AppShell, FAMILY_NAV } from "@/components/app/app-shell";
-import { ComingSoon } from "@/components/app/coming-soon";
-import { getPricingConfig } from "@/lib/pricing";
+import { ThreadList } from "@/components/messaging/thread-list";
+import { ContactCounter } from "@/components/messaging/contact-counter";
+import { Button } from "@/components/ui/button";
+import { loadThreads } from "@/lib/messaging/queries";
+import { loadContactState } from "@/lib/messaging/actions";
 
 export const metadata: Metadata = { title: "Messages" };
 
@@ -12,23 +15,39 @@ export default async function FamilyMessagesPage() {
   const user = await requireRole("family", "/family/messages");
   if (!user.emailVerified) redirect("/verify-email");
 
-  const supabase = await createServerSupabase();
-  const [{ data: contactState }, pricing] = await Promise.all([
-    supabase.rpc("my_contact_state"),
-    getPricingConfig(),
-  ]);
-  const contacts = Array.isArray(contactState) ? contactState[0] : contactState;
-  const remaining = contacts?.free_contacts_remaining ?? pricing.freeContacts;
+  const [threads, contacts] = await Promise.all([loadThreads(user), loadContactState()]);
 
   return (
     <AppShell nav={FAMILY_NAV} active="/family/messages" name="Messages">
-      <ComingSoon
-        title="Messaging opens next"
-        body={`When it does, you'll have ${remaining} free ${
-          remaining === 1 ? "contact" : "contacts"
-        } to start conversations with. Saving profiles and reading applications stays free either way.`}
-        cta={{ href: "/nannies", label: "Build your shortlist" }}
-      />
+      <h1 className="text-2xl font-semibold sm:text-3xl">Messages</h1>
+
+      {contacts && (
+        <div className="mt-4">
+          <ContactCounter
+            used={contacts.free_contacts_used}
+            limit={contacts.free_contacts_limit}
+            remaining={contacts.free_contacts_remaining}
+            subscribed={contacts.subscription_active}
+          />
+        </div>
+      )}
+
+      {threads.length === 0 ? (
+        <div className="mt-6 rounded-xl border border-dashed border-border-strong bg-background p-8 text-center sm:p-12">
+          <h2 className="text-lg font-semibold">No conversations yet</h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">
+            Find a nanny you like and send her a message. Browsing and saving profiles
+            costs nothing.
+          </p>
+          <Link href="/nannies" className="mt-5 inline-block">
+            <Button>Find a nanny</Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-5">
+          <ThreadList threads={threads} basePath="/family/messages" />
+        </div>
+      )}
     </AppShell>
   );
 }

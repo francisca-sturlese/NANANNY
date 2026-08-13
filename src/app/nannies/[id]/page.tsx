@@ -23,6 +23,9 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { signedUrl } from "@/lib/storage/private-assets";
 import { getSession } from "@/lib/auth/dal";
 import { loadSavedIds } from "@/lib/shortlist/actions";
+import { ContactSheet } from "@/components/messaging/contact-sheet";
+import { loadContactState } from "@/lib/messaging/actions";
+import { getPricingConfig } from "@/lib/pricing";
 
 export async function generateMetadata({
   params,
@@ -105,12 +108,14 @@ export default async function NannyProfilePage({
 
   const nanny = data as unknown as NannyRow;
 
-  const [photoUrl, videoUrl, { data: badges }, savedIds] = await Promise.all([
+  const [photoUrl, videoUrl, { data: badges }, savedIds, contacts, pricing] = await Promise.all([
     signedUrl("nanny-photos", nanny.photo_url),
     // Only a signed-in visitor gets a video URL at all.
     user ? signedUrl("nanny-videos", nanny.video_url ?? null) : Promise.resolve(null),
     supabase.from("nanny_badges").select("badge").eq("nanny_id", id),
     loadSavedIds([id]),
+    loadContactState(),
+    getPricingConfig(),
   ]);
 
   const isFamily = user?.role === "family";
@@ -378,15 +383,21 @@ export default async function NannyProfilePage({
             </Link>
           ) : null}
 
-          {user ? (
+          {isFamily ? (
             <div className="min-w-0 flex-1">
-              <Button size="lg" block disabled>
-                Message {nanny.first_name ?? ""}
-              </Button>
-              <p className="mt-1 text-center text-[0.6875rem] text-subtle">
-                Messaging opens in the next release
-              </p>
+              <ContactSheet
+                nannyId={id}
+                nannyName={nanny.first_name ?? "her"}
+                contactsRemaining={contacts?.free_contacts_remaining ?? pricing.freeContacts}
+                subscribed={Boolean(contacts?.subscription_active)}
+                pricing={pricing}
+                source="profile"
+              />
             </div>
+          ) : user ? (
+            <p className="flex-1 text-center text-sm text-muted">
+              Only families can start a conversation.
+            </p>
           ) : (
             <Link href="/signup" className="min-w-0 flex-1">
               <Button size="lg" block>

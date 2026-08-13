@@ -31,6 +31,7 @@ const eslintConfig = defineConfig([
       "src/app/family/jobs/**",
       "src/app/nanny/**",
       "src/app/admin/**",
+      "src/components/messaging/**",
     ],
     rules: { "@next/next/no-img-element": "off" },
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 /**
@@ -17,13 +17,11 @@ import { createPortal } from "react-dom";
  * means the viewport again.
  */
 export function Portal({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  // There is no document during server rendering, and portalling on the first
-  // client render would mismatch the server HTML.
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) return null;
+  // No mounted flag is needed: every caller renders this only while a sheet is
+  // open, and a sheet only opens from a user interaction — so this never runs
+  // during server rendering or the hydrating first pass. The guard is a
+  // backstop, not the mechanism.
+  if (typeof document === "undefined") return null;
   return createPortal(children, document.body);
 }
 
