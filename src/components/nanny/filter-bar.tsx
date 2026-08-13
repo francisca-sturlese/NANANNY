@@ -67,8 +67,11 @@ export function FilterBar({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="min-w-0 flex-1 sm:max-w-56">
+      {/* Two stacked rows on a phone, one row from `sm`. Squeezing three
+          controls onto a 360px line left the location select as a bare chevron
+          with no way to tell what it was. */}
+      <div className="space-y-2 sm:flex sm:items-center sm:gap-2 sm:space-y-0">
+        <label className="block sm:min-w-0 sm:flex-1 sm:max-w-56">
           <span className="sr-only">Where</span>
           <Select value={value("emirate")} onChange={(e) => updateOne("emirate", e.target.value)}>
             <option value="">Anywhere in the UAE</option>
@@ -80,36 +83,38 @@ export function FilterBar({
           </Select>
         </label>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setOpen(true)}
-          aria-expanded={open}
-          className="shrink-0"
-        >
-          <SlidersHorizontal className="size-4" aria-hidden />
-          Filters
-          {activeCount > 0 && (
-            <span className="ml-0.5 grid size-5 place-items-center rounded-pill bg-foreground text-[0.6875rem] font-semibold text-background">
-              {activeCount}
-            </span>
-          )}
-        </Button>
-
-        <label className="shrink-0">
-          <span className="sr-only">Sort by</span>
-          <Select
-            value={value("sort") || "relevance"}
-            onChange={(e) => updateOne("sort", e.target.value)}
-            className="w-auto pr-9 pl-3 text-sm"
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(true)}
+            aria-expanded={open}
+            className="flex-1 sm:flex-none"
           >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </label>
+            <SlidersHorizontal className="size-4" aria-hidden />
+            Filters
+            {activeCount > 0 && (
+              <span className="ml-0.5 grid size-5 place-items-center rounded-pill bg-foreground text-[0.6875rem] font-semibold text-background">
+                {activeCount}
+              </span>
+            )}
+          </Button>
+
+          <label className="flex-1 sm:flex-none">
+            <span className="sr-only">Sort by</span>
+            <Select
+              value={value("sort") || "relevance"}
+              onChange={(e) => updateOne("sort", e.target.value)}
+              className="text-sm sm:w-auto sm:pr-9 sm:pl-3"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+          </label>
+        </div>
       </div>
 
       {open && (

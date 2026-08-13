@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { signUpAction, type ActionState } from "@/lib/auth/actions";
 import { Input, Label } from "@/components/ui/field";
+import { PasswordInput } from "@/components/ui/password-input";
 import { FieldError, FormError, SubmitButton } from "@/components/auth/form-parts";
 
 const ROLES = [
@@ -91,10 +92,9 @@ export function SignUpForm({ defaultRole }: { defaultRole: "family" | "nanny" })
         <Label htmlFor="password" required>
           Password
         </Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           minLength={10}
           required

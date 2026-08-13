@@ -145,7 +145,10 @@ body {
 @media (pointer: coarse) {
   button,
   [role="button"],
-  input:not([type="hidden"]),
+  /* Radios and checkboxes are excluded on purpose: the control is a 16px
+     circle or box, and forcing it to 44px tall left it floating away from its
+     own label. The LABEL is the touch target, and it is sized below. */
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
   select,
   textarea,
   label:has(> input[type="checkbox"]),

@@ -11,7 +11,15 @@ const nextConfig: NextConfig = {
    * The two are the same machine; naming both is what makes them the same
    * origin as far as the dev server is concerned. Development only.
    */
-  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  allowedDevOrigins: [
+    "127.0.0.1",
+    "localhost",
+    // The Mac's address on the local network, so a real phone on the same
+    // Wi-Fi can load the dev server. Mobile is the primary target and a
+    // simulator is not the same as a thumb on glass.
+    "192.168.1.161",
+    "*.local",
+  ],
 };
 
 export default nextConfig;

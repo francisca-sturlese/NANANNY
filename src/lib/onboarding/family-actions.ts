@@ -7,6 +7,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/dal";
 import { FAMILY_STEPS, nextSlug, stepIndex } from "@/lib/onboarding/steps";
 import type { ActionState } from "@/lib/auth/actions";
+import { ownedPath } from "@/lib/storage/private-assets";
+import sharp from "sharp";
 
 /**
  * Family onboarding.
@@ -118,6 +120,11 @@ export async function saveFamilyStep(
           .update({ first_name: parsed.data.firstName, last_name: parsed.data.lastName })
           .eq("id", user.id);
 
+        // Optional for a family: a nanny is introduced to a household by its
+        // name, and a photo only makes that warmer. Never required.
+        const photo = await uploadFamilyPhoto(formData.get("photo"), user.id);
+        if (photo?.error) return { fieldErrors: { photo: photo.error } };
+
         await supabase
           .from("family_profiles")
           .update({
@@ -125,6 +132,7 @@ export async function saveFamilyStep(
             emirate: parsed.data.emirate,
             area: parsed.data.area,
             description: parsed.data.description,
+            ...(photo?.path ? { photo_url: photo.path } : {}),
           })
           .eq("id", familyId);
         break;
@@ -267,6 +275,49 @@ export async function saveFamilyStep(
 
   const next = nextSlug(FAMILY_STEPS, slug);
   redirect(next ? `/family/onboarding/${next}` : "/family?welcome=1");
+}
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Resizes and stores a family photo.
+ *
+ * Same treatment as a nanny photo: shrunk on upload rather than on every read,
+ * because a phone camera produces several megabytes and nobody should download
+ * that to see a 40px avatar in a conversation list.
+ */
+async function uploadFamilyPhoto(
+  value: FormDataEntryValue | null,
+  userId: string,
+): Promise<{ path?: string; error?: string } | null> {
+  if (!(value instanceof File) || value.size === 0) return null;
+  if (value.size > MAX_PHOTO_BYTES) return { error: "That image is too large (max 5 MB)" };
+
+  let body: Buffer;
+  try {
+    body = await sharp(Buffer.from(await value.arrayBuffer()))
+      .rotate()
+      .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+  } catch (error) {
+    console.error("[upload] could not process family photo:", error);
+    return { error: "We could not read that image. Try a JPG or PNG." };
+  }
+
+  const supabase = await createServerSupabase();
+  const path = ownedPath(userId, value.name.replace(/\.[^.]+$/, "") + ".webp");
+
+  const { error } = await supabase.storage
+    .from("family-photos")
+    .upload(path, body, { contentType: "image/webp", upsert: false });
+
+  if (error) {
+    console.error("[upload] family photo:", error.message);
+    return { error: "We could not upload that. Please try again." };
+  }
+
+  return { path };
 }
 
 function fieldErrorsOf(error: z.ZodError): Record<string, string> {

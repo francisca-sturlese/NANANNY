@@ -73,6 +73,8 @@ export type ThreadDetail = {
   otherName: string;
   otherPhotoUrl: string | null;
   otherProfileHref: string | null;
+  /** The account on the other side, needed to block or report them. */
+  otherUserId: string | null;
   blocked: boolean;
   messages: {
     id: string;
@@ -96,8 +98,8 @@ export async function loadThread(
     .from("conversations")
     .select(
       `id, blocked_at,
-       nanny:nanny_profiles!inner(id, first_name, photo_url),
-       family:family_profiles!inner(id, display_name, photo_url)`,
+       nanny:nanny_profiles!inner(id, user_id, first_name, photo_url),
+       family:family_profiles!inner(id, user_id, display_name, photo_url)`,
     )
     .eq("id", conversationId)
     .maybeSingle();
@@ -125,6 +127,8 @@ export async function loadThread(
     ),
     // A nanny has no public family page to link to.
     otherProfileHref: isNanny ? null : `/nannies/${conversation.nanny?.id}`,
+    otherUserId:
+      (isNanny ? conversation.family?.user_id : conversation.nanny?.user_id) ?? null,
     blocked: Boolean(conversation.blocked_at),
     messages: (messages ?? []).map((m) => ({
       id: m.id,

@@ -7,6 +7,8 @@ import { Send, ChevronLeft } from "lucide-react";
 import { markReadAction, sendMessageAction } from "@/lib/messaging/actions";
 import type { ThreadDetail } from "@/lib/messaging/queries";
 import { Button } from "@/components/ui/button";
+import { ReportButton } from "@/components/safety/report-button";
+import { BlockButton } from "@/components/safety/block-button";
 
 /**
  * A conversation, built like a phone chat rather than a page with a form.
@@ -111,6 +113,19 @@ export function ThreadView({
           )}
         </div>
       </header>
+
+      {/* Quiet, but always in the same place. Someone who needs it should not
+          have to hunt, and nobody else should be nudged towards it. */}
+      {thread.otherUserId && (
+        <div className="flex shrink-0 items-center justify-end gap-4 border-b border-border px-4 py-1.5">
+          <ReportButton
+            targetKind="user"
+            targetId={thread.otherUserId}
+            what={`${thread.otherName}`}
+          />
+          <BlockButton userId={thread.otherUserId} name={thread.otherName} />
+        </div>
+      )}
 
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {optimistic.length === 0 && (

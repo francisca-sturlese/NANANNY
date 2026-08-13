@@ -1,17 +1,20 @@
 import "server-only";
 
-import { createServiceClient } from "@/lib/supabase/service";
-
 /**
- * Signed URLs for private storage.
+ * Addresses for private storage.
  *
- * No bucket in this project is public, so nothing is ever linked directly. The
- * server checks who is asking, then mints a short-lived URL. The check belongs
- * to the caller — this module only signs, and callers must not hand it a path
- * they have not authorised.
+ * Files are served through this app at /media/<bucket>/<key>, not by handing
+ * the browser a signed Supabase URL. Two reasons:
+ *
+ *   1. The local Supabase stack listens on 127.0.0.1 only, so a signed URL is
+ *      a broken image on any device that is not the machine running it. That
+ *      made testing on a real phone impossible.
+ *   2. The route re-checks who is asking on every request, rather than trusting
+ *      a URL minted an hour ago and possibly forwarded to someone else since.
+ *
+ * These functions therefore return app paths. They keep their names and shapes
+ * so every caller is unchanged.
  */
-
-const DEFAULT_TTL_SECONDS = 60 * 60; // one hour
 
 export type PrivateBucket =
   | "nanny-photos"
@@ -22,44 +25,31 @@ export type PrivateBucket =
 export async function signedUrl(
   bucket: PrivateBucket,
   path: string | null | undefined,
-  ttlSeconds: number = DEFAULT_TTL_SECONDS,
 ): Promise<string | null> {
   if (!path) return null;
-
-  const supabase = createServiceClient();
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, ttlSeconds);
-
-  if (error) {
-    // A broken avatar must never take a page down with it.
-    console.error(`[storage] could not sign ${bucket}/${path}:`, error.message);
-    return null;
-  }
-
-  return data.signedUrl;
+  return mediaUrl(bucket, path);
 }
 
-/** Signs many paths from one bucket in a single round trip. */
+/** The app-served address for a stored object. */
+export function mediaUrl(bucket: PrivateBucket, path: string): string {
+  // Each segment is encoded separately so the slashes in the key survive.
+  const encoded = path.split("/").map(encodeURIComponent).join("/");
+  return `/media/${bucket}/${encoded}`;
+}
+
+/**
+ * Addresses for many objects at once.
+ *
+ * No longer a network call at all: building a path is arithmetic. Pages that
+ * showed twelve cards used to wait on a batch signing request before rendering.
+ */
 export async function signedUrls(
   bucket: PrivateBucket,
   paths: (string | null | undefined)[],
-  ttlSeconds: number = DEFAULT_TTL_SECONDS,
 ): Promise<Map<string, string>> {
-  const real = paths.filter((p): p is string => Boolean(p));
   const out = new Map<string, string>();
-  if (real.length === 0) return out;
-
-  const supabase = createServiceClient();
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .createSignedUrls(real, ttlSeconds);
-
-  if (error || !data) {
-    console.error(`[storage] batch sign failed for ${bucket}:`, error?.message);
-    return out;
-  }
-
-  for (const entry of data) {
-    if (entry.signedUrl && entry.path) out.set(entry.path, entry.signedUrl);
+  for (const path of paths) {
+    if (path) out.set(path, mediaUrl(bucket, path));
   }
   return out;
 }

@@ -83,6 +83,16 @@ through short-lived signed URLs minted server-side by
 keys are always `<owner uuid>/<file>`; the storage policies pin that first
 segment to `auth.uid()`.
 
+**A `"use server"` file may export only async functions.** Exporting a constant
+from one breaks the entire server-action graph at runtime, and it fails as
+"nothing happens when I press the button" rather than as a build error. Put
+shared constants in their own module — see `lib/safety/reasons.ts`.
+
+**Private files are served by the app, not by signed Supabase URLs.**
+`/media/<bucket>/<key>` re-checks the caller on every request and works from any
+device; a signed URL points at 127.0.0.1 and is a broken image on a real phone.
+`lib/storage/private-assets.ts` builds those paths.
+
 **`position: fixed` is not always the viewport.** Any ancestor with
 `backdrop-filter`, `filter`, `transform` or `contain` becomes its containing
 block — and every sticky header and filter bar here uses `backdrop-blur`. Sheets

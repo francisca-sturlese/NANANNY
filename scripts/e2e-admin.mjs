@@ -52,8 +52,8 @@ const shot = async (n) => {
 };
 
 await page.goto(`${BASE}/login`);
-await page.getByLabel("Email").fill(ADMIN);
-await page.getByLabel("Password").fill(PASSWORD);
+await page.locator('input[name="email"]').fill(ADMIN);
+await page.locator('input[name="password"]').fill(PASSWORD);
 await page.getByRole("button", { name: "Log in" }).click();
 await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
 check("admin lands in the back office", /\/admin/.test(page.url()), page.url().replace(BASE, ""));
@@ -245,8 +245,8 @@ await context.close();
 const familyContext = await browser.newContext({ ...devices["iPhone 13"] });
 const familyPage = await familyContext.newPage();
 await familyPage.goto(`${BASE}/login`);
-await familyPage.getByLabel("Email").fill("family1@nananny.example.test");
-await familyPage.getByLabel("Password").fill(PASSWORD);
+await familyPage.locator('input[name="email"]').fill("family1@nananny.example.test");
+await familyPage.locator('input[name="password"]').fill(PASSWORD);
 await familyPage.getByRole("button", { name: "Log in" }).click();
 await familyPage.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
 

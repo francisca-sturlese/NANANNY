@@ -25,6 +25,7 @@ import { getSession } from "@/lib/auth/dal";
 import { loadSavedIds } from "@/lib/shortlist/actions";
 import { ContactSheet } from "@/components/messaging/contact-sheet";
 import { loadContactState } from "@/lib/messaging/actions";
+import { ReportButton } from "@/components/safety/report-button";
 import { getPricingConfig } from "@/lib/pricing";
 
 export async function generateMetadata({
@@ -363,7 +364,13 @@ export default async function NannyProfilePage({
           </Section>
         )}
 
-        <p className="mt-10 text-xs leading-relaxed text-subtle">
+        {user && (
+          <div className="mt-10 border-t border-border pt-5">
+            <ReportButton targetKind="profile" targetId={id} what="this profile" />
+          </div>
+        )}
+
+        <p className="mt-6 text-xs leading-relaxed text-subtle">
           NaNanny is a technology platform and is not {nanny.first_name ?? "this nanny"}
           &apos;s employer. Any arrangement is made directly between you and her.
         </p>

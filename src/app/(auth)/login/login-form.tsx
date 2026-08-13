@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { loginAction, type ActionState } from "@/lib/auth/actions";
 import { Input, Label } from "@/components/ui/field";
+import { PasswordInput } from "@/components/ui/password-input";
 import { FieldError, FormError, SubmitButton } from "@/components/auth/form-parts";
 
 export function LoginForm({ next }: { next?: string }) {
@@ -30,13 +31,7 @@ export function LoginForm({ next }: { next?: string }) {
             Forgot password?
           </Link>
         </div>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-        />
+        <PasswordInput id="password" name="password" autoComplete="current-password" required />
         <FieldError message={state.fieldErrors?.password} />
       </div>
 

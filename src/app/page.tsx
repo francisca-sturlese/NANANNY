@@ -5,7 +5,7 @@ import { SearchModule } from "@/components/site/search-module";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Photo } from "@/components/ui/photo";
-import { photo } from "@/lib/photos";
+import { largestSrc, photo, srcSet } from "@/lib/photos";
 import { getPricingConfig } from "@/lib/pricing";
 
 /**
@@ -27,69 +27,86 @@ export default async function HomePage() {
       <main>
         {/* ---------------- Hero ---------------- */}
         <section className="relative overflow-hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] sm:h-[520px]"
-            style={{
-              background:
-                "radial-gradient(70% 60% at 15% 0%, var(--sage-wash) 0%, transparent 70%), radial-gradient(60% 55% at 90% 8%, var(--peach-wash) 0%, transparent 72%)",
-            }}
-          />
+          {/* The photograph IS the hero background, full bleed. A white scrim
+              over it keeps black text readable without flattening the picture
+              into grey: near-opaque where the words are, clearing lower down so
+              the family is actually visible. */}
+          <div aria-hidden className="absolute inset-0 -z-10">
+            <img
+              src={largestSrc(hero)}
+              srcSet={srcSet(hero)}
+              sizes="100vw"
+              alt=""
+              fetchPriority="high"
+              decoding="sync"
+              className="size-full object-cover object-[center_20%]"
+            />
+            <div
+              className="absolute inset-0 lg:hidden"
+              style={{
+                background:
+                  "linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 34%, rgba(255,255,255,0.5) 68%, rgba(255,255,255,0.92) 100%)",
+              }}
+            />
+            {/* Wide screens put the text on the left, so the scrim clears to the
+                right and the photograph has room to breathe. */}
+            <div
+              className="absolute inset-0 hidden lg:block"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.92) 44%, rgba(255,255,255,0.3) 78%, rgba(255,255,255,0.15) 100%)",
+              }}
+            />
+          </div>
 
-          <div className="mx-auto max-w-6xl px-5 pt-8 pb-5 sm:px-8 sm:pt-16">
-            <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-              <div>
-                <Badge variant="butter" size="sm">
-                  First {pricing.freeContacts} nanny contacts free
-                </Badge>
+          <div className="mx-auto max-w-6xl px-5 pt-12 pb-16 sm:px-8 sm:pt-24 sm:pb-24 lg:min-h-[30rem]">
+            <div className="max-w-xl">
+              <Badge variant="butter" size="sm">
+                First {pricing.freeContacts} nanny contacts free
+              </Badge>
 
-                <h1 className="mt-4 text-[2rem] leading-[1.08] font-semibold sm:text-5xl lg:text-6xl">
-                  Find the right nanny for your family
-                </h1>
+              <h1 className="mt-4 text-[2.1rem] leading-[1.06] font-semibold sm:text-5xl lg:text-6xl">
+                Find the right nanny for your family
+              </h1>
 
-                <p className="mt-4 max-w-lg text-base leading-relaxed text-muted sm:text-lg">
-                  Connect directly with nannies across the UAE. No agency in between.
-                </p>
+              <p className="mt-4 max-w-md text-base leading-relaxed text-muted sm:text-lg">
+                Connect directly with nannies across the UAE. No agency in between.
+              </p>
 
-                {/* Primary action first and full width on a phone — one thumb, no aiming. */}
-                <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
-                  <Link href="/nannies" className="sm:w-auto">
-                    <Button size="lg" block className="sm:w-auto sm:px-8">
-                      Find a Nanny
-                    </Button>
-                  </Link>
-                  <Link href="/jobs" className="sm:w-auto">
-                    <Button size="lg" variant="outline" block className="sm:w-auto sm:px-8">
-                      Find a Job
-                    </Button>
-                  </Link>
-                </div>
+              {/* Primary action first and full width on a phone: one thumb, no aiming. */}
+              <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+                <Link href="/nannies" className="sm:w-auto">
+                  <Button size="lg" block className="sm:w-auto sm:px-8">
+                    Find a Nanny
+                  </Button>
+                </Link>
+                <Link href="/jobs" className="sm:w-auto">
+                  <Button size="lg" variant="outline" block className="sm:w-auto sm:px-8">
+                    Find a Job
+                  </Button>
+                </Link>
               </div>
-
-              {/* The one image the phone downloads eagerly. Hidden below `sm`
-                  would waste the request, so it renders at every size — just at
-                  a shorter crop on a phone. */}
-              <Photo
-                photo={hero}
-                priority
-                rounded="xl"
-                sizes="(min-width: 1024px) 40vw, (min-width: 640px) 80vw, 100vw"
-                className="max-h-[260px] sm:max-h-none"
-                imgClassName="object-[center_25%]"
-              />
             </div>
           </div>
 
-          <div className="mx-auto max-w-6xl px-5 pt-6 pb-12 sm:px-8 sm:pb-16">
-            <SearchModule />
-          </div>
+        </section>
+
+        {/* Its own band, below the hero and on plain white. Sitting inside the
+            hero it landed on top of the photograph with the buttons crowding
+            it, and read as part of the picture rather than the next step. */}
+        <section className="mx-auto max-w-6xl px-5 pt-10 pb-14 sm:px-8 sm:pt-14 sm:pb-16">
+          <h2 className="mb-4 text-lg font-semibold sm:text-xl">
+            Start with where you are
+          </h2>
+          <SearchModule />
         </section>
 
         {/* ---------------- Four promises ---------------- */}
-        <section className="mx-auto max-w-6xl px-5 pb-4 sm:px-8">
-          {/* Horizontal snap-scroll on a phone: four cards fit without either
-              shrinking to unreadable or stacking into a long column. */}
-          <ul className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+        <section className="mx-auto max-w-6xl px-5 pb-6 sm:px-8">
+          {/* Two columns on a phone rather than a sideways scroll. A card half
+              off the screen reads as broken, and nobody swipes horizontally on
+              a page that scrolls down. */}
+          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
               {
                 step: "Discover",
@@ -114,12 +131,11 @@ export default async function HomePage() {
             ].map((item) => (
               <li
                 key={item.step}
-                className="min-w-[72vw] snap-start sm:min-w-0"
                 style={{ background: item.tint, borderRadius: "var(--radius-lg)" }}
               >
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   <h3 className="text-base font-semibold">{item.step}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.copy}</p>
+                  <p className="mt-1.5 text-sm leading-snug text-muted">{item.copy}</p>
                 </div>
               </li>
             ))}
@@ -157,9 +173,18 @@ export default async function HomePage() {
                 </ul>
               </div>
 
-              {/* Best Value first on a phone: it is the recommendation, so it
-                  should be the card the thumb reaches first. */}
+              {/* Cheapest first. Someone deciding reads up from the smallest
+                  number, and leading with the higher one makes the page feel
+                  like it is selling rather than informing. */}
               <div className="grid gap-3 sm:grid-cols-2">
+                {pricing.weeklyEnabled && (
+                  <PlanCard
+                    name="Weekly"
+                    price={pricing.weeklyPriceAed}
+                    period="week"
+                    currency={pricing.currency}
+                  />
+                )}
                 {pricing.monthlyEnabled && (
                   <PlanCard
                     name="Monthly"
@@ -167,16 +192,6 @@ export default async function HomePage() {
                     period="month"
                     currency={pricing.currency}
                     highlighted={pricing.monthlyIsBestValue}
-                    className="sm:order-2"
-                  />
-                )}
-                {pricing.weeklyEnabled && (
-                  <PlanCard
-                    name="Weekly"
-                    price={pricing.weeklyPriceAed}
-                    period="week"
-                    currency={pricing.currency}
-                    className="sm:order-1"
                   />
                 )}
               </div>

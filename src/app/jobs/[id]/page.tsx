@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ApplyPanel } from "@/components/jobs/apply-panel";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/dal";
+import { ReportButton } from "@/components/safety/report-button";
 
 type JobRow = {
   id: string;
@@ -272,7 +273,13 @@ export default async function JobDetailPage({
           </section>
         )}
 
-        <p className="mt-10 text-xs leading-relaxed text-subtle">
+        {user && (
+          <div className="mt-10 border-t border-border pt-5">
+            <ReportButton targetKind="job" targetId={id} what="this job" />
+          </div>
+        )}
+
+        <p className="mt-6 text-xs leading-relaxed text-subtle">
           NaNanny is a technology platform. This job is offered by the family directly, not
           by NaNanny, and any employment arrangement is between you and them. Applying is
           free.

@@ -55,8 +55,8 @@ for (const audience of AUDIENCES) {
 
   if (audience.email) {
     await page.goto("/login");
-    await page.getByLabel("Email").fill(audience.email);
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.locator('input[name="email"]').fill(audience.email);
+    await page.locator('input[name="password"]').fill(PASSWORD);
     await page.getByRole("button", { name: "Log in" }).click();
     await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
   }

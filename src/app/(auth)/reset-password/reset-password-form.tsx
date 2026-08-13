@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updatePasswordAction, type ActionState } from "@/lib/auth/actions";
 import { Input, Label } from "@/components/ui/field";
+import { PasswordInput } from "@/components/ui/password-input";
 import { FieldError, FormError, SubmitButton } from "@/components/auth/form-parts";
 
 export function ResetPasswordForm() {
@@ -14,10 +15,9 @@ export function ResetPasswordForm() {
         <Label htmlFor="password" required>
           New password
         </Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           minLength={10}
           required
@@ -31,12 +31,13 @@ export function ResetPasswordForm() {
         <Label htmlFor="confirmPassword" required>
           Confirm new password
         </Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           autoComplete="new-password"
           required
+          showLabel="Show confirmation"
+          hideLabel="Hide confirmation"
         />
         <FieldError message={state.fieldErrors?.confirmPassword} />
       </div>

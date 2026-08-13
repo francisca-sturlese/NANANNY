@@ -63,7 +63,7 @@ export default async function AdminReportsPage({
         decided.
       </p>
 
-      <nav className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+      <nav className="mt-5 flex flex-wrap gap-2">
         {[
           { value: "", label: "Needs attention" },
           { value: "actioned", label: "Actioned" },

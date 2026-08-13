@@ -6,6 +6,7 @@ import { ensureFamilyProfile } from "@/lib/onboarding/family-actions";
 import { FAMILY_STEPS, prevSlug, stepIndex } from "@/lib/onboarding/steps";
 import { OnboardingShell } from "@/components/onboarding/shell";
 import { FamilyStepForm } from "@/components/onboarding/family-step-form";
+import { signedUrl } from "@/lib/storage/private-assets";
 
 export const metadata: Metadata = { title: "Complete your family profile" };
 
@@ -29,7 +30,7 @@ export default async function FamilyOnboardingStep({
   const [{ data: profile }, { data: requirements }, { data: children }] = await Promise.all([
     supabase
       .from("family_profiles")
-      .select("id, display_name, emirate, area, description, children_count, onboarding_step")
+      .select("id, display_name, emirate, area, description, children_count, photo_url, onboarding_step")
       .eq("id", familyId)
       .single(),
     supabase
@@ -44,6 +45,8 @@ export default async function FamilyOnboardingStep({
       .eq("family_id", familyId)
       .order("age_years", { ascending: true }),
   ]);
+
+  const photoUrl = await signedUrl("family-photos", profile?.photo_url);
 
   return (
     <OnboardingShell
@@ -63,6 +66,7 @@ export default async function FamilyOnboardingStep({
         user={{ firstName: user.firstName, lastName: user.lastName }}
         profile={profile ?? null}
         requirements={requirements ?? null}
+        photoUrl={photoUrl}
         kids={children ?? []}
       />
     </OnboardingShell>

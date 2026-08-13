@@ -150,8 +150,8 @@ export function ContactSheet({
 }
 
 /**
- * The paywall. Two prices, both easy to tap, the recommendation first on a
- * phone. No pressure copy — the family already knows what they want.
+ * The paywall. Two prices, both easy to tap, cheapest first. No pressure copy,
+ * because the family already knows what they want.
  */
 function Paywall({ pricing, used }: { pricing: PricingSummary; used: number }) {
   return (
@@ -162,6 +162,14 @@ function Paywall({ pricing, used }: { pricing: PricingSummary; used: number }) {
       </p>
 
       <div className="grid gap-3">
+        {pricing.weeklyEnabled && (
+          <PlanOption
+            name="Weekly"
+            price={pricing.weeklyPriceAed}
+            period="week"
+            currency={pricing.currency}
+          />
+        )}
         {pricing.monthlyEnabled && (
           <PlanOption
             name="Monthly"
@@ -169,14 +177,6 @@ function Paywall({ pricing, used }: { pricing: PricingSummary; used: number }) {
             period="month"
             currency={pricing.currency}
             highlighted={pricing.monthlyIsBestValue}
-          />
-        )}
-        {pricing.weeklyEnabled && (
-          <PlanOption
-            name="Weekly"
-            price={pricing.weeklyPriceAed}
-            period="week"
-            currency={pricing.currency}
           />
         )}
       </div>

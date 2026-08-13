@@ -67,12 +67,9 @@ export default async function SavedPage({
       </p>
 
       {rows.length > 0 && (
-        // Horizontal scroll rather than wrapping: four stages plus counts do
-        // not fit across a 360px phone without shrinking below a usable size.
-        <nav
-          className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0"
-          aria-label="Shortlist stages"
-        >
+        // Wraps onto a second line rather than scrolling sideways: a tab half
+        // off the screen is a tab nobody knows exists.
+        <nav className="mt-5 flex flex-wrap gap-2" aria-label="Shortlist stages">
           <StageTab href="/family/saved" label="All" count={rows.length} active={!activeStage} />
           {STAGES.map((s) => (
             <StageTab

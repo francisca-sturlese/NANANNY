@@ -55,6 +55,7 @@ export function FamilyStepForm({
   user,
   profile,
   requirements,
+  photoUrl,
   // Named `kids`, not `children`: `children` is reserved by React, and passing
   // an array of records under that name across the server/client boundary
   // stops the component hydrating — the form renders but nothing responds.
@@ -66,6 +67,7 @@ export function FamilyStepForm({
   user: { firstName: string | null; lastName: string | null };
   profile: Profile;
   requirements: Requirements;
+  photoUrl: string | null;
   kids: { id: string; age_years: number | null }[];
 }) {
   const [state, action] = useActionState<ActionState, FormData>(saveFamilyStep, {});
@@ -149,6 +151,36 @@ export function FamilyStepForm({
               </datalist>
             </Field>
           </div>
+
+          <Field
+            label="Family photo"
+            htmlFor="photo"
+            hint="Optional. Nannies see your family name either way; a photo just makes the first message warmer."
+            error={err.photo}
+          >
+            <div className="flex items-center gap-4">
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt="Your current family photo"
+                  width={64}
+                  height={64}
+                  className="size-16 rounded-full border border-border object-cover"
+                />
+              ) : (
+                <span className="grid size-16 shrink-0 place-items-center rounded-full bg-peach-wash text-xs text-peach-deep">
+                  Photo
+                </span>
+              )}
+              <Input
+                id="photo"
+                name="photo"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic"
+                className="h-auto py-2.5"
+              />
+            </div>
+          </Field>
 
           <Field
             label="A little about your family"

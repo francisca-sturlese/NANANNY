@@ -86,8 +86,8 @@ const shot = async (n) => {
 };
 
 await page.goto("/login");
-await page.getByLabel("Email").fill(FAMILY);
-await page.getByLabel("Password").fill(PASSWORD);
+await page.locator('input[name="email"]').fill(FAMILY);
+await page.locator('input[name="password"]').fill(PASSWORD);
 await page.getByRole("button", { name: "Log in" }).click();
 await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
 
@@ -210,8 +210,8 @@ const { data: nannyAccount } = await db
 const nannyContext = await browser.newContext({ ...devices["iPhone 13"], baseURL: BASE });
 const nannyPage = await nannyContext.newPage();
 await nannyPage.goto("/login");
-await nannyPage.getByLabel("Email").fill(nannyAccount.email);
-await nannyPage.getByLabel("Password").fill(PASSWORD);
+await nannyPage.locator('input[name="email"]').fill(nannyAccount.email);
+await nannyPage.locator('input[name="password"]').fill(PASSWORD);
 await nannyPage.getByRole("button", { name: "Log in" }).click();
 await nannyPage.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
 

@@ -1773,6 +1773,69 @@ export type Database = {
           },
         ]
       }
+      support_requests: {
+        Row: {
+          category: string
+          contact_email: string
+          contact_name: string | null
+          created_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          internal_note: string | null
+          message: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          contact_email: string
+          contact_name?: string | null
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          internal_note?: string | null
+          message: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          contact_email?: string
+          contact_name?: string | null
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          internal_note?: string | null
+          message?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -1882,6 +1945,18 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_update_support_request: {
+        Args: {
+          p_internal_note?: string
+          p_request_id: string
+          p_status: string
+        }
+        Returns: Json
+      }
+      block_user: {
+        Args: { p_blocked_id: string; p_reason?: string }
+        Returns: Json
+      }
       current_role_name: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
@@ -1934,6 +2009,15 @@ export type Database = {
       my_family_id: { Args: never; Returns: string }
       my_nanny_id: { Args: never; Returns: string }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
+      report_content: {
+        Args: {
+          p_details?: string
+          p_reason: string
+          p_target_id: string
+          p_target_kind: string
+        }
+        Returns: Json
+      }
       send_message: {
         Args: {
           p_attachment_mime?: string
@@ -1954,6 +2038,7 @@ export type Database = {
         Returns: Json
       }
       submit_nanny_profile: { Args: never; Returns: Json }
+      unblock_user: { Args: { p_blocked_id: string }; Returns: Json }
     }
     Enums: {
       account_status: "active" | "suspended" | "deleted"

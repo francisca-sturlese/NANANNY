@@ -67,14 +67,14 @@ export default async function JobsPage({
           Posted directly by families. Applying is free and always will be.
         </p>
 
-        {/* Three filters only — a job list does not need the nanny search's
-            full set, and on a phone every extra control costs a scroll. */}
+        {/* Three filters only, laid out as a grid. A scrolling row put half the
+            controls off screen with nothing to say they were there. */}
         <form
           action="/jobs"
           method="get"
-          className="sticky top-14 z-30 -mx-5 mt-5 flex gap-2 overflow-x-auto border-b border-border bg-background/95 px-5 py-3 backdrop-blur-md sm:top-16 sm:-mx-8 sm:px-8"
+          className="sticky top-14 z-30 -mx-5 mt-5 grid grid-cols-2 gap-2 border-b border-border bg-background/95 px-5 py-3 backdrop-blur-md sm:top-16 sm:-mx-8 sm:flex sm:px-8"
         >
-          <Select name="emirate" defaultValue={params.emirate ?? ""} className="min-w-40 flex-1">
+          <Select name="emirate" defaultValue={params.emirate ?? ""} className="sm:min-w-40 sm:flex-1">
             <option value="">Anywhere</option>
             {EMIRATES.map((e) => (
               <option key={e} value={e}>
@@ -85,7 +85,7 @@ export default async function JobsPage({
           <Select
             name="arrangement"
             defaultValue={params.arrangement ?? ""}
-            className="min-w-36 flex-1"
+            className="sm:min-w-36 sm:flex-1"
           >
             <option value="">Live in or out</option>
             {ARRANGEMENTS.filter((a) => a.value !== "either").map((a) => (
@@ -97,7 +97,7 @@ export default async function JobsPage({
           <Select
             name="employment"
             defaultValue={params.employment ?? ""}
-            className="min-w-36 flex-1"
+            className="sm:min-w-36 sm:flex-1"
           >
             <option value="">Any schedule</option>
             {EMPLOYMENT_TYPES.map((t) => (
@@ -106,7 +106,7 @@ export default async function JobsPage({
               </option>
             ))}
           </Select>
-          <Button type="submit" className="shrink-0">
+          <Button type="submit" className="sm:shrink-0">
             Filter
           </Button>
         </form>

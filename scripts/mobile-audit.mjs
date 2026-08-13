@@ -86,6 +86,27 @@ function auditPage({ minTarget, minFont, enforceTargets }) {
     });
   }
 
+  // A container that scrolls sideways is just as broken as a page that does,
+  // and the document-level check above never sees it. This is how a row of
+  // filters and a strip of cards both shipped with half their content off
+  // screen: the page fitted perfectly, the boxes inside it did not.
+  for (const el of document.querySelectorAll("body *")) {
+    if (el.scrollWidth <= el.clientWidth + 2) continue;
+    const style = getComputedStyle(el);
+    if (!["auto", "scroll"].includes(style.overflowX)) continue;
+    // A deliberate one is fine if it announces itself; these do not.
+    if (el.closest("[data-allow-x-scroll]")) continue;
+
+    const hidden = el.scrollWidth - el.clientWidth;
+    problems.push({
+      kind: "sideways-scrolling-container",
+      detail:
+        "<" + el.tagName.toLowerCase() +
+        ' class="' + String(el.className).slice(0, 50) + '"> hides ' + hidden + "px",
+    });
+    break; // one is enough to fail the page
+  }
+
   const seen = new Set();
   const interactive = document.querySelectorAll(
     "button, a[href], input:not([type=hidden]), select, textarea, [role=button]",

@@ -287,3 +287,36 @@ export async function addAdminNoteAction(
 function cleanMessage(message: string): string {
   return message.replace(/^.*?:\s*/, "");
 }
+
+
+const supportUpdateSchema = z.object({
+  requestId: z.string().uuid(),
+  status: z.enum(["open", "in_progress", "answered", "closed"]),
+  internalNote: z.string().trim().max(4000).optional(),
+});
+
+export async function updateSupportRequestAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = supportUpdateSchema.safeParse({
+    requestId: formData.get("requestId"),
+    status: formData.get("status"),
+    internalNote: formData.get("internalNote") || undefined,
+  });
+  if (!parsed.success) return { error: "Invalid request." };
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.rpc("admin_update_support_request", {
+    p_request_id: parsed.data.requestId,
+    p_status: parsed.data.status,
+    p_internal_note: parsed.data.internalNote ?? undefined,
+  });
+
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/support");
+  return { message: "Updated." };
+}

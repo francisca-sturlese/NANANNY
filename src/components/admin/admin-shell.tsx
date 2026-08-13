@@ -8,6 +8,7 @@ const SECTIONS = [
   { href: "/admin/review", label: "Review" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/support", label: "Support" },
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/audit", label: "Audit" },
@@ -26,17 +27,20 @@ export function AdminShell({
   name,
   pendingReview = 0,
   openReports = 0,
+  openSupport = 0,
   children,
 }: {
   active: string;
   name: string;
   pendingReview?: number;
   openReports?: number;
+  openSupport?: number;
   children: React.ReactNode;
 }) {
   const counts: Record<string, number> = {
     "/admin/review": pendingReview,
     "/admin/reports": openReports,
+    "/admin/support": openSupport,
   };
 
   return (

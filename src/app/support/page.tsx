@@ -1,19 +1,35 @@
 import type { Metadata } from "next";
 import { MarketingPage, Section, FaqList } from "@/components/site/marketing-page";
+import { SupportForm } from "@/components/safety/support-form";
+import { getSession } from "@/lib/auth/dal";
 
 export const metadata: Metadata = {
   title: "Support",
   description: "Get help with your NaNanny account, your profile or your subscription.",
 };
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  const user = await getSession();
+
   return (
     <MarketingPage
       eyebrow="Support"
       title="We're here to help"
       intro="Most things are quicker to fix than they look. If you cannot find the answer below, write to us."
-      cta={{ href: "mailto:support@nananny.ae", label: "Email support@nananny.ae" }}
     >
+      <Section title="Write to us">
+        <p>
+          Fill this in and we will reply to the address you give, usually within one
+          working day. You do not need to be logged in.
+        </p>
+        <div className="mt-5 rounded-lg border border-border bg-background p-5 sm:p-6">
+          <SupportForm
+            defaultEmail={user?.email}
+            defaultName={[user?.firstName, user?.lastName].filter(Boolean).join(" ") || undefined}
+          />
+        </div>
+      </Section>
+
       <Section title="Reporting something">
         <p>
           If a profile, a message or a job post is not what it should be, use the report

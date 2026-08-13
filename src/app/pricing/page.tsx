@@ -48,28 +48,16 @@ export default async function PricingPage() {
           that works for you.
         </p>
 
-        {/* Best Value first on a phone: it is the recommendation, so it should
-            be the card the thumb reaches first. */}
+        {/* Ascending: free, then the cheaper plan, then the dearer one. The
+            Best Value mark still points at monthly without the layout having to
+            shout it by putting it first. */}
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {pricing.monthlyEnabled && (
-            <PlanCard
-              name="Monthly"
-              price={pricing.monthlyPriceAed}
-              period="month"
-              currency={pricing.currency}
-              features={paid}
-              highlighted={pricing.monthlyIsBestValue}
-              className="lg:order-2"
-            />
-          )}
-
           <PlanCard
             name="Free"
             price={0}
             period={null}
             currency={pricing.currency}
             features={free}
-            className="lg:order-1"
             footnote="No card needed."
           />
 
@@ -80,7 +68,17 @@ export default async function PricingPage() {
               period="week"
               currency={pricing.currency}
               features={paid}
-              className="lg:order-3"
+            />
+          )}
+
+          {pricing.monthlyEnabled && (
+            <PlanCard
+              name="Monthly"
+              price={pricing.monthlyPriceAed}
+              period="month"
+              currency={pricing.currency}
+              features={paid}
+              highlighted={pricing.monthlyIsBestValue}
             />
           )}
         </div>
