@@ -39,6 +39,13 @@ const PAGES = [
   { path: "/nannies?emirate=Dubai&experience=5", name: "search-filtered" },
   { path: "/nannies?emirate=Fujairah&experience=10&salary_max=2000", name: "search-empty" },
   { path: "/jobs", name: "jobs" },
+  { path: "/pricing", name: "pricing" },
+  { path: "/how-it-works", name: "how-it-works" },
+  { path: "/for-families", name: "for-families" },
+  { path: "/for-nannies", name: "for-nannies" },
+  { path: "/support", name: "support" },
+  { path: "/privacy", name: "privacy" },
+  { path: "/terms", name: "terms" },
   // Filled in at startup from the seeded data, so the detail pages are audited
   // with real content rather than a placeholder.
 ];

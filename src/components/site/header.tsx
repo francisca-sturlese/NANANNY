@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { Portal, useScrollLock } from "@/components/ui/portal";
 
 const NAV = [
   { href: "/nannies", label: "Find a Nanny" },
@@ -22,6 +23,7 @@ const NAV = [
  */
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  useScrollLock(open);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
@@ -67,6 +69,9 @@ export function SiteHeader() {
 
       {/* Full-screen menu: every link is a large, unmissable target. */}
       {open && (
+        <Portal>
+        {/* Same reason as the filter sheet: the header itself has
+            backdrop-blur, so a `fixed` child would be trapped inside it. */}
         <div id="mobile-menu" className="fixed inset-0 z-50 bg-background md:hidden">
           <div className="flex h-14 items-center justify-between px-5">
             <Logo />
@@ -109,6 +114,7 @@ export function SiteHeader() {
             </div>
           </nav>
         </div>
+        </Portal>
       )}
     </header>
   );

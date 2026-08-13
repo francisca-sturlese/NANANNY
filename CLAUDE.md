@@ -20,11 +20,22 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-psql "$SUPABASE_DB_URL" -f supabase/tests/free_contacts_gate.sql   # 12 checks
-psql "$SUPABASE_DB_URL" -f supabase/tests/privacy_rls.sql          # 24 checks
-node scripts/e2e-onboarding.mjs                                    # 29 checks
-node scripts/mobile-audit.mjs                                      # 70 combos
+npm run test:db        # 12 + 24 + 10 SQL checks
+npm run test:e2e       # 29 + 20 end-to-end checks
+npm run test:mobile    # 252 viewport/engine combinations
+npm run test:links     # every internal link, as 4 different audiences
+npm run test:overlays  # sheets and menus actually cover the viewport
+npm run test:all       # all of the above, plus typecheck and lint
 ```
+
+The browser suites are much faster against a production build than the dev
+server (`npm run build && npx next start -p 3100`), and closer to what a phone
+will actually get.
+
+**If a suite starts timing out on navigation, check Docker first.** When Docker
+Desktop stops, nothing listens on 54421 and every Supabase call hangs for ~7s
+before failing — pages still return 200, so it looks like slowness rather than
+an outage.
 
 ## The rules that are not negotiable
 
@@ -65,6 +76,12 @@ through short-lived signed URLs minted server-side by
 keys are always `<owner uuid>/<file>`; the storage policies pin that first
 segment to `auth.uid()`.
 
+**`position: fixed` is not always the viewport.** Any ancestor with
+`backdrop-filter`, `filter`, `transform` or `contain` becomes its containing
+block — and every sticky header and filter bar here uses `backdrop-blur`. Sheets
+and menus must render through `components/ui/portal.tsx`, or they get clipped to
+the bar they were opened from. `npm run test:overlays` guards this.
+
 **Mobile is the primary target.** See `docs/mobile-first.md` — it is a set of
 constraints, not advice, and `scripts/mobile-audit.mjs` enforces the mechanical
 half of it.
@@ -92,7 +109,7 @@ docs/                  mobile-first constraints, reuse notes
 
 1. ✅ Setup, schema, RLS, free-contact gate, design system
 2. ✅ Auth, onboarding, profiles, completion, review states, seed, mobile pass
-3. ⬜ Search, filters, jobs, applications, shortlist
+3. ✅ Search, filters, jobs, applications, shortlist
 4. ⬜ Messaging, contact counter, paywall
 5. ⬜ Subscriptions, payments, webhooks
 6. ⬜ AI assistant and matching

@@ -74,6 +74,8 @@ const { data: familyProfile } = await db
   .eq("user_id", familyUser.id)
   .single();
 
+await db.from("saved_profiles").delete().eq("family_id", familyProfile.id);
+
 const contactsBefore = (
   await db.rpc("family_contact_state", { p_family_id: familyProfile.id })
 ).data[0].free_contacts_used;
@@ -136,16 +138,33 @@ check(
 );
 await shot(fam.page, "03-shortlist");
 
-// Move it to a later stage.
+// Move it to a later stage, then poll rather than guess at a fixed delay.
 await fam.page.locator('select[name="stage"]').first().selectOption("interview");
-await fam.page.waitForTimeout(1500);
-const { data: stageRow } = await db
-  .from("saved_profiles")
-  .select("stage")
-  .eq("family_id", familyProfile.id)
-  .eq("stage", "interview")
-  .maybeSingle();
-check("shortlist stage change persists", stageRow?.stage === "interview");
+
+let stageRow = null;
+for (let i = 0; i < 20; i++) {
+  await fam.page.waitForTimeout(300);
+  const { data } = await db
+    .from("saved_profiles")
+    .select("stage")
+    .eq("family_id", familyProfile.id)
+    .limit(1)
+    .maybeSingle();
+  stageRow = data;
+  if (stageRow?.stage === "interview") break;
+}
+check("shortlist stage change persists", stageRow?.stage === "interview", `stage ${stageRow?.stage}`);
+
+// And the screen must agree with the database, not lag a step behind it.
+// Polled rather than waited on a fixed delay: the router refresh that pulls the
+// saved row is asynchronous, and a fixed timeout only encodes today's speed.
+let shownStage = "";
+for (let i = 0; i < 25; i++) {
+  shownStage = await fam.page.locator('select[name="stage"]').first().inputValue();
+  if (shownStage === "interview") break;
+  await fam.page.waitForTimeout(200);
+}
+check("the shortlist screen shows the saved stage", shownStage === "interview", shownStage);
 
 // ---------------------------------------------------------------- post a job
 console.log("\n--- JOB POSTING (family) ---\n");

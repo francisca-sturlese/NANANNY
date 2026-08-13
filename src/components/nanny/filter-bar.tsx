@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Portal, useScrollLock } from "@/components/ui/portal";
 import { Select } from "@/components/ui/field";
 import { ChoiceCard, ChoiceGroup, PillCheckbox, PillGroup } from "@/components/ui/choice";
 import {
@@ -38,6 +39,7 @@ export function FilterBar({
   const router = useRouter();
   const params = useSearchParams();
   const [open, setOpen] = useState(false);
+  useScrollLock(open);
 
   const value = (key: string) => params.get(key) ?? "";
   const skills = params.getAll("skills");
@@ -111,6 +113,10 @@ export function FilterBar({
       </div>
 
       {open && (
+        <Portal>
+        {/* Portalled to <body>: this sheet lives inside a sticky bar with
+            backdrop-blur, which would otherwise become the containing block for
+            `fixed` and clip the panel to the bar's own box. */}
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Filters">
           <button
             type="button"
@@ -271,6 +277,7 @@ export function FilterBar({
             </div>
           </form>
         </div>
+        </Portal>
       )}
     </>
   );
