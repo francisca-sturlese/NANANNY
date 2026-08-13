@@ -35,7 +35,7 @@ export async function setNannyStatusAction(
   if (!parsed.success) return { error: "Invalid request." };
 
   if (parsed.data.status === "rejected" && !parsed.data.reason) {
-    return { error: "A rejection needs a reason — the nanny sees it and acts on it." };
+    return { error: "A rejection needs a reason. The nanny sees it and acts on it." };
   }
 
   const supabase = await createServerSupabase();

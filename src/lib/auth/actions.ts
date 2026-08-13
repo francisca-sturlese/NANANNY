@@ -229,7 +229,7 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
 
 function friendlyAuthError(message: string): string {
   if (/password/i.test(message) && /weak|short|characters/i.test(message)) {
-    return "Choose a longer password — at least 10 characters.";
+    return "Choose a longer password. At least 10 characters.";
   }
   if (/rate limit|too many/i.test(message)) {
     return "Too many attempts. Please wait a minute and try again.";

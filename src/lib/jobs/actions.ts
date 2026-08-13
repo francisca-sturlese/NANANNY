@@ -34,7 +34,7 @@ const jobSchema = z.object({
   responsibilities: z
     .string()
     .trim()
-    .min(30, "Describe the day to day — at least a couple of sentences")
+    .min(30, "Describe the day to day, at least a couple of sentences")
     .max(4000),
   requiredExperience: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(40).nullable()),
   requiredLanguages: z.array(z.string()),

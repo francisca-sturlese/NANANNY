@@ -6,14 +6,14 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3100";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "NaNanny UAE — Find the right nanny for your family",
+    default: "NaNanny UAE. Find the right nanny for your family",
     template: "%s · NaNanny UAE",
   },
   description:
     "Connect directly with nannies across the UAE. Browse profiles for free, contact your first 3 nannies at no cost, and hire on your own terms.",
   applicationName: "NaNanny UAE",
   openGraph: {
-    title: "NaNanny UAE — Find the right nanny for your family",
+    title: "NaNanny UAE. Find the right nanny for your family",
     description: "Connect directly with nannies across the UAE. Your first 3 contacts are free.",
     siteName: "NaNanny UAE",
     locale: "en_AE",

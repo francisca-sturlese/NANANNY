@@ -128,7 +128,7 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
       </h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">
         {hasFilters
-          ? "Try widening one filter at a time — budget and years of experience are usually the ones narrowing it most."
+          ? "Try widening one filter at a time. Budget and years of experience are usually the ones narrowing it most."
           : "Approved profiles will appear here as nannies join."}
       </p>
       {hasFilters && (

@@ -41,7 +41,7 @@ export default async function ForFamiliesPage() {
       <Section title="How we handle verification">
         <p>
           Every nanny profile is read by a person before it goes live. Approval means the
-          profile is genuine and complete — it is not a background check, and we never
+          profile is genuine and complete. It is not a background check, and we never
           claim it is. Badges are specific: Identity Verified, Documents Reviewed, First Aid
           Certificate. Each one means someone looked at that particular thing.
         </p>

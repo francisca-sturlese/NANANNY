@@ -30,11 +30,11 @@ export default function SupportPage() {
         items={[
           {
             q: "I did not get my verification email",
-            a: "Check your spam or promotions folder first. The link is valid for one hour — if it has expired, ask for a new one from the verification page.",
+            a: "Check your spam or promotions folder first. The link is valid for one hour. If it has expired, ask for a new one from the verification page.",
           },
           {
             q: "My nanny profile was rejected",
-            a: "The rejection message says exactly what needs changing. Update those fields and submit it again — there is no limit on resubmissions.",
+            a: "The rejection message says exactly what needs changing. Update those fields and submit it again. There is no limit on resubmissions.",
           },
           {
             q: "I want to change my subscription",

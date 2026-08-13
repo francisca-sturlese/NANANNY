@@ -153,7 +153,7 @@ export function FamilyStepForm({
           <Field
             label="A little about your family"
             htmlFor="description"
-            hint="Optional now — but families who write a few lines get better replies."
+            hint="Optional now, but families who write a few lines get better replies."
             error={err.description}
           >
             <Textarea
@@ -384,7 +384,7 @@ export function FamilyStepForm({
           <Field
             label="Anything else a nanny should know?"
             htmlFor="additionalRequirements"
-            hint="Allergies, school runs, travel, a preferred routine — anything that matters."
+            hint="Allergies, school runs, travel, a preferred routine. Anything that matters."
             error={err.additionalRequirements}
           >
             <Textarea
@@ -477,7 +477,7 @@ function ChildrenStep({
                 min={0}
                 max={21}
                 defaultValue={defaultAges[i] ?? ""}
-                placeholder="—"
+                placeholder="0"
               />
             </label>
           ))}

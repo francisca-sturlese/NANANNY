@@ -58,8 +58,8 @@ export default function TermsPage() {
       <Section title="Verification">
         <p>
           An approved profile means our team has read it and found it genuine and complete.
-          It is not a background check. Where we have checked something specific — an
-          identity document, a first aid certificate — the profile says so with a badge for
+          It is not a background check. Where we have checked something specific, such as an
+          identity document or a first aid certificate, the profile says so with a badge for
           that particular thing, and nothing more.
         </p>
         <p>

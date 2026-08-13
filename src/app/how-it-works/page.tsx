@@ -5,7 +5,7 @@ import { getPricingConfig } from "@/lib/pricing";
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "How NaNanny connects families and nannies directly across the UAE — search, match, message and hire, with no agency in between.",
+    "How NaNanny connects families and nannies directly across the UAE. Search, match, message and hire, with no agency in between.",
 };
 
 export default async function HowItWorksPage() {

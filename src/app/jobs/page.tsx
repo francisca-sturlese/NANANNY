@@ -178,7 +178,7 @@ export default async function JobsPage({
                     <p className="mt-2.5 text-sm font-medium">
                       AED {job.salary_min_aed.toLocaleString("en-AE")}
                       {job.salary_max_aed != null &&
-                        ` – ${job.salary_max_aed.toLocaleString("en-AE")}`}
+                        ` to ${job.salary_max_aed.toLocaleString("en-AE")}`}
                       <span className="font-normal text-muted"> / month</span>
                     </p>
                   )}

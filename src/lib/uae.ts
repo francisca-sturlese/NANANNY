@@ -105,9 +105,9 @@ export const EMPLOYMENT_TYPES = [
 ] as const;
 
 export const CHILD_AGE_BANDS = [
-  { value: "newborn", label: "Newborn (0–12 months)" },
-  { value: "toddler", label: "Toddler (1–3 years)" },
-  { value: "school_age", label: "School age (4–11 years)" },
+  { value: "newborn", label: "Newborn (0 to 12 months)" },
+  { value: "toddler", label: "Toddler (1 to 3 years)" },
+  { value: "school_age", label: "School age (4 to 11 years)" },
   { value: "special_needs", label: "Special needs" },
 ] as const;
 

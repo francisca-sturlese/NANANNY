@@ -89,7 +89,7 @@ export default async function PricingPage() {
           <h2 className="text-xl font-semibold sm:text-2xl">Nannies never pay.</h2>
           <p className="mt-2 max-w-xl leading-relaxed text-muted">
             No fee to create a profile, appear in search, receive matches, apply to jobs or
-            reply to families. And no commission on her salary — what a family agrees with
+            reply to families. And no commission on her salary. What a family agrees with
             her is what she is paid.
           </p>
         </div>
@@ -101,7 +101,7 @@ export default async function PricingPage() {
               items={[
                 {
                   q: "What counts as a contact?",
-                  a: `Opening a conversation with a nanny you have not messaged before. Viewing her profile, saving her, or adding her to your shortlist costs nothing. Once you have messaged someone, every message after that is included — she is never charged twice.`,
+                  a: `Opening a conversation with a nanny you have not messaged before. Viewing her profile, saving her, or adding her to your shortlist costs nothing. Once you have messaged someone, every message after that is included, and she is never charged twice.`,
                 },
                 {
                   q: `What happens after my ${pricing.freeContacts} free contacts?`,
@@ -109,7 +109,7 @@ export default async function PricingPage() {
                 },
                 {
                   q: "Do you take a cut of the nanny's salary?",
-                  a: "No. NaNanny is a technology platform, not an agency. There is no commission and no placement fee — you agree the salary directly with her.",
+                  a: "No. NaNanny is a technology platform, not an agency. There is no commission and no placement fee. You agree the salary directly with her.",
                 },
                 {
                   q: "Can I cancel?",

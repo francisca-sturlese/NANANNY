@@ -94,7 +94,7 @@ const storySchema = z.object({
   description: z
     .string()
     .trim()
-    .min(80, "Families read this first — write at least a couple of sentences (80 characters)")
+    .min(80, "Families read this first. Write at least a couple of sentences (80 characters)")
     .max(4000),
 });
 

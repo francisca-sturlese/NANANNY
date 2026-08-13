@@ -58,7 +58,7 @@ export default async function AdminPage() {
     >
       <h1 className="text-3xl font-semibold">Nanny review queue</h1>
       <p className="mt-1 text-muted">
-        Approving a profile makes it discoverable. It is not a verification claim — grant a
+        Approving a profile makes it discoverable. It is not a verification claim. Grant a
         badge only for what you have actually seen.
       </p>
 

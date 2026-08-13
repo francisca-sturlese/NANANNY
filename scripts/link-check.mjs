@@ -1,5 +1,6 @@
 /**
- * Crawls every internal link the app renders and fails on anything broken.
+ * Crawls every internal link the app renders and fails on anything broken, and
+ * on any em or en dash in the copy.
  *
  * A 404 behind a navigation item is the kind of thing that survives every unit
  * test and is the first thing a real visitor finds. Runs signed out, then as a
@@ -33,6 +34,7 @@ const AUDIENCES = [
 
 const browser = await webkit.launch();
 const problems = [];
+const dashProblems = [];
 let checked = 0;
 
 for (const audience of AUDIENCES) {
@@ -79,6 +81,17 @@ for (const audience of AUDIENCES) {
       // path, and a bug for anyone else.
       problems.push(`${audience.name}: ${path} → redirected to login`);
     }
+
+    // The copy uses plain sentences, not dashes. Checked on the rendered text
+    // so it catches strings built at runtime as well as literals in the source.
+    const dashes = await page.evaluate(() => {
+      const text = document.body?.innerText ?? "";
+      const found = text.match(/[^\n]{0,40}[—–][^\n]{0,40}/g) ?? [];
+      return found.slice(0, 3);
+    });
+    if (dashes.length > 0) {
+      dashProblems.push(`${audience.name}: ${path} → ${dashes.join(" | ")}`);
+    }
   }
 
   await context.close();
@@ -91,7 +104,15 @@ console.log(`\nChecked ${checked} links across ${AUDIENCES.length} audiences.\n`
 if (problems.length === 0) {
   console.log("✓ No broken or unexpectedly gated links.");
 } else {
-  console.log(`✗ ${problems.length} problem(s):\n`);
+  console.log(`✗ ${problems.length} link problem(s):\n`);
   for (const p of problems) console.log(`  ${p}`);
+  process.exitCode = 1;
+}
+
+if (dashProblems.length === 0) {
+  console.log("✓ No em or en dashes in the copy.");
+} else {
+  console.log(`\n✗ ${dashProblems.length} page(s) with a dash in the copy:\n`);
+  for (const p of dashProblems) console.log(`  ${p}`);
   process.exitCode = 1;
 }

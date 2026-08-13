@@ -63,7 +63,7 @@ export default async function SavedPage({
     <AppShell nav={FAMILY_NAV} active="/family/saved" name="Saved">
       <h1 className="text-2xl font-semibold sm:text-3xl">Saved nannies</h1>
       <p className="mt-1 text-sm text-muted">
-        Saving and shortlisting is always free — it never uses one of your contacts.
+        Saving and shortlisting is always free. It never uses one of your contacts.
       </p>
 
       {rows.length > 0 && (

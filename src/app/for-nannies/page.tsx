@@ -31,7 +31,7 @@ export default function ForNanniesPage() {
         <p>
           Your first name, a clear photo, where you are based, your experience, languages,
           availability and what you expect to earn. Your surname, date of birth, exact area
-          and any documents you upload stay private — families never see them.
+          and any documents you upload stay private. Families never see them.
         </p>
       </Section>
 

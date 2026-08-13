@@ -165,8 +165,8 @@ export default async function NannyProfilePage() {
             </div>
           ) : (
             <p className="mt-2 text-sm text-muted">
-              None yet. Badges are added by our team once we have seen the document itself —
-              they are not automatic.
+              None yet. Badges are added by our team once we have seen the document itself.
+              They are not automatic.
             </p>
           )}
         </CardBody>

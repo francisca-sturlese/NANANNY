@@ -16,7 +16,7 @@ export function formatAed(amount: number, opts?: { compact?: boolean }) {
 export function formatSalaryRange(min?: number | null, max?: number | null) {
   if (min == null && max == null) return null;
   if (min != null && max != null) {
-    return `${formatAed(min)} – ${formatAed(max)}`;
+    return `${formatAed(min)} to ${formatAed(max)}`;
   }
   return min != null ? `From ${formatAed(min)}` : `Up to ${formatAed(max!)}`;
 }

@@ -168,7 +168,7 @@ await page.waitForURL(/onboarding\/requirements/, { timeout: 15000 });
 await page.getByLabel(/Monthly budget from/).fill("4000");
 await page.getByLabel(/Up to \(AED\)/).fill("5000");
 await page.getByText("English", { exact: true }).first().click();
-await page.getByText(/Toddler \(1–3 years\)/).first().click();
+await page.getByText(/Toddler \(1 to 3 years\)/).first().click();
 await shot("06-onboarding-requirements");
 await page.getByRole("button", { name: "Continue" }).click();
 await page.waitForURL(/onboarding\/finishing/, { timeout: 15000 });

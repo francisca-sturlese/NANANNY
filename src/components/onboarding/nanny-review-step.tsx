@@ -132,7 +132,7 @@ export function NannyReviewStep({
               <li>3. Once approved, families can find you and message you.</li>
             </ol>
             <p className="mt-4 text-xs text-subtle">
-              Approval means your profile is live. It is not a background check — badges
+              Approval means your profile is live. It is not a background check. Badges
               are added separately, one for each thing we have actually verified.
             </p>
           </div>

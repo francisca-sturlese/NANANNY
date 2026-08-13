@@ -48,7 +48,7 @@ export default async function VerifyEmailPage({
             className="rounded-md border border-danger/25 bg-danger/5 px-4 py-3 text-sm text-danger"
           >
             That link is no longer valid. Verification links can only be used once and
-            expire after a while — request a new one below.
+            expire after a while. Request a new one below.
           </p>
         )}
 

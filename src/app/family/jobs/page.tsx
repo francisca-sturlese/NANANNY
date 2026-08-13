@@ -112,7 +112,7 @@ export default async function FamilyJobsPage({
                       {job.salary_min_aed != null &&
                         ` · AED ${job.salary_min_aed.toLocaleString("en-AE")}${
                           job.salary_max_aed != null
-                            ? `–${job.salary_max_aed.toLocaleString("en-AE")}`
+                            ? ` to ${job.salary_max_aed.toLocaleString("en-AE")}`
                             : ""
                         }`}
                     </p>

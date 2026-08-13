@@ -221,9 +221,9 @@ export function NannyStepForm({
             columns={2}
           >
             {[
-              { v: "newborn", l: "Newborn", h: "0–12 months", c: profile?.newborn_experience },
-              { v: "toddler", l: "Toddler", h: "1–3 years", c: profile?.toddler_experience },
-              { v: "school_age", l: "School age", h: "4–11 years", c: profile?.school_age_experience },
+              { v: "newborn", l: "Newborn", h: "0 to 12 months", c: profile?.newborn_experience },
+              { v: "toddler", l: "Toddler", h: "1 to 3 years", c: profile?.toddler_experience },
+              { v: "school_age", l: "School age", h: "4 to 11 years", c: profile?.school_age_experience },
               { v: "special_needs", l: "Special needs", h: "Additional care needs", c: profile?.special_needs_experience },
             ].map((o) => (
               <ChoiceCard
@@ -248,7 +248,7 @@ export function NannyStepForm({
               id="previousExperience"
               name="previousExperience"
               defaultValue={profile?.previous_experience?.[0]?.summary ?? ""}
-              placeholder="2021–2025, a family in Dubai Marina with two children aged 3 and 6. School runs, meals, homework and bedtime routine."
+              placeholder="2021 to 2025, a family in Dubai Marina with two children aged 3 and 6. School runs, meals, homework and bedtime routine."
             />
           </Field>
         </>
@@ -322,7 +322,7 @@ export function NannyStepForm({
 
           <p className="rounded-md border border-butter bg-butter-wash px-4 py-3 text-xs text-butter-deep">
             Ticking a skill tells families what you can do. A badge on your profile is
-            different — we only add one after our team has actually seen the certificate.
+            different. We only add one after our team has actually seen the certificate.
           </p>
 
           <Field label="Education" htmlFor="education" error={err.education}>

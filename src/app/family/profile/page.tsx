@@ -113,7 +113,7 @@ export default async function FamilyProfilePage() {
             label="Hours"
             value={
               requirements?.working_hours_start && requirements?.working_hours_end
-                ? `${requirements.working_hours_start.slice(0, 5)} – ${requirements.working_hours_end.slice(0, 5)}`
+                ? `${requirements.working_hours_start.slice(0, 5)} to ${requirements.working_hours_end.slice(0, 5)}`
                 : null
             }
           />
@@ -124,7 +124,7 @@ export default async function FamilyProfilePage() {
             label="Budget"
             value={
               requirements?.salary_max_aed
-                ? `AED ${(requirements.salary_min_aed ?? 0).toLocaleString("en-AE")} – ${requirements.salary_max_aed.toLocaleString("en-AE")}`
+                ? `AED ${(requirements.salary_min_aed ?? 0).toLocaleString("en-AE")} to ${requirements.salary_max_aed.toLocaleString("en-AE")}`
                 : null
             }
           />

@@ -25,7 +25,7 @@ const STATUS_COPY: Record<
   },
   submitted: {
     badge: "butter",
-    title: "Submitted — waiting for review",
+    title: "Submitted, waiting for review",
     body: "Our team has your profile. We usually get to it within two working days.",
   },
   under_review: {
@@ -95,7 +95,7 @@ export default async function NannyDashboard({
     <AppShell nav={NANNY_NAV} active="/nanny" name={profile.first_name ?? user.firstName ?? "Nanny"}>
       {submitted && (
         <div className="mb-8 rounded-lg border border-sage bg-sage-wash p-5">
-          <h2 className="font-semibold text-sage-deep">Thank you — your profile is in.</h2>
+          <h2 className="font-semibold text-sage-deep">Thank you. Your profile is in.</h2>
           <p className="mt-1 text-sm text-sage-deep/90">
             We&apos;ll email you as soon as our team has reviewed it.
           </p>

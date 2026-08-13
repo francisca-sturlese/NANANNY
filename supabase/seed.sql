@@ -205,7 +205,7 @@ begin
     if (item ->> 10) <> 'draft' then
       insert into public.nanny_references (nanny_id, referee_name, relationship, period, note, verified)
       values (nid, 'Seed Reference ' || i, 'Previous employer',
-              '2021–2025', 'Development seed reference. Not a real person.',
+              '2021 to 2025', 'Development seed reference. Not a real person.',
               (item ->> 10) = 'approved');
     end if;
 

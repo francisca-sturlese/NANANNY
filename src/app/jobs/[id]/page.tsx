@@ -191,7 +191,7 @@ export default async function JobDetailPage({
         {job.salary_min_aed != null && (
           <p className="mt-5 rounded-lg border border-border bg-surface px-4 py-3 text-lg font-semibold">
             AED {job.salary_min_aed.toLocaleString("en-AE")}
-            {job.salary_max_aed != null && ` – ${job.salary_max_aed.toLocaleString("en-AE")}`}
+            {job.salary_max_aed != null && ` to ${job.salary_max_aed.toLocaleString("en-AE")}`}
             <span className="text-base font-normal text-muted"> / month</span>
           </p>
         )}
@@ -215,7 +215,7 @@ export default async function JobDetailPage({
             </div>
             {job.working_hours_start && job.working_hours_end && (
               <p className="mt-3 text-sm text-muted">
-                {job.working_hours_start.slice(0, 5)} – {job.working_hours_end.slice(0, 5)}
+                {job.working_hours_start.slice(0, 5)} to {job.working_hours_end.slice(0, 5)}
               </p>
             )}
             {job.schedule_notes && (

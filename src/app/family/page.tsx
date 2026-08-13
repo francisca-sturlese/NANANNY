@@ -44,8 +44,8 @@ export default async function FamilyDashboard({
         <div className="mb-8 rounded-lg border border-sage bg-sage-wash p-5">
           <h2 className="font-semibold text-sage-deep">You&apos;re all set.</h2>
           <p className="mt-1 text-sm text-sage-deep/90">
-            Your family profile is live. Start browsing nannies whenever you&apos;re ready —
-            viewing profiles is always free.
+            Your family profile is live. Start browsing nannies whenever you&apos;re ready.
+            Viewing profiles is always free.
           </p>
         </div>
       )}

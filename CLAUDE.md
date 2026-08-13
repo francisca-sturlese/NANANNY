@@ -23,7 +23,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 npm run test:db        # 12 + 24 + 10 SQL checks
 npm run test:e2e       # 29 + 20 end-to-end checks
 npm run test:mobile    # 252 viewport/engine combinations
-npm run test:links     # every internal link, as 4 different audiences
+npm run test:links     # every internal link as 4 audiences, plus no dashes in copy
 npm run test:overlays  # sheets and menus actually cover the viewport
 npm run test:all       # all of the above, plus typecheck and lint
 ```
@@ -86,6 +86,17 @@ the bar they were opened from. `npm run test:overlays` guards this.
 constraints, not advice, and `scripts/mobile-audit.mjs` enforces the mechanical
 half of it.
 
+## Copy
+
+Plain sentences. **No em or en dashes anywhere a user can read** — not in
+labels, not in help text, not in ranges. Use a full stop, a comma, a colon, or
+the word "to" for a range ("AED 4,000 to 5,000", "0 to 12 months"). This matches
+how the client writes and keeps the product from reading as machine-written.
+`npm run test:links` fails the build if a dash appears in rendered copy.
+
+Also avoid the usual machine tells: seamless, unlock, empower, leverage,
+elevate, robust, effortless, "it's not just X, it's Y". Say the plain thing.
+
 ## Brand
 
 White background, black text. Sage `#C7D2CC`, peach `#FCE1D8`, butter
@@ -110,7 +121,7 @@ docs/                  mobile-first constraints, reuse notes
 1. ✅ Setup, schema, RLS, free-contact gate, design system
 2. ✅ Auth, onboarding, profiles, completion, review states, seed, mobile pass
 3. ✅ Search, filters, jobs, applications, shortlist
-4. ⬜ Messaging, contact counter, paywall
+4. ✅ Messaging, contact counter, paywall
 5. ⬜ Subscriptions, payments, webhooks
 6. ⬜ AI assistant and matching
 7. ⬜ Admin, moderation, analytics

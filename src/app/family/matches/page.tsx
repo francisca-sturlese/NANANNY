@@ -14,7 +14,7 @@ export default async function FamilyMatchesPage() {
     <AppShell nav={FAMILY_NAV} active="/family/matches" name="Matches">
       <ComingSoon
         title="Matches are coming"
-        body="We'll score every approved nanny against what you told us — location, schedule, ages, languages, budget — and show you why each one fits. Until then, search works on all the same filters."
+        body="We'll score every approved nanny against what you told us: location, schedule, ages, languages and budget. You'll see why each one fits. Until then, search works on all the same filters."
         cta={{ href: "/nannies", label: "Search nannies" }}
       />
     </AppShell>

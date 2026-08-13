@@ -200,7 +200,7 @@ export function JobForm({
         label="What the role involves"
         htmlFor="responsibilities"
         required
-        hint="School runs, meals, play, bedtime — the day as it actually is."
+        hint="School runs, meals, play, bedtime. The day as it actually is."
         error={err.responsibilities}
       >
         <Textarea

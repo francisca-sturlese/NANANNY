@@ -44,7 +44,7 @@ export async function generateMetadata({
   if (!data) return { title: "Profile not found" };
 
   return {
-    title: `${data.first_name ?? "Nanny"} — nanny in ${data.emirate ?? "the UAE"}`,
+    title: `${data.first_name ?? "Nanny"}, nanny in ${data.emirate ?? "the UAE"}`,
     description:
       data.headline ??
       `${data.first_name ?? "A nanny"} has ${data.years_experience} years of childcare experience in the UAE.`,
@@ -127,9 +127,9 @@ export default async function NannyProfilePage({
         : "Live in or live out";
 
   const ages = [
-    nanny.newborn_experience && "Newborn (0–12 months)",
-    nanny.toddler_experience && "Toddler (1–3 years)",
-    nanny.school_age_experience && "School age (4–11 years)",
+    nanny.newborn_experience && "Newborn (0 to 12 months)",
+    nanny.toddler_experience && "Toddler (1 to 3 years)",
+    nanny.school_age_experience && "School age (4 to 11 years)",
     nanny.special_needs_experience && "Special needs",
   ].filter(Boolean) as string[];
 

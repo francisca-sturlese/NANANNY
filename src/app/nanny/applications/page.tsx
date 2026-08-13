@@ -90,7 +90,7 @@ export default async function NannyApplicationsPage() {
                     [job.area, job.emirate].filter(Boolean).join(", "),
                     job.salary_min_aed
                       ? `AED ${job.salary_min_aed.toLocaleString("en-AE")}${
-                          job.salary_max_aed ? `–${job.salary_max_aed.toLocaleString("en-AE")}` : ""
+                          job.salary_max_aed ? ` to ${job.salary_max_aed.toLocaleString("en-AE")}` : ""
                         }`
                       : null,
                   ]
