@@ -1829,11 +1829,56 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_contact_funnel: { Args: never; Returns: Json }
+      admin_grant_badge: {
+        Args: { p_badge: string; p_nanny_id: string; p_note?: string }
+        Returns: Json
+      }
+      admin_metrics: { Args: never; Returns: Json }
+      admin_resolve_report: {
+        Args: {
+          p_report_id: string
+          p_resolution?: string
+          p_status: Database["public"]["Enums"]["report_status"]
+        }
+        Returns: Json
+      }
+      admin_revoke_badge: {
+        Args: { p_badge: string; p_nanny_id: string }
+        Returns: Json
+      }
+      admin_set_job_status: {
+        Args: {
+          p_job_id: string
+          p_reason?: string
+          p_status: Database["public"]["Enums"]["job_status"]
+        }
+        Returns: Json
+      }
       admin_set_nanny_status: {
         Args: {
           p_nanny_id: string
           p_reason?: string
           p_status: Database["public"]["Enums"]["nanny_profile_status"]
+        }
+        Returns: Json
+      }
+      admin_set_user_status: {
+        Args: {
+          p_reason?: string
+          p_status: Database["public"]["Enums"]["account_status"]
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      admin_update_pricing: {
+        Args: {
+          p_free_contacts: number
+          p_monthly_enabled?: boolean
+          p_monthly_is_best_value?: boolean
+          p_monthly_price: number
+          p_weekly_enabled?: boolean
+          p_weekly_price: number
         }
         Returns: Json
       }

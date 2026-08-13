@@ -13,7 +13,7 @@
     "db:studio": "open http://127.0.0.1:54423",
     "typecheck": "tsc --noEmit",
     "test:db": "psql \"$SUPABASE_DB_URL\" -f supabase/tests/free_contacts_gate.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/privacy_rls.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/jobs_and_shortlist.sql",
-    "test:e2e": "node scripts/e2e-onboarding.mjs && node scripts/e2e-jobs.mjs",
+    "test:e2e": "node scripts/e2e-onboarding.mjs && node scripts/e2e-jobs.mjs && node scripts/e2e-paywall.mjs && node scripts/e2e-admin.mjs",
     "test:mobile": "node scripts/mobile-audit.mjs",
     "test:links": "node scripts/link-check.mjs",
     "test:overlays": "node scripts/overlay-check.mjs",

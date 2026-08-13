@@ -10,7 +10,6 @@ import {
   User,
   Briefcase,
   ClipboardList,
-  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,10 +30,6 @@ export const NANNY_NAV: NavItem[] = [
   { href: "/nanny/applications", label: "Applications", icon: ClipboardList },
   { href: "/nanny/messages", label: "Messages", icon: MessageCircle },
   { href: "/nanny/profile", label: "Profile", icon: User },
-];
-
-export const ADMIN_NAV: NavItem[] = [
-  { href: "/admin", label: "Review", icon: ShieldCheck },
 ];
 
 /**

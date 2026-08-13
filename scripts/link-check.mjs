@@ -29,7 +29,19 @@ const AUDIENCES = [
     email: "nanny1@nananny.example.test",
     start: ["/nanny", "/nanny/applications", "/nanny/profile", "/jobs"],
   },
-  { name: "admin", email: "admin@nananny.example.test", start: ["/admin"] },
+  {
+    name: "admin",
+    email: "admin@nananny.example.test",
+    start: [
+      "/admin",
+      "/admin/review",
+      "/admin/users",
+      "/admin/reports",
+      "/admin/jobs",
+      "/admin/pricing",
+      "/admin/audit",
+    ],
+  },
 ];
 
 const browser = await webkit.launch();

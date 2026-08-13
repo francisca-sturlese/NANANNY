@@ -1,152 +1,208 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { signedUrls } from "@/lib/storage/private-assets";
-import { AppShell, ADMIN_NAV } from "@/components/app/app-shell";
+import { AdminShell, Metric } from "@/components/admin/admin-shell";
 import { Card, CardBody } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ReviewActions } from "./review-actions";
+import { Button } from "@/components/ui/button";
+import { formatAed } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Review queue" };
+export const metadata: Metadata = { title: "Overview" };
 
-const QUEUE_ORDER = ["submitted", "under_review", "rejected", "approved"] as const;
-
-const BADGE_FOR: Record<string, "neutral" | "sage" | "peach" | "butter"> = {
-  draft: "neutral",
-  submitted: "butter",
-  under_review: "butter",
-  approved: "sage",
-  rejected: "peach",
-  suspended: "peach",
-  expired: "neutral",
+type Metrics = {
+  families: number;
+  families_onboarded: number;
+  nannies_total: number;
+  nannies_by_status: Record<string, number>;
+  jobs_active: number;
+  jobs_total: number;
+  applications: number;
+  conversations: number;
+  messages: number;
+  saved_profiles: number;
+  reports_open: number;
+  free_contacts_used: number;
+  paid_contacts: number;
+  subscriptions_active: number;
+  subscriptions_by_plan: Record<string, number>;
+  revenue_aed: number;
+  pending_review: number;
 };
 
-/**
- * The minimum internal capability Milestone 2 calls for: move a nanny profile
- * through the review states. Nothing else — no analytics, no user management.
- */
-export default async function AdminPage() {
+type Funnel = {
+  free_contact_limit: number;
+  signed_up: number;
+  profile_completed: number;
+  contacted_at_least: Record<string, number>;
+  exhausted_allowance: number;
+  subscribed: number;
+  free_to_paid_rate: number | null;
+};
+
+export default async function AdminOverviewPage() {
   const admin = await requireAdmin("/admin");
   const supabase = await createServerSupabase();
 
-  const { data: profiles } = await supabase
-    .from("nanny_profiles")
-    .select(
-      "id, first_name, status, photo_url, emirate, nationality, years_experience, profile_completion, headline, submitted_at, rejection_reason",
-    )
-    .in("status", [...QUEUE_ORDER])
-    .order("submitted_at", { ascending: true, nullsFirst: false })
-    .limit(100);
+  const [{ data: rawMetrics }, { data: rawFunnel }] = await Promise.all([
+    supabase.rpc("admin_metrics"),
+    supabase.rpc("admin_contact_funnel"),
+  ]);
 
-  const rows = profiles ?? [];
-  const photoMap = await signedUrls(
-    "nanny-photos",
-    rows.map((r) => r.photo_url),
-  );
+  const m = rawMetrics as unknown as Metrics;
+  const f = rawFunnel as unknown as Funnel;
 
-  const counts = QUEUE_ORDER.map((status) => ({
-    status,
-    n: rows.filter((r) => r.status === status).length,
-  }));
+  const limit = f.free_contact_limit;
+  // One row per step of the funnel, in the order a family walks it.
+  const steps = [
+    { label: "Signed up", value: f.signed_up },
+    { label: "Profile completed", value: f.profile_completed },
+    ...Array.from({ length: limit }, (_, i) => ({
+      label: `Contacted ${i + 1} ${i === 0 ? "nanny" : "nannies"}`,
+      value: f.contacted_at_least[String(i + 1)] ?? 0,
+    })),
+    { label: `Tried a ${ordinal(limit + 1)}`, value: f.contacted_at_least[String(limit + 1)] ?? 0 },
+    { label: "Subscribed", value: f.subscribed },
+  ];
+  const widest = Math.max(...steps.map((s) => s.value), 1);
 
   return (
-    <AppShell
-      nav={ADMIN_NAV}
+    <AdminShell
       active="/admin"
       name={admin.firstName ?? "Admin"}
+      pendingReview={m.pending_review}
+      openReports={m.reports_open}
     >
-      <h1 className="text-3xl font-semibold">Nanny review queue</h1>
-      <p className="mt-1 text-muted">
-        Approving a profile makes it discoverable. It is not a verification claim. Grant a
-        badge only for what you have actually seen.
-      </p>
+      <h1 className="text-2xl font-semibold sm:text-3xl">Overview</h1>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        {counts.map((c) => (
-          <Badge key={c.status} variant={BADGE_FOR[c.status]} size="sm">
-            {c.status.replace("_", " ")}: {c.n}
-          </Badge>
-        ))}
-      </div>
+      {(m.pending_review > 0 || m.reports_open > 0) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {m.pending_review > 0 && (
+            <Link href="/admin/review">
+              <Button size="sm">
+                {m.pending_review} {m.pending_review === 1 ? "profile" : "profiles"} to review
+              </Button>
+            </Link>
+          )}
+          {m.reports_open > 0 && (
+            <Link href="/admin/reports">
+              <Button size="sm" variant="peach">
+                {m.reports_open} open {m.reports_open === 1 ? "report" : "reports"}
+              </Button>
+            </Link>
+          )}
+        </div>
+      )}
 
-      <div className="mt-8 space-y-4">
-        {rows.length === 0 && (
-          <Card>
-            <CardBody>
-              <p className="text-sm text-muted">Nothing in the queue.</p>
-            </CardBody>
-          </Card>
+      <section className="mt-6">
+        <h2 className="eyebrow">Marketplace</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <Metric
+            label="Families"
+            value={m.families}
+            hint={`${m.families_onboarded} completed onboarding`}
+          />
+          <Metric
+            label="Nannies live"
+            value={m.nannies_by_status.approved ?? 0}
+            hint={`${m.nannies_total} total`}
+            tone="sage"
+          />
+          <Metric
+            label="Awaiting review"
+            value={m.pending_review}
+            tone={m.pending_review > 0 ? "butter" : "neutral"}
+          />
+          <Metric label="Active jobs" value={m.jobs_active} hint={`${m.jobs_total} total`} />
+          <Metric label="Applications" value={m.applications} />
+          <Metric label="Conversations" value={m.conversations} />
+          <Metric label="Messages" value={m.messages} />
+          <Metric label="Saved profiles" value={m.saved_profiles} />
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="eyebrow">Revenue</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Metric
+            label="Free contacts used"
+            value={m.free_contacts_used}
+            hint="The leading indicator"
+          />
+          <Metric
+            label="Contacts on a plan"
+            value={m.paid_contacts}
+            tone={m.paid_contacts > 0 ? "sage" : "neutral"}
+          />
+          <Metric label="Active subscriptions" value={m.subscriptions_active} />
+          <Metric label="Revenue" value={formatAed(Number(m.revenue_aed))} />
+        </div>
+
+        {m.subscriptions_active === 0 && (
+          <p className="mt-3 text-xs text-subtle">
+            No subscriptions yet. Checkout is not built, so these will stay at zero until
+            payments are wired up.
+          </p>
         )}
+      </section>
 
-        {rows
-          .slice()
-          .sort(
-            (a, b) =>
-              QUEUE_ORDER.indexOf(a.status as (typeof QUEUE_ORDER)[number]) -
-              QUEUE_ORDER.indexOf(b.status as (typeof QUEUE_ORDER)[number]),
-          )
-          .map((row) => {
-            const photo = row.photo_url ? photoMap.get(row.photo_url) : null;
-            return (
-              <Card key={row.id}>
-                <CardBody>
-                  <div className="flex flex-wrap items-start justify-between gap-5">
-                    <div className="flex min-w-0 items-start gap-4">
-                      {photo ? (
-                        <Image
-                          src={photo}
-                          alt=""
-                          width={56}
-                          height={56}
-                          unoptimized
-                          className="size-14 rounded-full border border-border object-cover"
-                        />
-                      ) : (
-                        <span className="grid size-14 shrink-0 place-items-center rounded-full bg-surface text-[0.6rem] text-subtle">
-                          No photo
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="font-semibold">{row.first_name ?? "Unnamed"}</h2>
-                          <Badge variant={BADGE_FOR[row.status]} size="sm">
-                            {row.status.replace("_", " ")}
-                          </Badge>
-                          <span className="text-xs text-muted">
-                            {row.profile_completion}% complete
+      {/* The funnel is the whole business in one picture: how many families
+          reach each contact, and how many pay once the free ones run out. */}
+      <section className="mt-8">
+        <h2 className="eyebrow">Contact funnel</h2>
+
+        <Card className="mt-3">
+          <CardBody>
+            <ol className="space-y-2.5">
+              {steps.map((step, i) => {
+                const previous = steps[i - 1]?.value;
+                const dropped =
+                  previous != null && previous > 0 ? previous - step.value : null;
+                return (
+                  <li key={step.label}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="min-w-0 truncate">{step.label}</span>
+                      <span className="shrink-0 font-medium tabular-nums">
+                        {step.value}
+                        {dropped != null && dropped > 0 && (
+                          <span className="ml-2 text-xs font-normal text-subtle">
+                            &minus;{dropped}
                           </span>
-                        </div>
-                        {row.headline && (
-                          <p className="mt-1 text-sm text-muted">{row.headline}</p>
                         )}
-                        <p className="mt-1 text-xs text-subtle">
-                          {[
-                            row.emirate,
-                            row.nationality,
-                            row.years_experience ? `${row.years_experience} yrs` : null,
-                            row.submitted_at
-                              ? `submitted ${new Date(row.submitted_at).toLocaleDateString("en-GB")}`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                        {row.rejection_reason && (
-                          <p className="mt-2 text-xs text-peach-deep">
-                            Last rejection: {row.rejection_reason}
-                          </p>
-                        )}
-                      </div>
+                      </span>
                     </div>
+                    <div className="mt-1 h-2 overflow-hidden rounded-pill bg-border">
+                      <div
+                        className="h-full rounded-pill bg-foreground"
+                        style={{ width: `${Math.round((step.value / widest) * 100)}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
 
-                    <ReviewActions nannyId={row.id} status={row.status} />
-                  </div>
-                </CardBody>
-              </Card>
-            );
-          })}
-      </div>
-    </AppShell>
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="text-sm text-muted">
+                Of the {f.exhausted_allowance}{" "}
+                {f.exhausted_allowance === 1 ? "family" : "families"} that used all{" "}
+                {limit} free contacts,{" "}
+                <span className="font-medium text-foreground">
+                  {f.free_to_paid_rate == null ? "none yet" : `${f.free_to_paid_rate}%`}
+                </span>{" "}
+                went on to subscribe.
+              </p>
+              <p className="mt-1 text-xs text-subtle">
+                This is the number the business lives on.
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+      </section>
+    </AdminShell>
   );
+}
+
+function ordinal(n: number) {
+  const suffix = ["th", "st", "nd", "rd"][(n % 100 > 10 && n % 100 < 14) || n % 10 > 3 ? 0 : n % 10];
+  return `${n}${suffix}`;
 }

@@ -21,7 +21,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 
 ```bash
 npm run test:db        # 12 + 24 + 10 SQL checks
-npm run test:e2e       # 29 + 20 end-to-end checks
+npm run test:e2e       # 29 + 20 + 15 + 28 end-to-end checks
 npm run test:mobile    # 252 viewport/engine combinations
 npm run test:links     # every internal link as 4 audiences, plus no dashes in copy
 npm run test:overlays  # sheets and menus actually cover the viewport
@@ -65,6 +65,13 @@ profile row but not every field on it: `users.role` and `nanny_profiles.status`
 are withheld by column-level grants, because RLS alone let a user promote
 themselves to admin and a nanny approve her own profile. See
 `20260813140000_privacy_hardening.sql`.
+
+**Administrative actions go through a database function, never a direct write.**
+The column grants deliberately stop even an admin from setting `users.status` or
+`nanny_profiles.status` by hand. Every capability is a SECURITY DEFINER function
+that checks `is_admin()` itself and writes to `audit_logs`, so the audit trail
+cannot be skipped and a stolen anon key gets nowhere. See
+`20260813150000_admin_capabilities.sql`.
 
 **Approved ≠ verified.** Approval means a profile is live. Verification badges
 are granted one at a time, only for something a human actually reviewed. Never
@@ -124,5 +131,5 @@ docs/                  mobile-first constraints, reuse notes
 4. ✅ Messaging, contact counter, paywall
 5. ⬜ Subscriptions, payments, webhooks
 6. ⬜ AI assistant and matching
-7. ⬜ Admin, moderation, analytics
+7. ✅ Admin, moderation, analytics
 8. ⬜ Security, performance, SEO, deployment

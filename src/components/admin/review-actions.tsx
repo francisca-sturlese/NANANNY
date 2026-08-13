@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { setNannyStatusAction } from "./actions";
+import { setNannyStatusAction } from "@/app/admin/actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { SubmitButton, FormError, FormMessage } from "@/components/auth/form-parts";
 import { Textarea } from "@/components/ui/field";
