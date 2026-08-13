@@ -7,6 +7,7 @@ import { NANNY_STEPS, prevSlug, stepIndex } from "@/lib/onboarding/steps";
 import { OnboardingShell } from "@/components/onboarding/shell";
 import { NannyStepForm } from "@/components/onboarding/nanny-step-form";
 import { NannyReviewStep } from "@/components/onboarding/nanny-review-step";
+import { DocumentsStep } from "@/components/onboarding/documents-step";
 import { signedUrl } from "@/lib/storage/private-assets";
 
 export const metadata: Metadata = { title: "Complete your nanny profile" };
@@ -36,6 +37,15 @@ export default async function NannyOnboardingStep({
     p_nanny_id: nannyId,
   });
 
+  const { data: documents } =
+    step === "documents" || step === "review"
+      ? await supabase
+          .from("nanny_documents")
+          .select("id, kind, label, original_filename, size_bytes, reviewed, created_at")
+          .eq("nanny_id", nannyId)
+          .order("created_at", { ascending: false })
+      : { data: [] };
+
   // The stored value is a storage key, never a URL. Signing happens here,
   // server-side, after we know the profile belongs to this user.
   const photoUrl = await signedUrl("nanny-photos", profile?.photo_url);
@@ -47,7 +57,16 @@ export default async function NannyOnboardingStep({
       reachedStep={profile?.onboarding_step ?? 0}
       basePath="/nanny/onboarding"
     >
-      {step === "review" ? (
+      {step === "documents" ? (
+        <DocumentsStep
+          documents={documents ?? []}
+          backHref={
+            prevSlug(NANNY_STEPS, step)
+              ? `/nanny/onboarding/${prevSlug(NANNY_STEPS, step)}`
+              : null
+          }
+        />
+      ) : step === "review" ? (
         <NannyReviewStep
           profile={profile}
           completion={

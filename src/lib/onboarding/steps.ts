@@ -22,6 +22,11 @@ export const NANNY_STEPS: StepDef[] = [
   { slug: "skills", title: "Languages & skills", blurb: "What you speak and what you can do." },
   { slug: "availability", title: "Availability & pay", blurb: "When you can work and for how much." },
   { slug: "story", title: "Your story", blurb: "Introduce yourself to families." },
+  {
+    slug: "documents",
+    title: "Documents",
+    blurb: "Your CV and anything you want our team to see. All optional.",
+  },
   { slug: "review", title: "Review & submit", blurb: "Check everything, then send for review." },
 ];
 

@@ -40,6 +40,20 @@ export default async function AdminPage() {
     .limit(100);
 
   const rows = profiles ?? [];
+
+  // Documents are the whole point of a review, so they are loaded with the
+  // queue rather than behind another click.
+  const { data: documents } = await supabase
+    .from("nanny_documents")
+    .select("id, nanny_id, kind, label, original_filename, storage_path, reviewed")
+    .in("nanny_id", rows.length ? rows.map((r) => r.id) : ["00000000-0000-0000-0000-000000000000"]);
+
+  const documentsByNanny = new Map<string, NonNullable<typeof documents>>();
+  for (const document of documents ?? []) {
+    const list = documentsByNanny.get(document.nanny_id) ?? [];
+    list.push(document);
+    documentsByNanny.set(document.nanny_id, list);
+  }
   const photoMap = await signedUrls(
     "nanny-photos",
     rows.map((r) => r.photo_url),
@@ -140,7 +154,11 @@ export default async function AdminPage() {
                       </div>
                     </div>
 
-                    <ReviewActions nannyId={row.id} status={row.status} />
+                    <ReviewActions
+                      nannyId={row.id}
+                      status={row.status}
+                      documents={documentsByNanny.get(row.id) ?? []}
+                    />
                   </div>
                 </CardBody>
               </Card>

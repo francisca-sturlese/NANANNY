@@ -26,11 +26,10 @@ export default async function HomePage() {
 
       <main>
         {/* ---------------- Hero ---------------- */}
-        <section className="relative overflow-hidden">
-          {/* The photograph IS the hero background, full bleed. A white scrim
-              over it keeps black text readable without flattening the picture
-              into grey: near-opaque where the words are, clearing lower down so
-              the family is actually visible. */}
+        {/* Photograph first, words last. The copy is anchored to the bottom of
+            the hero so the picture has the whole upper half to itself, and the
+            search card sits below the hero rather than on top of it. */}
+        <section className="relative flex min-h-[max(560px,78svh)] flex-col justify-end overflow-hidden sm:min-h-[max(600px,72svh)] lg:min-h-[82vh]">
           <div aria-hidden className="absolute inset-0 -z-10">
             <img
               src={largestSrc(hero)}
@@ -39,74 +38,62 @@ export default async function HomePage() {
               alt=""
               fetchPriority="high"
               decoding="sync"
-              className="size-full object-cover object-[center_20%]"
+              className="size-full object-cover object-[center_28%]"
             />
+            {/* Barely there at the top, so the photograph reads as a
+                photograph; heavier only where the words actually sit. */}
             <div
-              className="absolute inset-0 lg:hidden"
+              className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 34%, rgba(255,255,255,0.5) 68%, rgba(255,255,255,0.92) 100%)",
-              }}
-            />
-            {/* Wide screens put the text on the left, so the scrim clears to the
-                right and the photograph has room to breathe. */}
-            <div
-              className="absolute inset-0 hidden lg:block"
-              style={{
-                background:
-                  "linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.92) 44%, rgba(255,255,255,0.3) 78%, rgba(255,255,255,0.15) 100%)",
+                  "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.62) 52%, rgba(255,255,255,0.9) 78%, rgba(255,255,255,1) 100%)",
               }}
             />
           </div>
 
-          <div className="mx-auto max-w-6xl px-5 pt-12 pb-16 sm:px-8 sm:pt-24 sm:pb-24 lg:min-h-[30rem]">
-            <div className="max-w-xl">
-              <Badge variant="butter" size="sm">
+          <div className="mx-auto w-full max-w-3xl px-5 pb-10 text-center sm:px-8 sm:pb-14">
+            {/* An aside, not a headline: pushed right and half the size, so it
+                informs without competing with the promise above the buttons. */}
+            <div className="flex justify-end">
+              <Badge variant="butter" size="xs">
                 First {pricing.freeContacts} nanny contacts free
               </Badge>
+            </div>
 
-              <h1 className="mt-4 text-[2.1rem] leading-[1.06] font-semibold sm:text-5xl lg:text-6xl">
-                Find the right nanny for your family
-              </h1>
+            <h1 className="mt-3 text-[2.15rem] leading-[1.08] font-semibold sm:text-5xl lg:text-6xl">
+              Find the right nanny for your family
+            </h1>
 
-              <p className="mt-4 max-w-md text-base leading-relaxed text-muted sm:text-lg">
-                Connect directly with nannies across the UAE. No agency in between.
-              </p>
+            <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-foreground/75 sm:text-lg">
+              Connect directly with nannies across the UAE. No agency in between.
+            </p>
 
-              {/* Primary action first and full width on a phone: one thumb, no aiming. */}
-              <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
-                <Link href="/nannies" className="sm:w-auto">
-                  <Button size="lg" block className="sm:w-auto sm:px-8">
-                    Find a Nanny
-                  </Button>
-                </Link>
-                <Link href="/jobs" className="sm:w-auto">
-                  <Button size="lg" variant="outline" block className="sm:w-auto sm:px-8">
-                    Find a Job
-                  </Button>
-                </Link>
-              </div>
+            <div className="mx-auto mt-7 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
+              <Link href="/nannies" className="sm:w-auto">
+                <Button size="lg" block className="sm:w-auto sm:px-10">
+                  Find a Nanny
+                </Button>
+              </Link>
+              <Link href="/jobs" className="sm:w-auto">
+                <Button size="lg" variant="outline" block className="sm:w-auto sm:px-10">
+                  Find a Job
+                </Button>
+              </Link>
             </div>
           </div>
-
         </section>
 
-        {/* Its own band, below the hero and on plain white. Sitting inside the
-            hero it landed on top of the photograph with the buttons crowding
-            it, and read as part of the picture rather than the next step. */}
-        <section className="mx-auto max-w-6xl px-5 pt-10 pb-14 sm:px-8 sm:pt-14 sm:pb-16">
-          <h2 className="mb-4 text-lg font-semibold sm:text-xl">
-            Start with where you are
-          </h2>
+        {/* ---------------- Search ---------------- */}
+        <section className="mx-auto max-w-3xl px-5 pt-10 pb-4 sm:px-8 sm:pt-14">
           <SearchModule />
         </section>
 
         {/* ---------------- Four promises ---------------- */}
-        <section className="mx-auto max-w-6xl px-5 pb-6 sm:px-8">
+        <section className="mx-auto max-w-6xl px-5 pt-4 pb-8 sm:px-8 sm:pt-6">
           {/* Two columns on a phone rather than a sideways scroll. A card half
               off the screen reads as broken, and nobody swipes horizontally on
               a page that scrolls down. */}
-          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
             {[
               {
                 step: "Discover",
@@ -143,7 +130,7 @@ export default async function HomePage() {
         </section>
 
         {/* ---------------- Pricing ---------------- */}
-        <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
+        <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
           <div className="rounded-xl border border-border bg-surface p-6 sm:p-10 lg:p-12">
             <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-12">
               <div>
@@ -200,7 +187,7 @@ export default async function HomePage() {
         </section>
 
         {/* ---------------- Nannies are free ---------------- */}
-        <section className="mx-auto max-w-6xl px-5 pb-10 sm:px-8">
+        <section className="mx-auto max-w-6xl px-5 pb-16 sm:px-8 sm:pb-20">
           <div className="overflow-hidden rounded-xl bg-sage-wash">
             <div className="grid gap-6 sm:grid-cols-2 sm:items-center">
               <div className="p-6 sm:p-10">

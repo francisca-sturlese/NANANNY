@@ -292,6 +292,11 @@ export async function saveNannyStep(
         break;
       }
 
+      case "documents":
+        // Files are uploaded by their own action as they are chosen, so there
+        // is nothing to save when the step is submitted.
+        break;
+
       case "review":
         // Nothing to save; submission is its own action.
         break;
@@ -323,6 +328,121 @@ export async function saveNannyStep(
 
   const next = nextSlug(NANNY_STEPS, slug);
   redirect(next ? `/nanny/onboarding/${next}` : "/nanny");
+}
+
+const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024;
+
+const documentSchema = z.object({
+  kind: z.enum([
+    "cv",
+    "id",
+    "passport",
+    "visa",
+    "certificate",
+    "reference",
+    "first_aid",
+    "police_clearance",
+    "other",
+  ]),
+  label: z.preprocess(emptyToNull, z.string().trim().max(120).nullable()),
+});
+
+/**
+ * Uploads one document.
+ *
+ * Documents are the most sensitive thing a nanny gives us, so they go to a
+ * private bucket under her own uuid and are never shown to a family. Only she
+ * and the review team can open them, and only through /media, which checks that
+ * on every request.
+ */
+export async function uploadDocumentAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireRole("nanny");
+  const nannyId = await ensureNannyProfile(user.id);
+
+  const parsed = documentSchema.safeParse({
+    kind: formData.get("kind"),
+    label: formData.get("label"),
+  });
+  if (!parsed.success) return { error: "Choose what the file is." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose a file first." };
+  }
+  if (file.size > MAX_DOCUMENT_BYTES) {
+    return { error: "That file is too large (max 15 MB)." };
+  }
+
+  // The bucket also enforces this, but a clear message beats a storage error.
+  const allowed = ["application/pdf", "image/jpeg", "image/png"];
+  if (!allowed.includes(file.type)) {
+    return { error: "Upload a PDF, JPG or PNG." };
+  }
+
+  const supabase = await createServerSupabase();
+  const path = ownedPath(user.id, file.name);
+
+  const { error: uploadError } = await supabase.storage
+    .from("nanny-documents")
+    .upload(path, file, { contentType: file.type, upsert: false });
+
+  if (uploadError) {
+    console.error("[documents]", uploadError.message);
+    return { error: "We could not upload that. Please try again." };
+  }
+
+  const { error } = await supabase.from("nanny_documents").insert({
+    nanny_id: nannyId,
+    kind: parsed.data.kind,
+    label: parsed.data.label,
+    storage_path: path,
+    original_filename: file.name,
+    mime_type: file.type,
+    size_bytes: file.size,
+  });
+
+  if (error) {
+    // Do not leave an orphan file behind if the row failed.
+    await supabase.storage.from("nanny-documents").remove([path]);
+    return { error: "We could not save that. Please try again." };
+  }
+
+  revalidatePath("/nanny/onboarding/documents");
+  revalidatePath("/nanny/profile");
+  return { message: "Uploaded." };
+}
+
+export async function deleteDocumentAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireRole("nanny");
+  const documentId = String(formData.get("documentId") ?? "");
+  if (!z.string().uuid().safeParse(documentId).success) return { error: "Invalid request." };
+
+  const supabase = await createServerSupabase();
+
+  // RLS scopes this to her own documents; reading the path first means the file
+  // is removed too rather than being left behind in the bucket forever.
+  const { data: document } = await supabase
+    .from("nanny_documents")
+    .select("id, storage_path")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (!document) return { error: "That file is already gone." };
+
+  await supabase.storage.from("nanny-documents").remove([document.storage_path]);
+  const { error } = await supabase.from("nanny_documents").delete().eq("id", documentId);
+
+  if (error) return { error: "Could not remove that." };
+
+  revalidatePath("/nanny/onboarding/documents");
+  revalidatePath("/nanny/profile");
+  return { message: "Removed." };
 }
 
 /**

@@ -14,6 +14,9 @@ const badge = cva(
         solid: "bg-foreground text-background",
       },
       size: {
+        // Half the presence of `sm`, for when the badge is an aside rather
+        // than a label — the hero's free-contacts note, for instance.
+        xs: "px-2 py-0.5 text-[0.5625rem] tracking-wide",
         sm: "px-2 py-1 text-[0.6875rem]",
         md: "px-3 py-1.5 text-xs",
       },

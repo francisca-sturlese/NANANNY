@@ -76,8 +76,20 @@ for (const audience of AUDIENCES) {
   }
 
   for (const path of [...targets].sort()) {
-    const response = await page.goto(path, { waitUntil: "domcontentloaded" });
     checked++;
+
+    // A file link is not a page. Navigating to one that is served as an
+    // attachment makes the browser start a download instead, which throws.
+    // Check it as a plain request: a 404 still matters, the rest does not.
+    if (path.startsWith("/media/")) {
+      const fileResponse = await page.request.get(path);
+      if (fileResponse.status() >= 400) {
+        problems.push(`${audience.name}: ${path} → HTTP ${fileResponse.status()}`);
+      }
+      continue;
+    }
+
+    const response = await page.goto(path, { waitUntil: "domcontentloaded" });
     const status = response?.status() ?? 0;
     const landed = new URL(page.url()).pathname;
 

@@ -1050,6 +1050,7 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          label: string | null
           mime_type: string | null
           nanny_id: string
           original_filename: string | null
@@ -1063,6 +1064,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: string
+          label?: string | null
           mime_type?: string | null
           nanny_id: string
           original_filename?: string | null
@@ -1076,6 +1078,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          label?: string | null
           mime_type?: string | null
           nanny_id?: string
           original_filename?: string | null
@@ -1895,6 +1898,10 @@ export type Database = {
       admin_contact_funnel: { Args: never; Returns: Json }
       admin_grant_badge: {
         Args: { p_badge: string; p_nanny_id: string; p_note?: string }
+        Returns: Json
+      }
+      admin_mark_document_reviewed: {
+        Args: { p_document_id: string; p_reviewed?: boolean }
         Returns: Json
       }
       admin_metrics: { Args: never; Returns: Json }
