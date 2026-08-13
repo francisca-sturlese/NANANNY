@@ -35,6 +35,12 @@ const PAGES = [
   { path: "/login", name: "login" },
   { path: "/forgot-password", name: "forgot" },
   { path: "/verify-email", name: "verify" },
+  { path: "/nannies", name: "search" },
+  { path: "/nannies?emirate=Dubai&experience=5", name: "search-filtered" },
+  { path: "/nannies?emirate=Fujairah&experience=10&salary_max=2000", name: "search-empty" },
+  { path: "/jobs", name: "jobs" },
+  // Filled in at startup from the seeded data, so the detail pages are audited
+  // with real content rather than a placeholder.
 ];
 
 /** Minimum comfortable thumb target, and the readable text floor. */
@@ -125,18 +131,39 @@ function auditPage({ minTarget, minFont, enforceTargets }) {
   if (bars.length) {
     const barHeight = bars[0].getBoundingClientRect().height;
     const main = document.querySelector("main");
-    if (main) {
-      const mainBottom = main.getBoundingClientRect().bottom + window.scrollY;
-      if (mainBottom > doc.scrollHeight - barHeight + 4) {
+    // Measure the last piece of CONTENT, not <main> itself: the whole point of
+    // the bottom padding is that main's own box extends behind the bar while
+    // nothing inside it does. Comparing main.bottom would flag every correctly
+    // padded page.
+    const last = main?.lastElementChild;
+    if (last) {
+      const contentBottom = last.getBoundingClientRect().bottom + window.scrollY;
+      const barTop = doc.scrollHeight - barHeight;
+      if (contentBottom > barTop + 4) {
         problems.push({
           kind: "covered-by-bottom-bar",
-          detail: "main content ends within the " + Math.round(barHeight) + "px bottom bar",
+          detail:
+            "content ends " + Math.round(contentBottom - barTop) +
+            "px inside the " + Math.round(barHeight) + "px bottom bar",
         });
       }
     }
   }
 
   return problems;
+}
+
+// Pull one real id for each detail page rather than hardcoding a uuid.
+try {
+  const search = await fetch(`${BASE}/nannies`).then((r) => r.text());
+  const nannyId = search.match(/\/nannies\/([0-9a-f-]{36})/)?.[1];
+  if (nannyId) PAGES.push({ path: `/nannies/${nannyId}`, name: "nanny-profile" });
+
+  const jobs = await fetch(`${BASE}/jobs`).then((r) => r.text());
+  const jobId = jobs.match(/\/jobs\/([0-9a-f-]{36})/)?.[1];
+  if (jobId) PAGES.push({ path: `/jobs/${jobId}`, name: "job-detail" });
+} catch {
+  console.warn("Could not resolve detail-page ids; auditing list pages only.");
 }
 
 await mkdir(OUT, { recursive: true });

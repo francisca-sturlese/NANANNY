@@ -13,14 +13,14 @@ begin;
 -- Two real seeded actors to test against each other.
 create temp table t_actors as
 select
-  (select user_id from public.family_profiles order by created_at limit 1)      as family_a_user,
-  (select id      from public.family_profiles order by created_at limit 1)      as family_a_id,
-  (select user_id from public.family_profiles order by created_at offset 1 limit 1) as family_b_user,
-  (select id      from public.family_profiles order by created_at offset 1 limit 1) as family_b_id,
-  (select user_id from public.nanny_profiles where status = 'approved' order by created_at limit 1) as nanny_a_user,
-  (select id      from public.nanny_profiles where status = 'approved' order by created_at limit 1) as nanny_a_id,
-  (select user_id from public.nanny_profiles where status = 'approved' order by created_at offset 1 limit 1) as nanny_b_user,
-  (select id      from public.nanny_profiles where status = 'approved' order by created_at offset 1 limit 1) as nanny_b_id,
+  (select user_id from public.family_profiles order by user_id limit 1)      as family_a_user,
+  (select id      from public.family_profiles order by user_id limit 1)      as family_a_id,
+  (select user_id from public.family_profiles order by user_id offset 1 limit 1) as family_b_user,
+  (select id      from public.family_profiles order by user_id offset 1 limit 1) as family_b_id,
+  (select user_id from public.nanny_profiles where status = 'approved' order by user_id limit 1) as nanny_a_user,
+  (select id      from public.nanny_profiles where status = 'approved' order by user_id limit 1) as nanny_a_id,
+  (select user_id from public.nanny_profiles where status = 'approved' order by user_id offset 1 limit 1) as nanny_b_user,
+  (select id      from public.nanny_profiles where status = 'approved' order by user_id offset 1 limit 1) as nanny_b_id,
   (select id      from public.nanny_profiles where status = 'draft' limit 1)    as nanny_draft_id;
 
 -- The fixture table has to be readable while impersonating the API roles.

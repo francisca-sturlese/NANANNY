@@ -143,7 +143,7 @@ begin
       languages, headline, description,
       employment_types, available_days, available_hours_start, available_hours_end,
       available_from, date_of_birth, education, certificates, preferred_locations,
-      onboarding_step, onboarding_completed_at, submitted_at
+      onboarding_step, onboarding_completed_at, submitted_at, created_at
     )
     values (
       uid,
@@ -194,7 +194,10 @@ begin
       5,
       case when (item ->> 10) = 'draft' then null else now() - (i * interval '2 days') end,
       case when (item ->> 10) in ('submitted', 'under_review', 'approved')
-           then now() - (i * interval '2 days') else null end
+           then now() - (i * interval '2 days') else null end,
+      -- Staggered on purpose: every row in one transaction shares now(), which
+      -- makes "order by created_at" arbitrary and "recently joined" meaningless.
+      now() - (i * interval '3 days')
     )
     returning id into nid;
 
@@ -258,7 +261,7 @@ begin
 
     insert into public.family_profiles (
       user_id, display_name, emirate, area, children_count, description,
-      onboarding_step, onboarding_completed_at
+      onboarding_step, onboarding_completed_at, created_at
     )
     values (
       uid,
@@ -269,7 +272,8 @@ begin
       'DEVELOPMENT SEED FAMILY. We live in ' || (item ->> 2) ||
       ' and are looking for someone warm and reliable to join our routine.',
       4,
-      now() - (i * interval '3 days')
+      now() - (i * interval '3 days'),
+      now() - (i * interval '4 days')
     )
     returning id into fid;
 

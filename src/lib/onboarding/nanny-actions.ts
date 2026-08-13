@@ -7,6 +7,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/dal";
 import { NANNY_STEPS, nextSlug, stepIndex } from "@/lib/onboarding/steps";
 import { ownedPath } from "@/lib/storage/private-assets";
+import sharp from "sharp";
 import type { ActionState } from "@/lib/auth/actions";
 
 /**
@@ -359,12 +360,38 @@ async function uploadIfPresent(
   }
 
   const supabase = await createServerSupabase();
-  const path = ownedPath(userId, value.name);
+
+  let body: File | Buffer = value;
+  let contentType = value.type;
+  let filename = value.name;
+
+  // Photos are resized here, on upload, rather than on every read. A phone
+  // camera produces 3–5 MB images, and a search page showing twelve cards
+  // would otherwise pull tens of megabytes over mobile data. 800px is more
+  // than the largest place a profile photo is ever displayed.
+  if (bucket === "nanny-photos") {
+    try {
+      const resized = await sharp(Buffer.from(await value.arrayBuffer()))
+        .rotate() // honour EXIF orientation before stripping it
+        .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer();
+      body = resized;
+      contentType = "image/webp";
+      filename = filename.replace(/\.[^.]+$/, "") + ".webp";
+    } catch (error) {
+      // A photo we cannot decode is not a photo we should store.
+      console.error("[upload] could not process image:", error);
+      return { error: "We could not read that image. Try a JPG or PNG." };
+    }
+  }
+
+  const path = ownedPath(userId, filename);
 
   // Uploaded through the user's own session, so the storage policy — not this
   // code — is what enforces that the folder belongs to them.
-  const { error } = await supabase.storage.from(bucket).upload(path, value, {
-    contentType: value.type,
+  const { error } = await supabase.storage.from(bucket).upload(path, body, {
+    contentType,
     upsert: false,
   });
 

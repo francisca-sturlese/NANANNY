@@ -19,6 +19,22 @@ const eslintConfig = defineConfig([
     "src/lib/photos.ts",
   ]),
   {
+    // Profile photos come from private storage as signed URLs that rotate every
+    // hour, so next/image would re-fetch and re-cache them on every rotation for
+    // no benefit. The bytes are already small: uploads are resized to 800px WebP
+    // server-side in lib/onboarding/nanny-actions.ts before they are stored.
+    // Brand photography does go through the responsive pipeline — see
+    // components/ui/photo.tsx and scripts/optimise-photos.mjs.
+    files: [
+      "src/components/nanny/**",
+      "src/app/nannies/**",
+      "src/app/family/jobs/**",
+      "src/app/nanny/**",
+      "src/app/admin/**",
+    ],
+    rules: { "@next/next/no-img-element": "off" },
+  },
+  {
     rules: {
       // A leading underscore is the project's marker for "this parameter is
       // required by a contract we do not control" — the useActionState
