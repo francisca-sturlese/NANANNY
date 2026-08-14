@@ -245,6 +245,93 @@ if (promoActive) {
   console.log("  SKIP  promotional copy checks, no window is open");
 }
 
+// ------------------------------------------------- the same claim, everywhere
+console.log("\n--- THE ALLOWANCE, WHEREVER IT IS WRITTEN ---\n");
+
+/**
+ * The free contact allowance, checked on every page that mentions it.
+ *
+ * This started as three separate bug reports that were the same bug: the
+ * pricing page, then how it works, then the signup card on the search page,
+ * each stating "your first 3 nanny contacts are free" while a launch window was
+ * open and contacting nannies was free for everybody. Fixing them one at a time
+ * found the fourth only when a person happened to read it.
+ *
+ * So the check is on the category rather than on the page. Any marketing page
+ * that names the allowance has to name the real one, and while a window is open
+ * no page may present the allowance as the current state, because it is not
+ * being counted. A family told it has three contacts behaves as if it is on a
+ * meter when nothing is running.
+ *
+ * Not checked here: the description in the site metadata. It is static, it
+ * cannot read the database without making every page dynamic, the number in it
+ * is already checked above, and understating an offer in a search result is not
+ * the failure this is about.
+ */
+const MARKETING_PAGES = ["/", "/pricing", "/how-it-works", "/nannies", "/jobs"];
+
+// "your first 3 contacts", "3 free contacts", "first three nanny contacts".
+const ALLOWANCE = /(?:first\s+(\d+|three)\b[^.]{0,40}?contacts?)|(?:(\d+|three)\s+free\s+contacts?)/gi;
+const WORDS = { three: "3" };
+
+for (const path of MARKETING_PAGES) {
+  const body = (await text(path))
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ");
+
+  const found = [...body.matchAll(ALLOWANCE)].map((m) => {
+    const raw = (m[1] ?? m[2] ?? "").toLowerCase();
+    return { text: m[0].trim(), number: WORDS[raw] ?? raw };
+  });
+
+  if (found.length === 0) continue;
+
+  const wrong = found.filter((f) => f.number !== freeContacts);
+  check(
+    `${path} names the real allowance`,
+    wrong.length === 0,
+    wrong.map((f) => `"${f.text}"`).join(", "),
+  );
+
+  if (!promoActive) continue;
+
+  /**
+   * While a window is open, naming the allowance is fine. Naming it as the
+   * current state is not.
+   *
+   * "Afterwards your first 3 contacts are free" is exactly right and should
+   * stay. "Your first 3 nanny contacts are free" was the bug, three times over.
+   * The difference is a qualifier near it, so that is what is looked for rather
+   * than the phrase in isolation.
+   *
+   * A window of text around the match, not the sentence containing it. The
+   * search page is a list of cards with no full stops in it, so splitting on
+   * sentences produced one blob the length of the page: any qualifier anywhere
+   * on it would have covered for a bare claim at the other end, and the failure
+   * it did report quoted nineteen nannies rather than the sentence at fault.
+   */
+  const QUALIFIED =
+    /while we are launching|launch period|launching|afterwards|after that|after \d|what happens after|does not use|none of|until|free for everyone|no cost right now/i;
+
+  const bare = [];
+  ALLOWANCE.lastIndex = 0;
+  for (const match of body.matchAll(ALLOWANCE)) {
+    const from = Math.max(0, match.index - 160);
+    const context = body.slice(from, match.index + match[0].length + 80);
+    if (!QUALIFIED.test(context)) {
+      bare.push(body.slice(match.index, match.index + match[0].length + 60).trim());
+    }
+  }
+
+  check(
+    `${path} does not state the allowance as the current state during a launch window`,
+    bare.length === 0,
+    bare.map((s) => `"${s}"`).join(" / "),
+  );
+}
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed.`);
 process.exit(failed.length === 0 ? 0 : 1);

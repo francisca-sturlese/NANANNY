@@ -23,7 +23,8 @@ Seed accounts (development only, all `@nananny.example.test`):
 npm run test:db        # 151 SQL checks across fourteen suites
 npm run test:e2e       # 35 + 20 + 15 + 28 + 15 + 29 + 8 + 16 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
-npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
+npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
+                       # and the free contact claim on every page that makes it
 npm run test:mobile    # 252 viewport/engine combinations
 npm run test:links     # every internal link as 4 audiences, plus no dashes in copy
 npm run test:overlays  # sheets and menus actually cover the viewport
