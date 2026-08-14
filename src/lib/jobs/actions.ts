@@ -24,7 +24,11 @@ const jobSchema = z.object({
   emirate: z.string().trim().min(1, "Choose an emirate"),
   area: z.preprocess(emptyToNull, z.string().trim().max(120).nullable()),
   arrangement: z.enum(["live_in", "live_out", "either"]),
-  employmentType: z.enum(["full_time", "part_time", "weekend", "night_care", "temporary"]),
+  employmentType: z.enum(["full_time", "part_time", "hourly", "weekend", "night_care", "temporary"]),
+  visaPreference: z.enum(["any", "own_visa_only", "will_sponsor"]).default("any"),
+  hourlyRateMin: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(1000).nullable()),
+  hourlyRateMax: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(1000).nullable()),
+  hoursPerWeek: z.preprocess(emptyToNull, z.coerce.number().int().min(1).max(80).nullable()),
   startDate: z.preprocess(emptyToNull, z.string().nullable()),
   workingDays: z.array(z.string()),
   startTime: z.preprocess(emptyToNull, z.string().nullable()),
@@ -58,6 +62,10 @@ export async function saveJobAction(
     area: formData.get("area"),
     arrangement: formData.get("arrangement"),
     employmentType: formData.get("employmentType"),
+    visaPreference: formData.get("visaPreference") || "any",
+    hourlyRateMin: formData.get("hourlyRateMin"),
+    hourlyRateMax: formData.get("hourlyRateMax"),
+    hoursPerWeek: formData.get("hoursPerWeek"),
     startDate: formData.get("startDate"),
     workingDays: formData.getAll("workingDays"),
     startTime: formData.get("startTime"),
@@ -84,6 +92,9 @@ export async function saveJobAction(
   }
 
   const d = parsed.data;
+  if (d.hourlyRateMin != null && d.hourlyRateMax != null && d.hourlyRateMin > d.hourlyRateMax) {
+    return { fieldErrors: { hourlyRateMax: "The top of the range has to be at least the bottom" } };
+  }
   if (d.salaryMin != null && d.salaryMax != null && d.salaryMin > d.salaryMax) {
     return { fieldErrors: { salaryMax: "Maximum must be at least the minimum" } };
   }
@@ -104,6 +115,10 @@ export async function saveJobAction(
     area: d.area,
     arrangement: d.arrangement,
     employment_type: d.employmentType,
+    visa_preference: d.visaPreference,
+    hourly_rate_min_aed: d.hourlyRateMin,
+    hourly_rate_max_aed: d.hourlyRateMax,
+    hours_per_week: d.hoursPerWeek,
     start_date: d.startDate,
     working_days: d.workingDays,
     working_hours_start: d.startTime,

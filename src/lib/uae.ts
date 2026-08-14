@@ -99,9 +99,34 @@ export const ARRANGEMENTS = [
 export const EMPLOYMENT_TYPES = [
   { value: "full_time", label: "Full time" },
   { value: "part_time", label: "Part time" },
+  // A few afternoons a week is not part time in any sense the rest of this
+  // list captures, and it is what a lot of families in the UAE actually want.
+  { value: "hourly", label: "By the hour" },
   { value: "weekend", label: "Weekend" },
   { value: "night_care", label: "Night care" },
   { value: "temporary", label: "Temporary" },
+] as const;
+
+/**
+ * What a family will accept on visas.
+ *
+ * Optional, unlike the nanny's own status which is required. A nanny always
+ * knows hers. A family often has not decided whether it would sponsor until it
+ * meets somebody worth sponsoring, and forcing the question turns a real "we
+ * are open to it" into a wrong answer.
+ */
+export const VISA_PREFERENCES = [
+  { value: "any", label: "No preference", forNannies: "Open to any visa status" },
+  {
+    value: "own_visa_only",
+    label: "Own visa only",
+    forNannies: "You need your own visa or to be on a family visa",
+  },
+  {
+    value: "will_sponsor",
+    label: "Willing to sponsor",
+    forNannies: "This family is willing to sponsor your visa",
+  },
 ] as const;
 
 export const CHILD_AGE_BANDS = [

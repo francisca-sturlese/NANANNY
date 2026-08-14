@@ -764,6 +764,9 @@ export type Database = {
           expires_at: string | null
           family_id: string
           has_pets: boolean
+          hourly_rate_max_aed: number | null
+          hourly_rate_min_aed: number | null
+          hours_per_week: number | null
           housekeeping_required: boolean
           id: string
           published_at: string | null
@@ -778,6 +781,7 @@ export type Database = {
           status: Database["public"]["Enums"]["job_status"]
           title: string
           updated_at: string
+          visa_preference: Database["public"]["Enums"]["visa_preference"]
           working_days: string[]
           working_hours_end: string | null
           working_hours_start: string | null
@@ -796,6 +800,9 @@ export type Database = {
           expires_at?: string | null
           family_id: string
           has_pets?: boolean
+          hourly_rate_max_aed?: number | null
+          hourly_rate_min_aed?: number | null
+          hours_per_week?: number | null
           housekeeping_required?: boolean
           id?: string
           published_at?: string | null
@@ -810,6 +817,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["job_status"]
           title: string
           updated_at?: string
+          visa_preference?: Database["public"]["Enums"]["visa_preference"]
           working_days?: string[]
           working_hours_end?: string | null
           working_hours_start?: string | null
@@ -828,6 +836,9 @@ export type Database = {
           expires_at?: string | null
           family_id?: string
           has_pets?: boolean
+          hourly_rate_max_aed?: number | null
+          hourly_rate_min_aed?: number | null
+          hours_per_week?: number | null
           housekeeping_required?: boolean
           id?: string
           published_at?: string | null
@@ -842,6 +853,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["job_status"]
           title?: string
           updated_at?: string
+          visa_preference?: Database["public"]["Enums"]["visa_preference"]
           working_days?: string[]
           working_hours_end?: string | null
           working_hours_start?: string | null
@@ -1132,6 +1144,7 @@ export type Database = {
           gender: string | null
           has_driving_licence: boolean
           headline: string | null
+          hourly_rate_min_aed: number | null
           id: string
           languages: string[]
           latitude: number | null
@@ -1186,6 +1199,7 @@ export type Database = {
           gender?: string | null
           has_driving_licence?: boolean
           headline?: string | null
+          hourly_rate_min_aed?: number | null
           id?: string
           languages?: string[]
           latitude?: number | null
@@ -1240,6 +1254,7 @@ export type Database = {
           gender?: string | null
           has_driving_licence?: boolean
           headline?: string | null
+          hourly_rate_min_aed?: number | null
           id?: string
           languages?: string[]
           latitude?: number | null
@@ -2082,6 +2097,8 @@ export type Database = {
         }
         Returns: Json
       }
+      assert_editable_columns: { Args: never; Returns: string }
+      assert_nanny_columns_updatable: { Args: never; Returns: string }
       block_user: {
         Args: { p_blocked_id: string; p_reason?: string }
         Returns: Json
@@ -2144,6 +2161,10 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_conversation_participant: {
         Args: { p_conversation_id: string }
+        Returns: boolean
+      }
+      is_discoverable: {
+        Args: { p_status: Database["public"]["Enums"]["nanny_profile_status"] }
         Returns: boolean
       }
       is_family: { Args: never; Returns: boolean }
@@ -2260,6 +2281,7 @@ export type Database = {
         | "weekend"
         | "night_care"
         | "temporary"
+        | "hourly"
       interview_status:
         | "requested"
         | "accepted"
@@ -2288,6 +2310,7 @@ export type Database = {
         | "expired"
         | "refunded"
       user_role: "family" | "nanny" | "admin" | "super_admin"
+      visa_preference: "any" | "own_visa_only" | "will_sponsor"
       visa_status:
         | "own_visa"
         | "family_visa"
@@ -2449,6 +2472,7 @@ export const Constants = {
         "weekend",
         "night_care",
         "temporary",
+        "hourly",
       ],
       interview_status: [
         "requested",
@@ -2481,6 +2505,7 @@ export const Constants = {
         "refunded",
       ],
       user_role: ["family", "nanny", "admin", "super_admin"],
+      visa_preference: ["any", "own_visa_only", "will_sponsor"],
       visa_status: [
         "own_visa",
         "family_visa",

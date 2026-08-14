@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { saveJobAction } from "@/lib/jobs/actions";
 import type { ActionState } from "@/lib/auth/actions";
@@ -8,7 +8,14 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ChoiceCard, ChoiceGroup, PillCheckbox, PillGroup } from "@/components/ui/choice";
 import { FormError, SubmitButton } from "@/components/auth/form-parts";
 import { Button } from "@/components/ui/button";
-import { ARRANGEMENTS, EMIRATES, EMPLOYMENT_TYPES, LANGUAGES, WORKING_DAYS } from "@/lib/uae";
+import {
+  ARRANGEMENTS,
+  EMIRATES,
+  EMPLOYMENT_TYPES,
+  LANGUAGES,
+  VISA_PREFERENCES,
+  WORKING_DAYS,
+} from "@/lib/uae";
 
 export type JobDefaults = {
   id?: string;
@@ -23,6 +30,10 @@ export type JobDefaults = {
   working_hours_end?: string | null;
   salary_min_aed?: number | null;
   salary_max_aed?: number | null;
+  hourly_rate_min_aed?: number | null;
+  hourly_rate_max_aed?: number | null;
+  hours_per_week?: number | null;
+  visa_preference?: string | null;
   children_count?: number | null;
   responsibilities?: string | null;
   required_experience_years?: number | null;
@@ -53,6 +64,12 @@ export function JobForm({
   const [state, action] = useActionState<ActionState, FormData>(saveJobAction, {});
   const err = state.fieldErrors ?? {};
   const d = job ?? {};
+
+  // Which fields make sense depends on this, so it has to be state rather than
+  // just a default value on the select.
+  const [employmentType, setEmploymentType] = useState<string>(
+    d.employment_type ?? "full_time",
+  );
 
   return (
     <form action={action} className="space-y-7">
@@ -114,6 +131,7 @@ export function JobForm({
         <Select
           id="employmentType"
           name="employmentType"
+          onChange={(e) => setEmploymentType(e.currentTarget.value)}
           defaultValue={d.employment_type ?? "full_time"}
         >
           {EMPLOYMENT_TYPES.map((t) => (
@@ -163,7 +181,70 @@ export function JobForm({
         </Field>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Shown only for hourly work, and in its own fields rather than reusing
+          the salary ones: a monthly figure and an hourly one are different
+          quantities, and one box holding either is how a family advertises
+          twenty five dirhams a month. */}
+      {employmentType === "hourly" && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Rate from (AED per hour)" htmlFor="hourlyRateMin" error={err.hourlyRateMin}>
+            <Input
+              id="hourlyRateMin"
+              name="hourlyRateMin"
+              type="number"
+              min={0}
+              step={5}
+              defaultValue={d.hourly_rate_min_aed ?? ""}
+            />
+          </Field>
+          <Field label="Up to (AED per hour)" htmlFor="hourlyRateMax" error={err.hourlyRateMax}>
+            <Input
+              id="hourlyRateMax"
+              name="hourlyRateMax"
+              type="number"
+              min={0}
+              step={5}
+              defaultValue={d.hourly_rate_max_aed ?? ""}
+            />
+          </Field>
+          <Field
+            label="Hours a week"
+            htmlFor="hoursPerWeek"
+            hint="Roughly is fine."
+            error={err.hoursPerWeek}
+          >
+            <Input
+              id="hoursPerWeek"
+              name="hoursPerWeek"
+              type="number"
+              min={1}
+              max={80}
+              defaultValue={d.hours_per_week ?? ""}
+            />
+          </Field>
+        </div>
+      )}
+
+      <Field
+        label="Visa"
+        htmlFor="visaPreference"
+        hint="Optional. Saying you would sponsor is worth doing: it is rare, and nannies look for it."
+        error={err.visaPreference}
+      >
+        <Select
+          id="visaPreference"
+          name="visaPreference"
+          defaultValue={d.visa_preference ?? "any"}
+        >
+          {VISA_PREFERENCES.map((v) => (
+            <option key={v.value} value={v.value}>
+              {v.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      <div className={employmentType === "hourly" ? "hidden" : "grid gap-4 sm:grid-cols-3"}>
         <Field label="Salary from (AED)" htmlFor="salaryMin" error={err.salaryMin}>
           <Input
             id="salaryMin"

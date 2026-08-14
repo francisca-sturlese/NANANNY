@@ -202,6 +202,13 @@ as half a fit. `refresh_matches()` is the only writer of `matches`; the table is
 read only for `authenticated`. Anything that would make the number unexplainable
 breaks the product requirement, not just the tests.
 
+**The nanny's visa status is required, the family's preference is not.** She
+always knows hers. A family often has not decided whether it would sponsor
+until it meets somebody worth sponsoring, and forcing the question turns a real
+"we are open to it" into a wrong answer. Both live in `lib/uae.ts`, and the
+family side is written for the nanny reading it rather than as the family's
+setting.
+
 **Visa status is declared, never verified.** `nanny_profiles.visa_status` is
 what the nanny said, the same way years of experience is. The `visa` document
 and its human review are what verification means. It is required to submit a

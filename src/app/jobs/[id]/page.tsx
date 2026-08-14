@@ -12,6 +12,7 @@ import { getSession } from "@/lib/auth/dal";
 import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
 import { ReportButton } from "@/components/safety/report-button";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
+import { VISA_PREFERENCES } from "@/lib/uae";
 
 type JobRow = {
   id: string;
@@ -27,6 +28,10 @@ type JobRow = {
   working_hours_end: string | null;
   schedule_notes: string | null;
   salary_min_aed: number | null;
+  hourly_rate_min_aed: number | null;
+  hourly_rate_max_aed: number | null;
+  hours_per_week: number | null;
+  visa_preference: string;
   salary_max_aed: number | null;
   children_count: number;
   children_ages: number[];
@@ -90,6 +95,10 @@ export default async function JobDetailPage({
     "working_hours_end",
     "schedule_notes",
     "salary_min_aed",
+    "hourly_rate_min_aed",
+    "hourly_rate_max_aed",
+    "hours_per_week",
+    "visa_preference",
     "salary_max_aed",
     "children_count",
     "children_ages",
@@ -236,11 +245,39 @@ export default async function JobDetailPage({
           )}
         </ul>
 
-        {job.salary_min_aed != null && (
+        {/* Hourly work shows a rate, not a salary. Showing "AED 40 / month"
+            because the two numbers share a box is worse than showing nothing. */}
+        {job.employment_type === "hourly" && job.hourly_rate_min_aed != null ? (
+          <p className="mt-5 rounded-lg border border-border bg-surface px-4 py-3 text-lg font-semibold">
+            AED {job.hourly_rate_min_aed.toLocaleString("en-AE")}
+            {job.hourly_rate_max_aed != null &&
+              ` to ${job.hourly_rate_max_aed.toLocaleString("en-AE")}`}
+            <span className="text-base font-normal text-muted"> / hour</span>
+            {job.hours_per_week != null && (
+              <span className="block text-sm font-normal text-muted">
+                About {job.hours_per_week} hours a week
+              </span>
+            )}
+          </p>
+        ) : job.salary_min_aed != null ? (
           <p className="mt-5 rounded-lg border border-border bg-surface px-4 py-3 text-lg font-semibold">
             AED {job.salary_min_aed.toLocaleString("en-AE")}
             {job.salary_max_aed != null && ` to ${job.salary_max_aed.toLocaleString("en-AE")}`}
             <span className="text-base font-normal text-muted"> / month</span>
+          </p>
+        ) : null}
+
+        {/* Written for the nanny reading it, not as the family's setting.
+            "Willing to sponsor" is rare and is the reason somebody applies. */}
+        {job.visa_preference !== "any" && (
+          <p
+            className={
+              job.visa_preference === "will_sponsor"
+                ? "mt-3 rounded-md border border-sage bg-sage-wash px-4 py-3 text-sm leading-relaxed text-sage-deep"
+                : "mt-3 rounded-md border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-muted"
+            }
+          >
+            {VISA_PREFERENCES.find((v) => v.value === job.visa_preference)?.forNannies}
           </p>
         )}
 
