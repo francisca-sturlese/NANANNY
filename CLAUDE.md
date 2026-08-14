@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 + 11 SQL checks
+npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 + 11 + 10 SQL checks
 npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
@@ -150,6 +150,15 @@ target is a worker runtime where those cannot load, and the failure is a 500 at
 request time with a green build. Photos are shrunk in the browser by
 `components/ui/photo-input.tsx`; the server check in `lib/storage/images.ts` is
 the control. `sharp` is a devDependency for build scripts only.
+
+**An email never carries text another user typed.** The new message email says
+a message arrived and links to it. Including the body would let any stranger
+put arbitrary text into somebody's inbox inside an email that genuinely came
+from us and passes every authentication check a mail client makes, which is a
+better phishing envelope than an attacker could build on their own. The
+cooldown is the unique index on `email_events.idempotency_key` with a fifteen
+minute bucket in the key, not a timer: nothing is shared between requests on
+the deployment target. Proven by `supabase/tests/notifications.sql`.
 
 **No LLM anywhere in this product.** Decided 2026-08-14. The free text
 assistant described in the PRD is out of scope, and nothing that reaches a

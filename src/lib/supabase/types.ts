@@ -1344,7 +1344,7 @@ export type Database = {
           kind: string
           metadata: Json
           read_at: string | null
-          title: string
+          title: string | null
           user_id: string
         }
         Insert: {
@@ -1355,7 +1355,7 @@ export type Database = {
           kind: string
           metadata?: Json
           read_at?: string | null
-          title: string
+          title?: string | null
           user_id: string
         }
         Update: {
@@ -1366,7 +1366,7 @@ export type Database = {
           kind?: string
           metadata?: Json
           read_at?: string | null
-          title?: string
+          title?: string | null
           user_id?: string
         }
         Relationships: [
@@ -2093,6 +2093,7 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      mark_notifications_read: { Args: never; Returns: number }
       my_contact_state: {
         Args: never
         Returns: {
@@ -2110,9 +2111,23 @@ export type Database = {
       }
       my_family_id: { Args: never; Returns: string }
       my_nanny_id: { Args: never; Returns: string }
+      my_notifications: { Args: { p_limit?: number }; Returns: Json }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
+      notify_new_message: {
+        Args: { p_conversation_id: string; p_sender_id: string }
+        Returns: Json
+      }
       promo_active: { Args: never; Returns: boolean }
       promo_window: { Args: never; Returns: Json }
+      record_email_result: {
+        Args: {
+          p_error?: string
+          p_event_id: string
+          p_provider_message_id?: string
+          p_status: string
+        }
+        Returns: undefined
+      }
       record_payment: {
         Args: {
           p_amount_aed: number

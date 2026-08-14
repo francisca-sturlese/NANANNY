@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { notifyNewMessage } from "@/lib/messaging/notify";
 import { getSession, requireRole } from "@/lib/auth/dal";
 
 /**
@@ -76,6 +77,12 @@ export async function startConversationAction(
   const result = data as { conversation_id: string } | null;
   if (!result?.conversation_id) return { error: "We could not start that conversation." };
 
+  // The first message of a conversation is the one most worth telling somebody
+  // about, and it does not go through sendMessageAction.
+  if (firstMessage.length > 0) {
+    await notifyNewMessage(result.conversation_id, user.id);
+  }
+
   revalidatePath("/family/messages");
   revalidatePath("/family");
   redirect(`/family/messages/${result.conversation_id}`);
@@ -110,6 +117,12 @@ export async function sendMessageAction(
     console.error("[messaging] send_message failed:", error);
     return { error: "Message not sent. Please try again." };
   }
+
+  // After the message is stored, and deliberately awaited: on a serverless
+  // runtime there is nothing to keep a floating promise alive once the response
+  // is returned, so firing and forgetting here would drop the email whenever
+  // the worker finished first.
+  await notifyNewMessage(conversationId, user.id);
 
   const base = user.role === "nanny" ? "/nanny/messages" : "/family/messages";
   revalidatePath(`${base}/${conversationId}`);
