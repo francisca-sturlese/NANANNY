@@ -82,9 +82,9 @@ end $$;
 -- level refusal fails the whole statement, so one missing grant silently
 -- discards an entire form: she fills in step one, is sent to step two, and
 -- step one is empty when she goes back.
-select case when public.assert_nanny_columns_updatable() = 'ok'
-       then 'PASS — every column a nanny should edit is editable'
-       else 'FAIL — ' || public.assert_nanny_columns_updatable() end;
+select case when public.assert_editable_columns() = 'ok'
+       then 'PASS — every column a user should edit is editable'
+       else 'FAIL — ' || public.assert_editable_columns() end;
 
 -- Column-level privacy. Each of these must be refused outright.
 do $$

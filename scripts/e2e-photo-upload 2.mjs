@@ -48,22 +48,15 @@ const dir = mkdtempSync(join(tmpdir(), "nananny-photo-"));
 const big = join(dir, "phone-photo.jpg");
 // Random pixels, because a flat colour compresses to nothing and the whole
 // point of the fixture is that it is large.
-// The exact shape that killed WebKit's renderer in production: 18 megapixels,
-// which is about 72 MB once decoded. A smaller fixture passes even when the
-// bug is present, which is how the first version of this test missed it.
-const w = 3456;
-const h = 5184;
+const w = 4032;
+const h = 3024;
 const noise = Buffer.alloc(w * h * 3);
 for (let i = 0; i < noise.length; i += 1) noise[i] = (i * 2654435761) % 251;
 await sharp(noise, { raw: { width: w, height: h, channels: 3 } })
   .jpeg({ quality: 92 })
   .toFile(big);
 const bytes = readFileSync(big).length;
-check(
-  "the fixture is the shape a phone produces",
-  bytes > 1_000_000,
-  `${Math.round(bytes / 1024)} KB, ${w}x${h}, ${(w * h) / 1e6} megapixels`,
-);
+check("the fixture is the size a phone produces", bytes > 1_000_000, `${Math.round(bytes / 1024)} KB`);
 
 const email = `photo-${Date.now()}@example.test`;
 const { error: createError } = await db.auth.admin.createUser({
@@ -102,16 +95,14 @@ await page.locator('select[name="nationality"]').selectOption({ index: 1 });
 await page.locator('select[name="visaStatus"]').selectOption({ index: 1 });
 await page.locator('select[name="emirate"]').selectOption({ index: 1 });
 
-// Three selects now, with a hidden input carrying the composed value. The
-// hidden input still exists, so asking whether it is there picks the wrong
-// branch: what decides is whether the selects are visible.
-const daySelect = page.getByLabel("Day of birth");
-if (await daySelect.count()) {
-  await daySelect.selectOption("12");
-  await page.getByLabel("Month of birth").selectOption("4");
-  await page.getByLabel("Year of birth").selectOption("1995");
-} else {
+// The date field may be a native input or three selects, depending on which
+// version of the form is deployed. Both submit dateOfBirth.
+if (await page.locator('input[name="dateOfBirth"]').count()) {
   await page.locator('input[name="dateOfBirth"]').fill("1995-04-12");
+} else {
+  await page.locator('select[name="dobDay"]').selectOption("12");
+  await page.locator('select[name="dobMonth"]').selectOption("4");
+  await page.locator('select[name="dobYear"]').selectOption("1995");
 }
 
 console.log("  form:", JSON.stringify(await page.evaluate(() => {

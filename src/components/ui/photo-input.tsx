@@ -37,6 +37,7 @@ export function PhotoInput({
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [busy, setBusy] = React.useState(false);
+  const [problem, setProblem] = React.useState<string | null>(null);
 
   async function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -46,6 +47,7 @@ export function PhotoInput({
     }
 
     setBusy(true);
+    setProblem(null);
     try {
       const resized = await shrink(file);
       if (resized && inputRef.current) {
@@ -58,10 +60,19 @@ export function PhotoInput({
       }
       onPreview?.(URL.createObjectURL(inputRef.current?.files?.[0] ?? file));
     } catch {
-      // A picture we cannot decode here is left exactly as the person chose it.
-      // The server will refuse it with a message, which is better than this
-      // component deciding silently that their photo is unusable.
-      onPreview?.(URL.createObjectURL(file));
+      /**
+       * If the picture could not be shrunk, the original is not sent.
+       *
+       * That was the old behaviour and it was wrong twice over: the original is
+       * what was too large to begin with, so the upload fails anyway, and it
+       * fails with a message about file types that has nothing to do with what
+       * happened. Saying so here is worse for nobody and clearer for everybody.
+       */
+      setProblem(
+        "We could not prepare that photo. Please try a different one, or a smaller version.",
+      );
+      if (inputRef.current) inputRef.current.value = "";
+      onPreview?.(null);
     } finally {
       setBusy(false);
     }
@@ -83,70 +94,93 @@ export function PhotoInput({
           Preparing your photo…
         </p>
       )}
+      {problem && (
+        <p className="mt-2 text-xs text-danger" role="alert">
+          {problem}
+        </p>
+      )}
     </>
   );
 }
 
 /**
- * Draws the picture into a canvas at the target size and reads it back as WebP.
+ * Shrinks a picture without ever holding it at full size.
  *
- * `createImageBitmap` is used rather than an `<img>` because it applies EXIF
- * orientation itself. Without that, a photo taken in portrait on an iPhone
- * arrives rotated ninety degrees, which is the single most common complaint
- * about any upload form.
+ * The first version used `createImageBitmap`, which decodes the whole image
+ * before anything is scaled. A photo from a modern phone is 18 megapixels, and
+ * decoded that is about 72 MB of pixels. WebKit does not throw on that, it
+ * kills the rendering process: the tab dies, the form never posts, and Safari
+ * shows "This page couldn't load". No server ever saw a request, which is why
+ * every fix on the server changed nothing.
  *
- * Returns null when the picture is already small enough, so a file that needs
- * nothing done to it is passed through untouched.
+ * A renderer crash cannot be caught, so the answer is not to handle it but to
+ * never ask for the full decode. An `<img>` element is what browsers optimise
+ * for exactly this: Safari downsamples large JPEGs while decoding and manages
+ * the memory itself, and `drawImage` scales as it rasterises.
+ *
+ * EXIF orientation is applied by the browser for an `<img>` by default, which
+ * is what `imageOrientation: "from-image"` was there for.
  */
 async function shrink(file: File): Promise<File | null> {
   if (!file.type.startsWith("image/")) return null;
 
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await loadImage(url);
 
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const width = Math.round(bitmap.width * scale);
-  const height = Math.round(bitmap.height * scale);
+    const scale = Math.min(1, MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.round(image.naturalWidth * scale);
+    const height = Math.round(image.naturalHeight * scale);
 
-  // Already small and already a format we want: leave it alone.
-  if (scale === 1 && (file.type === "image/webp" || file.type === "image/jpeg")) {
-    bitmap.close();
-    return null;
+    // Already small, and already a format the server accepts.
+    if (scale === 1 && (file.type === "image/jpeg" || file.type === "image/png")) {
+      return null;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+
+    context.drawImage(image, 0, 0, width, height);
+
+    /**
+     * What the browser actually produced, not what it was asked for.
+     *
+     * `toBlob` takes a type as a request, not an instruction. WebKit cannot
+     * encode WebP and quietly returns a PNG, and naming that .webp with a webp
+     * mime type produced a file whose declared type and first bytes disagreed.
+     * The server checks exactly that and refused it.
+     *
+     * JPEG is asked for rather than WebP: every browser can encode it, a
+     * photograph is what JPEG is for, and a PNG of a photograph is several
+     * times larger for no benefit.
+     */
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", QUALITY),
+    );
+    if (!blob) return null;
+
+    const produced = blob.type || "image/jpeg";
+    const extension =
+      produced === "image/webp" ? "webp" : produced === "image/png" ? "png" : "jpg";
+    const base = file.name.replace(/\.[^.]+$/, "") || "photo";
+
+    return new File([blob], `${base}.${extension}`, { type: produced });
+  } finally {
+    URL.revokeObjectURL(url);
   }
+}
 
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d");
-  if (!context) {
-    bitmap.close();
-    return null;
-  }
-
-  context.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-
-  /**
-   * What the browser actually produced, not what it was asked for.
-   *
-   * `toBlob` takes a type as a request, not an instruction. WebKit cannot
-   * encode WebP and quietly returns a PNG instead, and naming the result .webp
-   * with a webp mime type produced a file whose declared type and first bytes
-   * disagreed. The server checks exactly that, correctly refused it, and every
-   * nanny using Safari was stopped on a required field at the first step of
-   * onboarding with "that file is not the kind of image it claims to be".
-   *
-   * So the type is read off the blob afterwards. WebP is still asked for,
-   * because the browsers that can do it produce a much smaller file.
-   */
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/webp", QUALITY),
-  );
-  if (!blob) return null;
-
-  const produced = blob.type || "image/png";
-  const extension = produced === "image/webp" ? "webp" : produced === "image/jpeg" ? "jpg" : "png";
-  const base = file.name.replace(/\.[^.]+$/, "") || "photo";
-
-  return new File([blob], `${base}.${extension}`, { type: produced });
+/** An image that has finished loading, or a rejection. */
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("could not read that image"));
+    image.src = url;
+  });
 }
