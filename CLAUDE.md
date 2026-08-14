@@ -20,8 +20,8 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 12 + 24 + 10 SQL checks
-npm run test:e2e       # 29 + 20 + 15 + 28 end-to-end checks
+npm run test:db        # 12 + 24 + 10 + 17 SQL checks
+npm run test:e2e       # 29 + 20 + 15 + 28 + 15 end-to-end checks
 npm run test:mobile    # 252 viewport/engine combinations
 npm run test:links     # every internal link as 4 audiences, plus no dashes in copy
 npm run test:overlays  # sheets and menus actually cover the viewport
@@ -72,6 +72,14 @@ The column grants deliberately stop even an admin from setting `users.status` or
 that checks `is_admin()` itself and writes to `audit_logs`, so the audit trail
 cannot be skipped and a stolen anon key gets nowhere. See
 `20260813150000_admin_capabilities.sql`.
+
+**The match score is computed in the database, never by a model.**
+`compute_match()` reads the weights from `matching_weights`, which an admin can
+change, and returns the score together with the sentences that produced it. A
+dimension the family has not answered is reported as unknown rather than scored
+as half a fit. `refresh_matches()` is the only writer of `matches`; the table is
+read only for `authenticated`. Anything that would make the number unexplainable
+breaks the product requirement, not just the tests.
 
 **Approved ≠ verified.** Approval means a profile is live. Verification badges
 are granted one at a time, only for something a human actually reviewed. Never
@@ -140,6 +148,6 @@ docs/                  mobile-first constraints, reuse notes
 3. ✅ Search, filters, jobs, applications, shortlist
 4. ✅ Messaging, contact counter, paywall
 5. ⬜ Subscriptions, payments, webhooks
-6. ⬜ AI assistant and matching
+6. 🔶 Matching and explainable scores (the free text assistant needs an LLM key)
 7. ✅ Admin, moderation, analytics
 8. ⬜ Security, performance, SEO, deployment

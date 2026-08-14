@@ -112,8 +112,13 @@ export default async function FamilyDashboard({
         </Card>
       </div>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-3">
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
+          {
+            href: "/family/matches",
+            title: "Your matches",
+            copy: "Scored against what you asked for, with the reasons shown.",
+          },
           { href: "/nannies", title: "Search nannies", copy: "Browse every approved profile." },
           { href: "/family/saved", title: "Saved profiles", copy: "Your shortlist, always free." },
           { href: "/family/profile", title: "Your profile", copy: "Update what you're looking for." },

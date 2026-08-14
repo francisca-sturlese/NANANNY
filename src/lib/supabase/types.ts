@@ -868,6 +868,7 @@ export type Database = {
           nanny_id: string
           reasons: string[]
           score: number
+          unknown_dimensions: string[]
         }
         Insert: {
           breakdown?: Json
@@ -880,6 +881,7 @@ export type Database = {
           nanny_id: string
           reasons?: string[]
           score: number
+          unknown_dimensions?: string[]
         }
         Update: {
           breakdown?: Json
@@ -892,6 +894,7 @@ export type Database = {
           nanny_id?: string
           reasons?: string[]
           score?: number
+          unknown_dimensions?: string[]
         }
         Relationships: [
           {
@@ -1964,6 +1967,10 @@ export type Database = {
         Args: { p_blocked_id: string; p_reason?: string }
         Returns: Json
       }
+      compute_match: {
+        Args: { p_family_id: string; p_nanny_id: string }
+        Returns: Json
+      }
       current_role_name: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
@@ -2016,6 +2023,7 @@ export type Database = {
       my_family_id: { Args: never; Returns: string }
       my_nanny_id: { Args: never; Returns: string }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
+      refresh_matches: { Args: { p_family_id?: string }; Returns: number }
       report_content: {
         Args: {
           p_details?: string
