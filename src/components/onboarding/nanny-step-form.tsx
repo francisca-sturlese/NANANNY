@@ -5,6 +5,7 @@ import Image from "next/image";
 import { saveNannyStep } from "@/lib/onboarding/nanny-actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { StepNav } from "@/components/onboarding/shell";
+import { DateOfBirthSelect } from "@/components/onboarding/date-of-birth-select";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { PhotoInput } from "@/components/ui/photo-input";
 import { VISA_STATUSES } from "@/lib/nanny/visa";
@@ -161,13 +162,7 @@ export function NannyStepForm({
               hint="Never shown publicly. Families see your age range only."
               error={err.dateOfBirth}
             >
-              <Input
-                id="dateOfBirth"
-                name="dateOfBirth"
-                type="date"
-                defaultValue={profile?.date_of_birth ?? ""}
-                required
-              />
+              <DateOfBirthSelect defaultValue={profile?.date_of_birth} />
             </Field>
           </div>
 
