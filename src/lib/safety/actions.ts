@@ -150,7 +150,7 @@ export async function submitSupportRequestAction(
     // Written by the database for a person to read.
     if (error.code === "RATE1") return { error: error.message };
     console.error("[support] could not open request:", error);
-    return { error: "We could not send that. Please email support@nananny.ae instead." };
+    return { error: "We could not send that. Please email support@nananny.com instead." };
   }
 
   revalidatePath("/admin/support");

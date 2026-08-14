@@ -66,7 +66,7 @@ export default function PrivacyPage() {
         <p>
           You can edit or remove anything on your profile at any time, stop appearing in
           search, or ask us to delete your account and everything attached to it by writing
-          to support@nananny.ae.
+          to support@nananny.com.
         </p>
       </Section>
 

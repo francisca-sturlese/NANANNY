@@ -60,11 +60,11 @@ export default async function SupportPage() {
           },
           {
             q: "Billing questions",
-            a: "Write to billing@nananny.ae with your account email and we will look into it.",
+            a: "Write to billing@nananny.com with your account email and we will look into it.",
           },
           {
             q: "Delete my account",
-            a: "Email support@nananny.ae from the address on the account and we will remove it, along with your profile and any documents you uploaded.",
+            a: "Email support@nananny.com from the address on the account and we will remove it, along with your profile and any documents you uploaded.",
           },
         ]}
       />

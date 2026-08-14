@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 12 + 24 + 10 + 17 + 10 SQL checks
+npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 SQL checks
 npm run test:e2e       # 29 + 20 + 15 + 28 + 15 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
@@ -103,6 +103,16 @@ sitemap. A family should see who is available before signing up; that is not
 the same as leaving a real person's photo, first name and emirate in a search
 index after she has found a job. Job posts are indexed, since they carry no
 personal detail and a family posting one wants it found.
+
+**Administrators are appointed, not self-declared.** The first `super_admin`
+is created by SQL against the production database, documented in
+`docs/deployment.md`. Everyone after that goes through
+`admin_set_user_role()`, which only a `super_admin` may call, never on
+themselves, always audited. A plain `admin` moderates but cannot appoint.
+
+**Deployment notes live in `docs/deployment.md`**, including why this repo uses
+the deprecated `middleware.ts` and the one environment variable that silently
+turns off HTTPS enforcement if it is wrong.
 
 **No LLM anywhere in this product.** Decided 2026-08-14. The free text
 assistant described in the PRD is out of scope, and nothing that reaches a
@@ -187,4 +197,5 @@ docs/                  mobile-first constraints, reuse notes
 6. ✅ Matching and explainable scores. No LLM, by decision: the free text
    assistant in the PRD is out of scope and the score stays deterministic
 7. ✅ Admin, moderation, analytics
-8. 🔶 Security, SEO and query indexes done. Deployment not started
+8. 🔶 Security, SEO, indexes and Workers packaging done.
+   Blocked on `sharp`, which cannot run on Workers. See `docs/deployment.md`

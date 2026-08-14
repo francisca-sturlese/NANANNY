@@ -38,7 +38,7 @@ export function SupportForm({
       <div className="space-y-4">
         <FormMessage message={state.message} />
         <p className="text-sm text-muted">
-          If it is urgent, you can also write to support@nananny.ae directly.
+          If it is urgent, you can also write to support@nananny.com directly.
         </p>
       </div>
     );
