@@ -4,7 +4,7 @@ import { canonical } from "@/lib/seo/site";
 import { Check } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
 import { PromoBanner } from "@/components/promo/promo-banner";
-import { getPromo, endsPhrase } from "@/lib/promo";
+import { getPromo, endsPhrase, lastDay } from "@/lib/promo";
 import { SiteFooter } from "@/components/site/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,10 +69,9 @@ export default async function PricingPage() {
         <p className="mt-4 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
           {promo.active ? (
             <>
-              While we are launching, contacting a nanny costs nothing at all
-              {endsPhrase(promo) ? `. ${endsPhrase(promo)}` : ""}. After that,
-              your first {pricing.freeContacts} nanny contacts are free and then
-              you choose a plan.
+              Every nanny contact is free while we are launching
+              {endsPhrase(promo) ? `. ${endsPhrase(promo)}` : ""}. There is nothing
+              to choose and nothing to pay.
             </>
           ) : (
             <>
@@ -82,10 +81,37 @@ export default async function PricingPage() {
           )}
         </p>
 
+        {/* While the window is open the plans are not an offer, they are an
+            answer to "what will this cost later". Kept on the page, because a
+            family deciding whether to invest time here deserves to know, and
+            because the terms link here for exactly that. But demoted: heading,
+            smaller type, below the fold, and never the first thing read.
+            Removing them outright would leave that question unanswered and the
+            terms pointing at nothing. */}
+        {promo.active && (
+          <div className="mt-12 border-t border-border pt-8">
+            <h2 className="text-lg font-semibold sm:text-xl">
+              What happens after {lastDay(promo) ?? "the launch period"}
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+              Your first {pricing.freeContacts} nanny contacts are free, and nothing
+              you do during the launch counts against them. After those, you choose
+              one of these. You can also do nothing: browsing, saving and replying
+              to conversations you have already started stay free either way.
+            </p>
+          </div>
+        )}
+
         {/* Ascending: free, then the cheaper plan, then the dearer one. The
             Best Value mark still points at monthly without the layout having to
             shout it by putting it first. */}
-        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+        <div
+          className={
+            promo.active
+              ? "mt-6 grid gap-4 opacity-80 lg:grid-cols-3"
+              : "mt-10 grid gap-4 lg:grid-cols-3"
+          }
+        >
           <PlanCard
             name="Free"
             price={0}

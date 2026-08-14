@@ -84,3 +84,20 @@ export function endsPhrase(promo: Promo): string | null {
     timeZone: "Asia/Dubai",
   })}`;
 }
+
+/**
+ * The last day the promotion applies, as a date somebody can read.
+ *
+ * The stored end is the instant it stops, which for a window running to the end
+ * of 4 September is midnight on the 5th. Printing that to somebody who was told
+ * the 4th reads as a mistake, or as a day they still have.
+ */
+export function lastDay(promo: Promo): string | null {
+  if (!promo.endsAt) return null;
+  const last = new Date(new Date(promo.endsAt).getTime() - 1000);
+  return last.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    timeZone: "Asia/Dubai",
+  });
+}
