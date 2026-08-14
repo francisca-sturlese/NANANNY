@@ -17,6 +17,11 @@ const eslintConfig = defineConfig([
     "supabase/.temp/**",
     // Generated from the photo pipeline.
     "src/lib/photos.ts",
+    // The Cloudflare build output. Linting a bundled worker is pointless and
+    // walking it exhausts Node's heap, which surfaces as an out of memory crash
+    // rather than as anything resembling a lint error.
+    ".open-next/**",
+    ".wrangler/**",
   ]),
   {
     // Profile photos come from private storage as signed URLs that rotate every

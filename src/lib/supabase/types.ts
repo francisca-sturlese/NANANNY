@@ -1489,6 +1489,35 @@ export type Database = {
           },
         ]
       }
+      rate_limit_hits: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_limit_hits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -1936,6 +1965,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_user_role: {
+        Args: {
+          p_reason?: string
+          p_role: Database["public"]["Enums"]["user_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       admin_set_user_status: {
         Args: {
           p_reason?: string
@@ -1963,6 +2000,23 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_subscription_event: {
+        Args: {
+          p_cancel_at_period_end?: boolean
+          p_event_id: string
+          p_event_type: string
+          p_family_id: string
+          p_payload?: Json
+          p_period_end: string
+          p_period_start: string
+          p_plan: Database["public"]["Enums"]["subscription_plan"]
+          p_price_aed: number
+          p_provider_customer_id: string
+          p_provider_subscription_id: string
+          p_status: Database["public"]["Enums"]["subscription_status"]
+        }
+        Returns: Json
+      }
       block_user: {
         Args: { p_blocked_id: string; p_reason?: string }
         Returns: Json
@@ -1970,6 +2024,15 @@ export type Database = {
       compute_match: {
         Args: { p_family_id: string; p_nanny_id: string }
         Returns: Json
+      }
+      consume_rate_limit: {
+        Args: {
+          p_action: string
+          p_limit: number
+          p_user_id?: string
+          p_window: string
+        }
+        Returns: undefined
       }
       current_role_name: {
         Args: never
@@ -1991,6 +2054,10 @@ export type Database = {
       family_profile_completion: {
         Args: { p_family_id: string }
         Returns: Json
+      }
+      family_provider_customer: {
+        Args: { p_family_id: string }
+        Returns: string
       }
       has_active_subscription: {
         Args: { p_family_id: string }
@@ -2023,6 +2090,17 @@ export type Database = {
       my_family_id: { Args: never; Returns: string }
       my_nanny_id: { Args: never; Returns: string }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
+      record_payment: {
+        Args: {
+          p_amount_aed: number
+          p_failure_reason?: string
+          p_family_id: string
+          p_provider_intent_id?: string
+          p_provider_payment_id: string
+          p_status: Database["public"]["Enums"]["payment_status"]
+        }
+        Returns: Json
+      }
       refresh_matches: { Args: { p_family_id?: string }; Returns: number }
       report_content: {
         Args: {

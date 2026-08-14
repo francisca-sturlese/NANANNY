@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { startConversationAction, type ContactResult } from "@/lib/messaging/actions";
 import { Button } from "@/components/ui/button";
+import { startCheckoutAction, type BillingState } from "@/lib/billing/actions";
 import { Textarea } from "@/components/ui/field";
 import { SubmitButton, FormError } from "@/components/auth/form-parts";
 import { Badge } from "@/components/ui/badge";
@@ -162,16 +163,21 @@ function Paywall({ pricing, used }: { pricing: PricingSummary; used: number }) {
       </p>
 
       <div className="grid gap-3">
+        {/* Cheapest first. The smaller commitment should be the easier one to
+            find, even though the monthly plan is the better deal. */}
         {pricing.weeklyEnabled && (
           <PlanOption
+            plan="weekly"
             name="Weekly"
             price={pricing.weeklyPriceAed}
             period="week"
             currency={pricing.currency}
+            highlighted={!pricing.monthlyIsBestValue}
           />
         )}
         {pricing.monthlyEnabled && (
           <PlanOption
+            plan="monthly"
             name="Monthly"
             price={pricing.monthlyPriceAed}
             period="month"
@@ -196,26 +202,33 @@ function Paywall({ pricing, used }: { pricing: PricingSummary; used: number }) {
 }
 
 function PlanOption({
+  plan,
   name,
   price,
   period,
   currency,
   highlighted = false,
 }: {
+  plan: "weekly" | "monthly";
   name: string;
   price: number;
   period: string;
   currency: string;
   highlighted?: boolean;
 }) {
+  const [state, action] = useActionState<BillingState, FormData>(startCheckoutAction, {});
+
   return (
-    <div
+    <form
+      action={action}
       className={
         highlighted
           ? "relative rounded-lg border-2 border-foreground p-4"
           : "relative rounded-lg border border-border p-4"
       }
     >
+      <input type="hidden" name="plan" value={plan} />
+
       {highlighted && (
         <span className="absolute -top-3 left-4">
           <Badge variant="solid" size="sm">
@@ -238,13 +251,11 @@ function PlanOption({
 
       <p className="mt-2 text-sm text-muted">Unlimited nanny contacts and messaging.</p>
 
-      {/* Checkout is Milestone 5. Saying so beats a button that does nothing. */}
-      <Button size="lg" block className="mt-3" disabled>
+      <SubmitButton size="lg" block className="mt-3" pendingLabel="Opening payment…">
         Continue with {price} {currency}
-      </Button>
-      <p className="mt-1.5 text-center text-[0.6875rem] text-subtle">
-        Payment opens in the next release
-      </p>
-    </div>
+      </SubmitButton>
+
+      <FormError message={state.error} />
+    </form>
   );
 }

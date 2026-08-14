@@ -21,7 +21,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 
 ```bash
 npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 SQL checks
-npm run test:e2e       # 29 + 20 + 15 + 28 + 15 end-to-end checks
+npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
 npm run test:mobile    # 252 viewport/engine combinations
@@ -114,6 +114,28 @@ themselves, always audited. A plain `admin` moderates but cannot appoint.
 the deprecated `middleware.ts` and the one environment variable that silently
 turns off HTTPS enforcement if it is wrong.
 
+**A subscription becomes real in the webhook, never in the browser.**
+`lib/billing/actions.ts` only sends a family to Stripe. Access is granted by
+`api/stripe/webhook`, after the signature is verified against the raw request
+body, through `apply_subscription_event()`, which is idempotent on the
+provider's event id. Stripe retries, so applying twice must be impossible
+rather than unlikely. `scripts/e2e-billing.mjs` signs its own payloads, so the
+signature check, the handler and the database function are all under test
+without a Stripe account.
+
+**Prices go to Stripe as `price_data`, not as a dashboard Price.** A Price
+created in Stripe's dashboard would be a second place 89 and 250 live, and an
+admin changing the number in our admin screen would change what the pricing
+page advertises without changing what the card is charged.
+
+**`past_due` does not end access.** Stripe retries a failed renewal for days
+and most of those succeed. Cutting a family off on the first failure drops them
+out of a conversation they are in the middle of, over an expired card.
+
+**Plans are listed cheapest first.** Sorted by amount in `plansFrom()` so the
+rule survives a price change. Which one carries "best value" is a separate
+question.
+
 **No LLM anywhere in this product.** Decided 2026-08-14. The free text
 assistant described in the PRD is out of scope, and nothing that reaches a
 family may be generated. If a feature seems to need a model, it needs a
@@ -193,7 +215,8 @@ docs/                  mobile-first constraints, reuse notes
 2. ✅ Auth, onboarding, profiles, completion, review states, seed, mobile pass
 3. ✅ Search, filters, jobs, applications, shortlist
 4. ✅ Messaging, contact counter, paywall
-5. ⬜ Subscriptions, payments, webhooks
+5. 🔶 Subscriptions, checkout, webhooks, billing portal. Test mode only,
+   and never verified against real Stripe payloads
 6. ✅ Matching and explainable scores. No LLM, by decision: the free text
    assistant in the PRD is out of scope and the score stays deterministic
 7. ✅ Admin, moderation, analytics

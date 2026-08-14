@@ -108,6 +108,13 @@ export default async function FamilyDashboard({
                     } remaining.`
                   : "You've used all your free contacts."}
             </p>
+
+            <Link
+              href="/family/subscription"
+              className="mt-3 inline-block text-sm underline underline-offset-4"
+            >
+              {contacts?.subscription_active ? "Manage your subscription" : "See the plans"}
+            </Link>
           </CardBody>
         </Card>
       </div>
