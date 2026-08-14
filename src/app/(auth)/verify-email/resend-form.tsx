@@ -31,6 +31,10 @@ export function ResendVerificationForm({ defaultEmail }: { defaultEmail?: string
       <SubmitButton variant="outline" block pendingLabel="Sending…">
         Resend verification email
       </SubmitButton>
+      <p className="text-center text-xs text-muted">
+        Just asked for one? Wait a minute before trying again, or the request may be
+        refused. When a new email arrives, only its link works.
+      </p>
     </form>
   );
 }

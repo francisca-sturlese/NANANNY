@@ -55,8 +55,13 @@ export default async function VerifyEmailPage({
         <div className="rounded-lg border border-border bg-surface p-5">
           <h2 className="text-sm font-semibold">Didn&apos;t get it?</h2>
           <ul className="mt-2 space-y-1 text-sm text-muted">
-            <li>Check your spam or promotions folder.</li>
-            <li>The link is valid for one hour.</li>
+            <li>
+              Using Gmail? Look in the <strong>Spam</strong> folder and in the{" "}
+              <strong>Promotions</strong> tab. On the Gmail app, open the menu and tap
+              Spam.
+            </li>
+            <li>Try searching your email for &quot;nananny&quot;.</li>
+            <li>The link is valid for one hour, and only the newest one works.</li>
           </ul>
         </div>
 
