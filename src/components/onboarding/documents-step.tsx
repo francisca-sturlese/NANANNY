@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useRef } from "react";
-import { FileText, Trash2, Check } from "lucide-react";
+import { useActionState, useRef, useState } from "react";
+import { FileText, Trash2, Check, Plus } from "lucide-react";
 import { uploadDocumentAction, deleteDocumentAction } from "@/lib/onboarding/nanny-actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { StepNav } from "@/components/onboarding/shell";
@@ -59,6 +59,11 @@ export function DocumentsStep({
     {},
   );
   const formRef = useRef<HTMLFormElement>(null);
+  // The upload form lives behind a button. Its own fields are marked required,
+  // and with the form always visible the asterisks read as "this step is
+  // mandatory", which it is not: it made the person who built the product
+  // hesitate, so it would certainly make a nanny hesitate.
+  const [showUpload, setShowUpload] = useState(false);
 
   return (
     <div className="space-y-7">
@@ -117,6 +122,23 @@ export function DocumentsStep({
         </ul>
       )}
 
+      {!showUpload && (
+        <div className="space-y-3">
+          <p className="text-sm leading-relaxed text-muted">
+            You can skip this step and add documents any time later from your profile.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowUpload(true)}
+            className="tap-target flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong px-5 py-4 text-sm font-medium hover:border-foreground"
+          >
+            <Plus className="size-4" aria-hidden />
+            Add a document (optional)
+          </button>
+        </div>
+      )}
+
+      {showUpload && (
       <form
         ref={formRef}
         action={(formData) => {
@@ -160,7 +182,16 @@ export function DocumentsStep({
         <SubmitButton variant="outline" block pendingLabel="Uploading…">
           Add this file
         </SubmitButton>
+
+        <button
+          type="button"
+          onClick={() => setShowUpload(false)}
+          className="tap-target block w-full text-center text-sm text-muted underline"
+        >
+          Not now
+        </button>
       </form>
+      )}
 
       <FormError message={deleteState.error} />
 
