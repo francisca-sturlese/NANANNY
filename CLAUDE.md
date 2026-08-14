@@ -73,6 +73,11 @@ that checks `is_admin()` itself and writes to `audit_logs`, so the audit trail
 cannot be skipped and a stolen anon key gets nowhere. See
 `20260813150000_admin_capabilities.sql`.
 
+**No LLM anywhere in this product.** Decided 2026-08-14. The free text
+assistant described in the PRD is out of scope, and nothing that reaches a
+family may be generated. If a feature seems to need a model, it needs a
+different design instead.
+
 **The match score is computed in the database, never by a model.**
 `compute_match()` reads the weights from `matching_weights`, which an admin can
 change, and returns the score together with the sentences that produced it. A
@@ -148,6 +153,7 @@ docs/                  mobile-first constraints, reuse notes
 3. ✅ Search, filters, jobs, applications, shortlist
 4. ✅ Messaging, contact counter, paywall
 5. ⬜ Subscriptions, payments, webhooks
-6. 🔶 Matching and explainable scores (the free text assistant needs an LLM key)
+6. ✅ Matching and explainable scores. No LLM, by decision: the free text
+   assistant in the PRD is out of scope and the score stays deterministic
 7. ✅ Admin, moderation, analytics
 8. ⬜ Security, performance, SEO, deployment
