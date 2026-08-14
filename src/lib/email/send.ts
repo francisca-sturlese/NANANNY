@@ -1,6 +1,6 @@
 import "server-only";
 
-import { absoluteUrl } from "@/lib/seo/site";
+import { absoluteUrl, siteUrl } from "@/lib/seo/site";
 
 /**
  * Sending email.
@@ -32,6 +32,20 @@ export async function sendEmail(options: {
   if (!key || !from) {
     // Not an error worth shouting about locally, where mail is not configured.
     return { ok: false, error: "email is not configured" };
+  }
+
+  /**
+   * Nothing leaves a development machine.
+   *
+   * The key is real in .env.local, so without this every message sent by the
+   * end to end suites made a live call to Resend: seconds of latency on each
+   * one, and mail genuinely delivered to whatever address a fixture invented.
+   * The check is the site URL rather than NODE_ENV because the suites run a
+   * production build over http on 127.0.0.1.
+   */
+  if (!siteUrl().startsWith("https://")) {
+    console.info(`[email] not sent from a local build: ${options.subject} to ${options.to}`);
+    return { ok: true, id: null };
   }
 
   try {

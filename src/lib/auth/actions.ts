@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { getSession, homeForRole, onboardingForRole } from "@/lib/auth/dal";
 
 /**
@@ -59,6 +60,34 @@ export async function signUpAction(
   }
 
   const { email, password: pwd, role, firstName, lastName, phone } = parsed.data;
+
+  /**
+   * A number that already has an account almost always means one person who
+   * thinks the first attempt failed, not somebody making a second account on
+   * purpose. One nanny made three this way, each time after a confirmation link
+   * that did not work for her.
+   *
+   * So this is a signpost rather than a wall: it says there is already an
+   * account and points at the way back in. It never says whose. Telling an
+   * anonymous caller which address owns a phone number would make this a lookup
+   * service, and the people on it are exactly the ones who cannot afford that.
+   */
+  if (phone) {
+    const service = createServiceClient();
+    const { data: taken } = await service.rpc("phone_already_registered", {
+      p_phone: phone,
+    });
+
+    if (taken) {
+      return {
+        fieldErrors: {
+          phone:
+            "There is already an account with this number. Log in instead, or use forgot password if you cannot get in.",
+        },
+      };
+    }
+  }
+
   const supabase = await createServerSupabase();
 
   const { data, error } = await supabase.auth.signUp({

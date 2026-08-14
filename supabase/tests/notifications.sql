@@ -72,7 +72,12 @@ end $$;
 do $$
 declare conv uuid; decision jsonb;
 begin
-  select id into conv from public.conversations limit 1;
+  -- This suite's own conversation, named explicitly. `limit 1` without an
+  -- order picked whichever row came first, and the browser suites leave real
+  -- conversations behind, so it quietly started testing somebody else's.
+  select id into conv from public.conversations
+   where nanny_id = (select id from public.nanny_profiles
+                      where user_id = '62222222-2222-4222-8222-222222222221');
   -- A fresh window, so this one is allowed to send.
   delete from public.email_events;
   decision := public.notify_new_message(conv, '61111111-1111-4111-8111-111111111111');
@@ -108,7 +113,12 @@ end $$;
 do $$
 declare conv uuid; sent int := 0; i int;
 begin
-  select id into conv from public.conversations limit 1;
+  -- This suite's own conversation, named explicitly. `limit 1` without an
+  -- order picked whichever row came first, and the browser suites leave real
+  -- conversations behind, so it quietly started testing somebody else's.
+  select id into conv from public.conversations
+   where nanny_id = (select id from public.nanny_profiles
+                      where user_id = '62222222-2222-4222-8222-222222222221');
   delete from public.email_events;
 
   for i in 1..8 loop
@@ -146,7 +156,12 @@ end $$;
 do $$
 declare conv uuid; decision jsonb;
 begin
-  select id into conv from public.conversations limit 1;
+  -- This suite's own conversation, named explicitly. `limit 1` without an
+  -- order picked whichever row came first, and the browser suites leave real
+  -- conversations behind, so it quietly started testing somebody else's.
+  select id into conv from public.conversations
+   where nanny_id = (select id from public.nanny_profiles
+                      where user_id = '62222222-2222-4222-8222-222222222221');
   -- Age the key out of its bucket, as twenty minutes of real time would.
   update public.email_events
      set idempotency_key = idempotency_key || ':aged'
@@ -167,7 +182,12 @@ end $$;
 do $$
 declare conv uuid; decision jsonb;
 begin
-  select id into conv from public.conversations limit 1;
+  -- This suite's own conversation, named explicitly. `limit 1` without an
+  -- order picked whichever row came first, and the browser suites leave real
+  -- conversations behind, so it quietly started testing somebody else's.
+  select id into conv from public.conversations
+   where nanny_id = (select id from public.nanny_profiles
+                      where user_id = '62222222-2222-4222-8222-222222222221');
   delete from public.email_events;
   update public.conversations set blocked_at = now() where id = conv;
 
@@ -188,7 +208,12 @@ end $$;
 do $$
 declare conv uuid; decision jsonb; outsider uuid;
 begin
-  select id into conv from public.conversations limit 1;
+  -- This suite's own conversation, named explicitly. `limit 1` without an
+  -- order picked whichever row came first, and the browser suites leave real
+  -- conversations behind, so it quietly started testing somebody else's.
+  select id into conv from public.conversations
+   where nanny_id = (select id from public.nanny_profiles
+                      where user_id = '62222222-2222-4222-8222-222222222221');
   select id into outsider from public.users
    where id not in ('61111111-1111-4111-8111-111111111111',
                     '62222222-2222-4222-8222-222222222221')

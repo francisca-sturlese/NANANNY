@@ -230,7 +230,10 @@ begin
     return;
   end if;
 
-  set local role authenticated;
+  -- Called as the owner, not as `authenticated`. The function is deliberately
+  -- unreachable from a session (see function_grants.sql): in production only
+  -- the triggers call it, and they run as the definer. Setting the claims first
+  -- is what makes auth.uid() inside it resolve to the admin.
   perform set_config('request.jwt.claims',
     json_build_object('sub', admin_uid, 'role', 'authenticated')::text, true);
 

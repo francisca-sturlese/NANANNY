@@ -190,6 +190,7 @@ revoke execute on function public.record_email_result(uuid, text, text, text)
 --
 -- Only the admin one is new, and only for reading: moderation sometimes needs
 -- to see what somebody was told.
+drop policy if exists notifications_admin on public.notifications;
 create policy notifications_admin on public.notifications
   for select to authenticated
   using (public.is_admin());

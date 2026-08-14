@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 + 11 + 10 SQL checks
+npm run test:db        # 114 SQL checks across nine suites
 npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
@@ -76,6 +76,23 @@ profile row but not every field on it: `users.role` and `nanny_profiles.status`
 are withheld by column-level grants, because RLS alone let a user promote
 themselves to admin and a nanny approve her own profile. See
 `20260813140000_privacy_hardening.sql`.
+
+**`revoke ... from authenticated` does nothing. It has to be `from public`.**
+PostgreSQL grants EXECUTE on every new function to PUBLIC, so revoking from a
+role that inherits PUBLIC leaves the grant in place. Seven privileged functions
+were reachable from any session that way, one of which granted subscriptions.
+`20260814210000_revoke_from_public.sql` revokes from PUBLIC across every
+SECURITY DEFINER function and re-grants an explicit list, and
+`supabase/tests/function_grants.sql` fails when a new one appears on the wrong
+side of it.
+
+Two things that migration must keep granting, both learned by breaking them:
+`service_role` needs EXECUTE on everything, because the Stripe webhook and the
+notification sender run as it. And any function named inside an RLS policy
+needs EXECUTE for the role the policy is evaluated as, or the policy raises and
+the query returns nothing at all, which looks like missing rows rather than a
+permission error. Losing `is_conversation_participant` made every message in
+every thread invisible to the two people in it.
 
 **Administrative actions go through a database function, never a direct write.**
 The column grants deliberately stop even an admin from setting `users.status` or

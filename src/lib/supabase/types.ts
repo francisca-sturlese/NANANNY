@@ -1940,6 +1940,7 @@ export type Database = {
     }
     Functions: {
       admin_contact_funnel: { Args: never; Returns: Json }
+      admin_duplicate_phones: { Args: never; Returns: Json }
       admin_grant_badge: {
         Args: { p_badge: string; p_nanny_id: string; p_note?: string }
         Returns: Json
@@ -2113,10 +2114,12 @@ export type Database = {
       my_nanny_id: { Args: never; Returns: string }
       my_notifications: { Args: { p_limit?: number }; Returns: Json }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
+      normalise_phone: { Args: { p_raw: string }; Returns: string }
       notify_new_message: {
         Args: { p_conversation_id: string; p_sender_id: string }
         Returns: Json
       }
+      phone_already_registered: { Args: { p_phone: string }; Returns: boolean }
       promo_active: { Args: never; Returns: boolean }
       promo_window: { Args: never; Returns: Json }
       record_email_result: {

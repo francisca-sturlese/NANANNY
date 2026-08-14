@@ -56,6 +56,25 @@ type Stalled = {
   }[];
 };
 
+/**
+ * Accounts sharing a phone number.
+ *
+ * Grouped rather than flagged one by one, because the answer is nearly always
+ * "this is one person who got stuck" and what an operator needs is to see the
+ * whole story at once.
+ */
+type DuplicatePhone = {
+  phone: string;
+  accounts: number;
+  people: {
+    id: string;
+    email: string;
+    role: string;
+    name: string;
+    created_at: string;
+  }[];
+};
+
 type Funnel = {
   free_contact_limit: number;
   signed_up: number;
@@ -70,15 +89,22 @@ export default async function AdminOverviewPage() {
   const admin = await requireAdmin("/admin");
   const supabase = await createServerSupabase();
 
-  const [{ data: rawMetrics }, { data: rawFunnel }, { data: rawStalled }] = await Promise.all([
+  const [
+    { data: rawMetrics },
+    { data: rawFunnel },
+    { data: rawStalled },
+    { data: rawDuplicates },
+  ] = await Promise.all([
     supabase.rpc("admin_metrics"),
     supabase.rpc("admin_contact_funnel"),
     supabase.rpc("admin_stalled_signups"),
+    supabase.rpc("admin_duplicate_phones"),
   ]);
 
   const m = rawMetrics as unknown as Metrics;
   const f = rawFunnel as unknown as Funnel;
   const stalled = rawStalled as unknown as Stalled;
+  const duplicates = (rawDuplicates ?? []) as unknown as DuplicatePhone[];
 
   const limit = f.free_contact_limit;
   // One row per step of the funnel, in the order a family walks it.
@@ -173,6 +199,53 @@ export default async function AdminOverviewPage() {
           </p>
         )}
       </section>
+
+      {duplicates.length > 0 && (
+        <section className="mt-8">
+          <h2 className="eyebrow">Same phone, more than one account</h2>
+
+          <Card className="mt-3">
+            <CardBody>
+              <ul className="space-y-4">
+                {duplicates.map((group) => (
+                  <li key={group.phone}>
+                    <p className="text-sm font-medium tabular-nums">
+                      {group.phone}
+                      <span className="ml-2 font-normal text-muted">
+                        {group.accounts} accounts
+                      </span>
+                    </p>
+                    <ul className="mt-1.5 space-y-1">
+                      {group.people.map((person) => (
+                        <li
+                          key={person.id}
+                          className="flex flex-wrap items-baseline gap-x-3 text-sm text-muted"
+                        >
+                          <span>{person.name || person.email}</span>
+                          <Badge variant="neutral" size="sm">
+                            {person.role}
+                          </Badge>
+                          <span className="text-xs text-subtle">{person.email}</span>
+                          <span className="ml-auto text-xs text-subtle">
+                            {new Date(person.created_at).toLocaleDateString("en-GB")}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-4 text-xs leading-relaxed text-subtle">
+                Usually one person who thought the first attempt had not worked and
+                started again. The oldest account is normally the one to keep. Signing
+                up with a number that already has an account is now refused, so this
+                list should stop growing.
+              </p>
+            </CardBody>
+          </Card>
+        </section>
+      )}
 
       {/* Where people stopped, above the funnel on purpose: in the first weeks
           this is the bigger number and the one somebody can act on today. The
