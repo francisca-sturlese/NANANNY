@@ -1997,6 +1997,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_stalled_signups: { Args: never; Returns: Json }
       admin_update_pricing: {
         Args: {
           p_free_contacts: number
