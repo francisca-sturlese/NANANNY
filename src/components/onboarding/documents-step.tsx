@@ -2,7 +2,11 @@
 
 import { useActionState, useRef, useState } from "react";
 import { FileText, Trash2, Check, Plus } from "lucide-react";
-import { uploadDocumentAction, deleteDocumentAction } from "@/lib/onboarding/nanny-actions";
+import {
+  uploadDocumentAction,
+  deleteDocumentAction,
+  saveNannyStep,
+} from "@/lib/onboarding/nanny-actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { StepNav } from "@/components/onboarding/shell";
 import { Field, Input, Select } from "@/components/ui/field";
@@ -58,6 +62,7 @@ export function DocumentsStep({
     deleteDocumentAction,
     {},
   );
+  const [navState, navAction] = useActionState<ActionState, FormData>(saveNannyStep, {});
   const formRef = useRef<HTMLFormElement>(null);
   // The upload form lives behind a button. Its own fields are marked required,
   // and with the form always visible the asterisks read as "this step is
@@ -200,8 +205,12 @@ export function DocumentsStep({
         your profile only after someone on our team has opened the document itself.
       </p>
 
-      <form>
+      {/* Continue must be wired to the step action like every other step: a
+          bare form submits a GET back to the same page, which looks like a
+          dead button. That is what it did until today. */}
+      <form action={navAction}>
         <input type="hidden" name="step" value="documents" />
+        <FormError message={navState.error} />
         <StepNav backHref={backHref} />
       </form>
     </div>
