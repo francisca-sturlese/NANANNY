@@ -95,14 +95,16 @@ await page.locator('select[name="nationality"]').selectOption({ index: 1 });
 await page.locator('select[name="visaStatus"]').selectOption({ index: 1 });
 await page.locator('select[name="emirate"]').selectOption({ index: 1 });
 
-// The date field may be a native input or three selects, depending on which
-// version of the form is deployed. Both submit dateOfBirth.
-if (await page.locator('input[name="dateOfBirth"]').count()) {
-  await page.locator('input[name="dateOfBirth"]').fill("1995-04-12");
+// Three selects now, with a hidden input carrying the composed value. The
+// hidden input still exists, so asking whether it is there picks the wrong
+// branch: what decides is whether the selects are visible.
+const daySelect = page.getByLabel("Day of birth");
+if (await daySelect.count()) {
+  await daySelect.selectOption("12");
+  await page.getByLabel("Month of birth").selectOption("4");
+  await page.getByLabel("Year of birth").selectOption("1995");
 } else {
-  await page.locator('select[name="dobDay"]').selectOption("12");
-  await page.locator('select[name="dobMonth"]').selectOption("4");
-  await page.locator('select[name="dobYear"]').selectOption("1995");
+  await page.locator('input[name="dateOfBirth"]').fill("1995-04-12");
 }
 
 console.log("  form:", JSON.stringify(await page.evaluate(() => {
