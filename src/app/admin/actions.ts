@@ -225,6 +225,9 @@ const pricingSchema = z.object({
  * Empty dates close it.
  */
 const promoSchema = z.object({
+  // Instants, converted in the browser. A datetime-local field submits a wall
+  // clock string with no timezone, and parsing that here reads it in the
+  // server's timezone rather than the one the person typing it was in.
   startsAt: z.string().trim(),
   endsAt: z.string().trim(),
   label: z.string().trim().max(80),
@@ -237,8 +240,8 @@ export async function updatePromoAction(
   await requireAdmin();
 
   const parsed = promoSchema.safeParse({
-    startsAt: formData.get("startsAt") ?? "",
-    endsAt: formData.get("endsAt") ?? "",
+    startsAt: formData.get("startsAtIso") ?? "",
+    endsAt: formData.get("endsAtIso") ?? "",
     label: formData.get("label") ?? "",
   });
   if (!parsed.success) return { error: "Check the dates and try again." };
@@ -248,6 +251,17 @@ export async function updatePromoAction(
 
   if (startsAt && Number.isNaN(startsAt.getTime())) return { error: "That start date is not a date." };
   if (endsAt && Number.isNaN(endsAt.getTime())) return { error: "That end date is not a date." };
+
+  // Half a window is never what anyone meant. Saving with one date blanked used
+  // to wipe it and keep the other, which is how a running promotion lost its
+  // start date without anybody being told.
+  if (Boolean(startsAt) !== Boolean(endsAt)) {
+    return {
+      error:
+        "Fill in both dates, or clear both to close the window. Saving with only one would leave it in a state nobody chose.",
+    };
+  }
+
   if (startsAt && endsAt && endsAt <= startsAt) {
     return { error: "The window has to end after it starts." };
   }

@@ -23,6 +23,15 @@
   --peach-deep: #c26a4a;
   --butter-deep: #8a7413;
 
+  /* Pumpkin, and deliberately outside the brand palette.
+     The launch banner is a temporary announcement, not part of the product's
+     voice, and it has to be the loudest thing on a page built from pastels.
+     Sage and peach also carry a meaning here, "a human checked this", so
+     borrowing one of them for a promotion would blur a line worth keeping.
+     Black text on this: 8.0:1. White would be 2.6:1 and fail. */
+  --pumpkin: #ff7518;
+  --pumpkin-deep: #8a3c00;
+
   /* Washes for large surfaces — the pastels at low opacity over white. */
   --sage-wash: #eef2f0;
   --peach-wash: #fef5f2;
@@ -75,6 +84,8 @@
   --color-butter: var(--butter);
   --color-butter-deep: var(--butter-deep);
   --color-butter-wash: var(--butter-wash);
+  --color-pumpkin: var(--pumpkin);
+  --color-pumpkin-deep: var(--pumpkin-deep);
 
   --color-danger: var(--danger);
   --color-success: var(--success);

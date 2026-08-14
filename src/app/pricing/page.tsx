@@ -10,6 +10,21 @@ import { Button } from "@/components/ui/button";
 import { FaqList } from "@/components/site/marketing-page";
 import { getPricingConfig } from "@/lib/pricing";
 
+/**
+ * Rendered per request, not baked at build.
+ *
+ * The launch banner appears and disappears on dates held in the database.
+ * Prerendered, this page freezes whatever the promotion happened to be at
+ * the moment somebody last deployed: the banner never appears when the
+ * window opens, and never leaves when it closes. That is the exact failure
+ * the banner was designed to avoid.
+ *
+ * The cost is one database read per visit. On the deployment target only
+ * CPU is metered and waiting on the database is not, so this is cheap where
+ * it matters.
+ */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   alternates: canonical("/pricing"),
   title: "Pricing",

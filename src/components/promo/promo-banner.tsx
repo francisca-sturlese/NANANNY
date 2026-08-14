@@ -27,14 +27,16 @@ export async function PromoBanner({
   const ends = endsPhrase(promo);
 
   return (
-    <div className="border-b border-sage bg-sage-wash">
+    <div className="border-b border-pumpkin-deep/20 bg-pumpkin">
       {/* One paragraph, not a text column and a date column. Two columns on a
           390px screen squeezed the sentence onto four lines to keep a date on
           one. The date is part of the sentence instead, and wraps with it. */}
       <div className="mx-auto flex max-w-5xl items-start gap-2.5 px-4 py-2.5 sm:items-center sm:px-6">
-        <Sparkles className="mt-px size-4 shrink-0 text-sage-deep sm:mt-0" aria-hidden />
+        <Sparkles className="mt-px size-4 shrink-0 text-black sm:mt-0" aria-hidden />
 
-        <p className="min-w-0 flex-1 text-[0.8125rem] leading-snug text-sage-deep">
+        {/* Black, not white. On this orange black is 8.0:1 and white is 2.6:1,
+            which fails at any size. */}
+        <p className="min-w-0 flex-1 text-[0.8125rem] leading-snug text-black">
           <span className="font-medium">{promo.label ?? "Free while we launch."}</span>{" "}
           {audience === "family"
             ? `None of it uses your ${pricing.freeContacts} free contacts.`
