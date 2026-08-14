@@ -12,6 +12,7 @@ import { countActiveFilters, parseFilters } from "@/lib/search/options";
 import { loadSavedIds } from "@/lib/shortlist/actions";
 import { getSession } from "@/lib/auth/dal";
 import { getPricingConfig } from "@/lib/pricing";
+import { getPromo, endsPhrase } from "@/lib/promo";
 
 export const metadata: Metadata = {
   alternates: canonical("/nannies"),
@@ -28,10 +29,11 @@ export default async function NanniesPage({
   const params = await searchParams;
   const filters = parseFilters(params);
 
-  const [{ results, total, page, pageCount }, user, pricing] = await Promise.all([
+  const [{ results, total, page, pageCount }, user, pricing, promo] = await Promise.all([
     searchNannies(filters),
     getSession(),
     getPricingConfig(),
+    getPromo(),
   ]);
 
   const savedIds = await loadSavedIds(results.map((r) => r.id));
@@ -101,12 +103,28 @@ export default async function NanniesPage({
 
         {!user && results.length > 0 && (
           <aside className="mt-10 rounded-xl border border-border bg-surface p-6 text-center sm:p-8">
+            {/* Same rule as the homepage pricing block: while the launch window
+                is open, the allowance is not the current state, and telling a
+                visitor she is on a meter when nothing is being counted is the
+                third place this exact mistake was found. */}
             <h2 className="text-lg font-semibold sm:text-xl">
-              Your first {pricing.freeContacts} nanny contacts are free
+              {promo.active
+                ? "Right now contacting nannies is free for everyone"
+                : `Your first ${pricing.freeContacts} nanny contacts are free`}
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
-              Create an account to save profiles and message nannies directly. No
-              commission on her salary, no placement fee.
+              {promo.active ? (
+                <>
+                  Create an account and message as many nannies as you like while we
+                  are launching{endsPhrase(promo) ? `. ${endsPhrase(promo)}` : ""}. No
+                  commission on her salary, no placement fee.
+                </>
+              ) : (
+                <>
+                  Create an account to save profiles and message nannies directly. No
+                  commission on her salary, no placement fee.
+                </>
+              )}
             </p>
             <Link href="/signup" className="mt-5 inline-block w-full sm:w-auto">
               <Button size="lg" block className="sm:w-auto sm:px-8">
