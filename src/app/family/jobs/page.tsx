@@ -8,6 +8,7 @@ import { AppShell, FAMILY_NAV } from "@/components/app/app-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { JobStatusControl } from "@/components/jobs/job-status-control";
+import { TakeDownJob } from "@/components/jobs/take-down-job";
 
 export const metadata: Metadata = { title: "Your jobs" };
 
@@ -135,6 +136,13 @@ export default async function FamilyJobsPage({
                       Edit
                     </Button>
                   </Link>
+                  {/* Taking a post down was only reachable through the status
+                      dropdown, which is where the Post a job button used to be
+                      too. A thing somebody needs to do in a hurry, because they
+                      have hired somebody, should be a button. */}
+                  {(job.status === "active" || job.status === "paused") && (
+                    <TakeDownJob jobId={job.id} />
+                  )}
                   <div className="ml-auto">
                     <JobStatusControl jobId={job.id} status={job.status} />
                   </div>

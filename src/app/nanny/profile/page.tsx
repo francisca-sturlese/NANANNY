@@ -13,6 +13,7 @@ import {
   type VerificationBadgeKey,
 } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DeleteAccount } from "@/components/account/delete-account";
 
 export const metadata: Metadata = { title: "Your profile" };
 
@@ -184,6 +185,9 @@ export default async function NannyProfilePage() {
           </p>
         </CardBody>
       </Card>
+      <div className="mt-10">
+        <DeleteAccount role="nanny" />
+      </div>
     </AppShell>
   );
 }

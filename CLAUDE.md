@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 114 SQL checks across nine suites
+npm run test:db        # 132 SQL checks across eleven suites
 npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
@@ -76,6 +76,18 @@ profile row but not every field on it: `users.role` and `nanny_profiles.status`
 are withheld by column-level grants, because RLS alone let a user promote
 themselves to admin and a nanny approve her own profile. See
 `20260813140000_privacy_hardening.sql`.
+
+**Finishing family onboarding publishes their job post.** Onboarding already
+asks for everything a post needs, and asking again on a page that was not in
+the navigation is why the first real family never posted. See
+`20260814230000_onboarding_is_the_job.sql`, which also backfills.
+
+**Deleting an account empties rows, it does not drop them.** `conversations`
+references both profile tables and `public.users` references `auth.users`, all
+ON DELETE CASCADE, so deleting any of them takes the other person's messages
+with it. Everything personal is wiped, the login is emptied and banned, and the
+shells stay so nobody's history is rewritten. Payment and audit records are
+kept deliberately. See `20260814250000_delete_my_account.sql`.
 
 **`revoke ... from authenticated` does nothing. It has to be `from public`.**
 PostgreSQL grants EXECUTE on every new function to PUBLIC, so revoking from a

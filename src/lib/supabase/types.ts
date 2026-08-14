@@ -1530,6 +1530,44 @@ export type Database = {
           },
         ]
       }
+      reminder_config: {
+        Row: {
+          audience: string
+          id: boolean
+          min_gap_hours: number
+          nudge_after_hours: number
+          unread_after_hours: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          audience?: string
+          id?: boolean
+          min_gap_hours?: number
+          nudge_after_hours?: number
+          unread_after_hours?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          audience?: string
+          id?: boolean
+          min_gap_hours?: number
+          nudge_after_hours?: number
+          unread_after_hours?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -2010,6 +2048,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_update_reminders: {
+        Args: {
+          p_audience: string
+          p_min_gap_hours: number
+          p_nudge_after_hours: number
+          p_unread_after_hours: number
+        }
+        Returns: Json
+      }
       admin_update_support_request: {
         Args: {
           p_internal_note?: string
@@ -2039,6 +2086,15 @@ export type Database = {
         Args: { p_blocked_id: string; p_reason?: string }
         Returns: Json
       }
+      claim_reminder: {
+        Args: {
+          p_dedupe_key: string
+          p_email: string
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       compute_match: {
         Args: { p_family_id: string; p_nanny_id: string }
         Returns: Json
@@ -2056,6 +2112,8 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      delete_my_account: { Args: { p_confirmation: string }; Returns: Json }
+      due_reminders: { Args: { p_limit?: number }; Returns: Json }
       family_contact_state: {
         Args: { p_family_id: string }
         Returns: {
@@ -2122,6 +2180,10 @@ export type Database = {
       phone_already_registered: { Args: { p_phone: string }; Returns: boolean }
       promo_active: { Args: never; Returns: boolean }
       promo_window: { Args: never; Returns: Json }
+      publish_job_from_requirements: {
+        Args: { p_family_id: string }
+        Returns: string
+      }
       record_email_result: {
         Args: {
           p_error?: string

@@ -42,7 +42,12 @@ declare
     -- which is evaluated as the client's role. Without EXECUTE the policy
     -- raises and the query returns nothing, which looks like missing rows
     -- rather than a permission problem.
-    'is_conversation_participant'
+    'is_conversation_participant',
+    -- Checks is_admin() itself, like every other admin capability.
+    'admin_update_reminders',
+    -- Acts only on the caller, refuses anything but the typed confirmation,
+    -- and is how somebody leaves. It has to be reachable from a session.
+    'delete_my_account'
   ];
 begin
   select coalesce(array_agg(distinct p.proname order by p.proname), '{}')

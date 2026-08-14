@@ -9,6 +9,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FAMILY_STEPS } from "@/lib/onboarding/steps";
+import { DeleteAccount } from "@/components/account/delete-account";
 
 export const metadata: Metadata = { title: "Your profile" };
 
@@ -158,6 +159,9 @@ export default async function FamilyProfilePage() {
           </p>
         </CardBody>
       </Card>
+      <div className="mt-10">
+        <DeleteAccount role="family" />
+      </div>
     </AppShell>
   );
 }

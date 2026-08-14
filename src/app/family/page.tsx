@@ -44,9 +44,16 @@ export default async function FamilyDashboard({
         <div className="mb-8 rounded-lg border border-sage bg-sage-wash p-5">
           <h2 className="font-semibold text-sage-deep">You&apos;re all set.</h2>
           <p className="mt-1 text-sm text-sage-deep/90">
-            Your family profile is live. Start browsing nannies whenever you&apos;re ready.
-            Viewing profiles is always free.
+            What you told us is now a post that nannies can find and reply to. You do
+            not need to write it again. Edit or close it any time from your job posts,
+            and start browsing whenever you are ready.
           </p>
+          <Link
+            href="/family/jobs"
+            className="mt-2 inline-block text-sm text-sage-deep underline underline-offset-4"
+          >
+            See your post
+          </Link>
         </div>
       )}
 
@@ -141,7 +148,7 @@ export default async function FamilyDashboard({
           {
             href: "/family/jobs",
             title: "Your job posts",
-            copy: "Write what you need and let nannies come to you.",
+            copy: "What you told us at signup is already one of these.",
           },
           { href: "/family/saved", title: "Saved profiles", copy: "Your shortlist, always free." },
           { href: "/family/profile", title: "Your profile", copy: "Update what you're looking for." },

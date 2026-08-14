@@ -265,3 +265,47 @@ function friendlyAuthError(message: string): string {
   }
   return "Something went wrong. Please try again.";
 }
+
+/**
+ * Leaving the platform.
+ *
+ * Deliberately not a soft "deactivate". Somebody asking to be deleted is asking
+ * to be gone, and the privacy page already promises it.
+ *
+ * The confirmation is typed rather than ticked, because a checkbox is far too
+ * easy to tap by accident for something that cannot be undone. The database
+ * refuses anything but the exact word, so the check exists in the one place a
+ * request cannot skip.
+ */
+export async function deleteAccountAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await getSession();
+  if (!user) return { error: "Please log in." };
+
+  const confirmation = String(formData.get("confirmation") ?? "");
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.rpc("delete_my_account", {
+    p_confirmation: confirmation,
+  });
+
+  if (error) {
+    if (error.code === "DELE1") {
+      return { fieldErrors: { confirmation: "Type delete to confirm." } };
+    }
+    if (error.code === "DELE2") {
+      return {
+        error:
+          "An administrator cannot close their own account. Ask another administrator to change your role first.",
+      };
+    }
+    console.error("[account] deletion failed:", error);
+    return { error: "We could not close the account. Please try again." };
+  }
+
+  // The session is now attached to an account that no longer exists.
+  await supabase.auth.signOut();
+  redirect("/?goodbye=1");
+}

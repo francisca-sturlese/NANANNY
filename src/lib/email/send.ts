@@ -162,3 +162,79 @@ function escapeHtml(value: string): string {
 function escapeHeader(value: string): string {
   return value.replace(/[\r\n]+/g, " ").slice(0, 80);
 }
+
+/**
+ * The reminder email.
+ *
+ * Aggregated on purpose: a count and a link, never the messages. The same
+ * refusal as the per message notification, for the same reason. What changes
+ * here is only that somebody has been away a while.
+ */
+export function reminderEmail(params: {
+  name: string;
+  reason: "unread" | "nudge_family" | "nudge_nanny";
+  conversations: number;
+  messages: number;
+}): { subject: string; html: string; text: string } {
+  const link = absoluteUrl("/account");
+
+  const copy =
+    params.reason === "unread"
+      ? {
+          subject:
+            params.messages === 1
+              ? "You have a message waiting on NaNanny"
+              : `You have ${params.messages} messages waiting on NaNanny`,
+          line:
+            params.conversations === 1
+              ? `You have ${params.messages === 1 ? "a message" : `${params.messages} messages`} waiting in a conversation you have not opened yet.`
+              : `You have ${params.messages} messages waiting across ${params.conversations} conversations.`,
+          button: "Read them",
+        }
+      : params.reason === "nudge_family"
+        ? {
+            subject: "Tell nannies what you are looking for",
+            line:
+              "Your family profile is ready, but you have not posted what you need or written to anybody yet. Posting takes a couple of minutes and lets nannies come to you.",
+            button: "Post what you need",
+          }
+        : {
+            subject: "Your NaNanny profile is not finished",
+            line:
+              "Your profile is still a draft, so families cannot find you. Finishing it is what puts you in front of them.",
+            button: "Finish your profile",
+          };
+
+  const text = [
+    `Hello ${params.name},`,
+    "",
+    copy.line,
+    "",
+    `${copy.button}: ${link}`,
+    "",
+    "NaNanny UAE",
+  ].join("\n");
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background:#faf9f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000">
+    <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
+      <tr>
+        <td style="padding:28px">
+          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello ${escapeHtml(params.name)},</p>
+          <p style="margin:0 0 24px;font-size:16px;line-height:1.5">${escapeHtml(copy.line)}</p>
+          <p style="margin:0">
+            <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">${escapeHtml(copy.button)}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+    <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
+      NaNanny UAE
+    </p>
+  </body>
+</html>`.trim();
+
+  return { subject: copy.subject, html, text };
+}
