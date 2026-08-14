@@ -30,12 +30,13 @@ export function ApplyPanel({
   jobId,
   alreadyApplied,
   applicationStatus,
-  profileApproved,
+  canApply,
 }: {
   jobId: string;
   alreadyApplied: boolean;
   applicationStatus: string | null;
-  profileApproved: boolean;
+  /** Her profile is finished, so families can see her and she can apply. */
+  canApply: boolean;
 }) {
   const [state, action] = useActionState<ActionState, FormData>(applyToJobAction, {});
   const [open, setOpen] = useState(false);
@@ -58,16 +59,16 @@ export function ApplyPanel({
     );
   }
 
-  if (!profileApproved) {
+  if (!canApply) {
     return (
       <div className="text-center">
         <Button size="lg" block disabled>
           Apply
         </Button>
         <p className="mt-1.5 text-xs text-muted">
-          You can apply as soon as your profile is approved.{" "}
+          Finish your profile first, so the family has something to read.{" "}
           <Link href="/nanny" className="underline underline-offset-4">
-            Check your status
+            Finish it now
           </Link>
         </p>
       </div>

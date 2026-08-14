@@ -111,12 +111,24 @@ check(
 );
 
 // Every remaining nanny really does have 5+ years.
+// Discoverable, not approved. A finished profile is findable before anybody
+// has reviewed it; approval decides the badge, not the visibility.
 const { count: expected } = await db
   .from("nanny_profiles")
   .select("*", { count: "exact", head: true })
-  .eq("status", "approved")
+  .in("status", ["submitted", "under_review", "approved"])
   .gte("years_experience", 5);
-check("filtered count matches the database", filteredCount === expected, `db says ${expected}`);
+// The page shows at most one page of results, so the comparison is against
+// whichever is smaller. It only ever agreed before because the total happened
+// to be under the page size, which stopped being true the moment unreviewed
+// profiles became visible.
+const PAGE_SIZE = 12;
+const onFirstPage = Math.min(expected, PAGE_SIZE);
+check(
+  "filtered count matches the database",
+  filteredCount === onFirstPage,
+  `page shows ${filteredCount}, database has ${expected}`,
+);
 
 // ---------------------------------------------------------------- save
 await fam.page.goto("/nannies");

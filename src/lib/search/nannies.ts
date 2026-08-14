@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { signedUrls } from "@/lib/storage/private-assets";
 import type { Database } from "@/lib/supabase/types";
 import { PAGE_SIZE, VISA_FILTERS, type NannyFilters } from "@/lib/search/options";
+import { DISCOVERABLE_STATUSES, isVerified } from "@/lib/nanny/discoverable";
 
 export type { NannyFilters };
 
@@ -28,6 +29,8 @@ export type NannyCardData = {
   nationality: string | null;
   /** Self declared by the nanny. Never a verification. */
   visaStatus: Database["public"]["Enums"]["visa_status"];
+  /** Whether a person has reviewed this profile yet. */
+  verified: boolean;
   yearsExperience: number;
   uaeExperienceYears: number;
   arrangement: Database["public"]["Enums"]["care_arrangement"];
@@ -57,6 +60,7 @@ const PUBLIC_COLUMNS = [
   "emirate",
   "nationality",
   "visa_status",
+  "status",
   "years_experience",
   "uae_experience_years",
   "arrangement",
@@ -86,6 +90,7 @@ type SearchRow = {
   emirate: string | null;
   nationality: string | null;
   visa_status: Database["public"]["Enums"]["visa_status"];
+  status: string;
   years_experience: number;
   uae_experience_years: number;
   arrangement: Database["public"]["Enums"]["care_arrangement"];
@@ -120,7 +125,7 @@ export async function searchNannies(filters: NannyFilters): Promise<{
   let query = supabase
     .from("nanny_profiles")
     .select(PUBLIC_COLUMNS, { count: "exact" })
-    .eq("status", "approved");
+    .in("status", DISCOVERABLE_STATUSES);
 
   if (filters.emirate) query = query.eq("emirate", filters.emirate);
   if (filters.nationality) query = query.eq("nationality", filters.nationality);
@@ -224,6 +229,7 @@ export async function searchNannies(filters: NannyFilters): Promise<{
     emirate: row.emirate,
     nationality: row.nationality,
     visaStatus: row.visa_status ?? "not_said",
+    verified: isVerified(row.status),
     yearsExperience: row.years_experience ?? 0,
     uaeExperienceYears: row.uae_experience_years ?? 0,
     arrangement: row.arrangement,

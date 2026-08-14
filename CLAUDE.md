@@ -210,7 +210,16 @@ than a badge's, and the profile says in plain words that nobody checked it.
 Labels live in `lib/nanny/visa.ts` and are written twice: once for the family
 reading a card, once for the nanny reading her own profile.
 
-**Approved ≠ verified.** Approval means a profile is live. Verification badges
+**A finished profile is visible before anybody reviews it.** Approval used to
+mean both "a human looked at this" and "families can see it", which left a
+nanny who finished at nine in the evening invisible until somebody woke up.
+`is_discoverable()` in the database and `DISCOVERABLE_STATUSES` in
+`lib/nanny/discoverable.ts` say what is findable, and the two must agree.
+Draft stays hidden: incomplete, and she has not asked for it to be shown.
+Applying follows the same rule, because being findable and unable to act is
+the dead end this removed.
+
+**Approved ≠ verified.** Approval means a profile has been reviewed. Verification badges
 are granted one at a time, only for something a human actually reviewed. Never
 render a blanket "background checked" claim.
 

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getSession } from "@/lib/auth/dal";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 /**
  * Serves a private file through the app.
@@ -95,7 +96,7 @@ async function mayRead(bucket: Bucket, ownerId: string): Promise<boolean> {
         .from("nanny_profiles")
         .select("id")
         .eq("user_id", ownerId)
-        .eq("status", "approved")
+        .in("status", DISCOVERABLE_STATUSES)
         .maybeSingle();
       if (data) return true;
       return isAdmin(user?.role);
@@ -109,7 +110,7 @@ async function mayRead(bucket: Bucket, ownerId: string): Promise<boolean> {
         .from("nanny_profiles")
         .select("id")
         .eq("user_id", ownerId)
-        .eq("status", "approved")
+        .in("status", DISCOVERABLE_STATUSES)
         .maybeSingle();
       return Boolean(data);
     }

@@ -28,6 +28,8 @@ import { loadContactState } from "@/lib/messaging/actions";
 import { ReportButton } from "@/components/safety/report-button";
 import { getPricingConfig } from "@/lib/pricing";
 import { visaLabel, visaNote } from "@/lib/nanny/visa";
+import { isVerified } from "@/lib/nanny/discoverable";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 export async function generateMetadata({
   params,
@@ -40,7 +42,7 @@ export async function generateMetadata({
     .from("nanny_profiles")
     .select("first_name, headline, emirate, years_experience")
     .eq("id", id)
-    .eq("status", "approved")
+    .in("status", DISCOVERABLE_STATUSES)
     .maybeSingle();
 
   if (!data) return { title: "Profile not found" };
@@ -114,7 +116,7 @@ export default async function NannyProfilePage({
     .from("nanny_profiles")
     .select(columns)
     .eq("id", id)
-    .eq("status", "approved")
+    .in("status", DISCOVERABLE_STATUSES)
     .maybeSingle();
 
   if (!data) notFound();
@@ -204,6 +206,20 @@ export default async function NannyProfilePage({
             </p>
           </div>
         </header>
+
+        {/* Said before the badges, because it changes how to read them: none
+            present can mean "we checked and found nothing" or "we have not
+            looked yet", and those are very different things to a family. */}
+        {!isVerified(nanny.status) && (
+          <div className="mt-5 rounded-md border border-border bg-surface px-4 py-3">
+            <p className="text-sm font-medium">Not reviewed yet</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted">
+              Nobody on our team has looked at this profile. Everything on it is what
+              she wrote about herself. You can still message her, and we will review it
+              shortly.
+            </p>
+          </div>
+        )}
 
         {/* Kept apart from the badges below, and worded as hers rather than
             ours. A family reading this must not come away thinking anyone

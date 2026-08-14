@@ -58,3 +58,21 @@ export function VerificationBadge({ badge: key }: { badge: VerificationBadgeKey 
     </Badge>
   );
 }
+
+/**
+ * Said when nobody has checked a profile yet.
+ *
+ * Neutral, not a warning colour. She has done nothing wrong: she finished her
+ * profile and we have not got to it. Making it look like an alarm would push
+ * families away from exactly the people who just arrived, and would be unfair
+ * to somebody whose only fault is having signed up in the evening.
+ *
+ * It is worded as a fact about us, not about her.
+ */
+export function UnverifiedBadge() {
+  return (
+    <Badge variant="neutral" size="sm" title="Nobody on our team has reviewed this profile yet">
+      Not reviewed yet
+    </Badge>
+  );
+}

@@ -3,6 +3,7 @@ import "server-only";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { signedUrls } from "@/lib/storage/private-assets";
 import type { NannyCardData } from "@/lib/search/nannies";
+import { isVerified } from "@/lib/nanny/discoverable";
 
 /**
  * Matches for the signed-in family.
@@ -45,6 +46,7 @@ const NANNY_COLUMNS = [
   "emirate",
   "nationality",
   "visa_status",
+  "status",
   "years_experience",
   "uae_experience_years",
   "arrangement",
@@ -136,6 +138,7 @@ export async function loadMatches(limit = 30): Promise<{
       emirate: row.emirate,
       nationality: row.nationality,
       visaStatus: row.visa_status ?? "not_said",
+      verified: isVerified(row.status),
       yearsExperience: row.years_experience ?? 0,
       uaeExperienceYears: row.uae_experience_years ?? 0,
       arrangement: row.arrangement,
@@ -186,6 +189,7 @@ type NannyProfileRow = {
   emirate: string | null;
   nationality: string | null;
   visa_status: NannyCardData["visaStatus"];
+  status: string;
   years_experience: number;
   uae_experience_years: number;
   arrangement: NannyCardData["arrangement"];

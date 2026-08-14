@@ -3,7 +3,7 @@ import { Check, AlertTriangle, ChevronRight } from "lucide-react";
 import type { MatchedNanny } from "@/lib/matching/matches";
 import { DIMENSION_LABELS } from "@/lib/matching/matches";
 import { Badge } from "@/components/ui/badge";
-import { VERIFICATION_BADGES, type VerificationBadgeKey } from "@/components/ui/badge";
+import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { SaveButton } from "@/components/nanny/save-button";
 
 /**
@@ -91,8 +91,9 @@ export function MatchCard({
 
         {/* Badges sit under the whole header rather than beside the photo, so
             two of them lie side by side instead of stacking in a narrow column. */}
-        {nanny.badges.length > 0 && (
+        {(nanny.badges.length > 0 || !nanny.verified) && (
           <div className="mt-3 flex flex-wrap gap-1.5">
+            {!nanny.verified && <UnverifiedBadge />}
             {nanny.badges.slice(0, 3).map((b) => {
               const meta = VERIFICATION_BADGES[b as VerificationBadgeKey];
               if (!meta) return null;

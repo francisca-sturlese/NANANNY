@@ -11,6 +11,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/dal";
 import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
 import { ReportButton } from "@/components/safety/report-button";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 type JobRow = {
   id: string;
@@ -340,7 +341,7 @@ export default async function JobDetailPage({
               jobId={id}
               alreadyApplied={Boolean(existingApplication)}
               applicationStatus={existingApplication?.status ?? null}
-              profileApproved={nannyStatus === "approved"}
+              canApply={DISCOVERABLE_STATUSES.includes(nannyStatus as never)}
             />
           ) : user?.role === "family" ? (
             <p className="text-center text-sm text-muted">

@@ -59,17 +59,23 @@ begin
   set local role anon;
   perform set_config('request.jwt.claims', null, true);
 
-  -- Approved profiles are discoverable, by design.
+  -- A finished profile is discoverable before anybody has reviewed it, and
+  -- carries a "not reviewed yet" badge until somebody has. Approval decides the
+  -- badge, not the visibility: see 20260814270000_visible_before_verified.sql.
   select count(*) into n from public.nanny_profiles;
   if n = 0 then
     raise exception 'FAIL A1: anonymous visitors cannot see any nanny at all';
   end if;
 
-  -- ...but only approved ones.
-  if exists (select 1 from public.nanny_profiles where status <> 'approved') then
-    raise exception 'FAIL A1: an unapproved profile is visible to anonymous visitors';
+  -- What must stay hidden. A draft is unfinished and she has not asked for it
+  -- to be shown; the other two are hidden for the obvious reason.
+  if exists (
+    select 1 from public.nanny_profiles
+     where status in ('draft', 'rejected', 'suspended', 'expired')
+  ) then
+    raise exception 'FAIL A1: a draft, rejected or suspended profile is visible to anonymous visitors';
   end if;
-  raise notice 'PASS A1 — anon sees % approved profiles, and no unapproved ones', n;
+  raise notice 'PASS A1 — anon sees % finished profiles, and no drafts or rejected ones', n;
 end $$;
 
 -- Column-level privacy. Each of these must be refused outright.

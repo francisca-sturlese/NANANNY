@@ -158,14 +158,19 @@ select case when (select email from auth.users where id = :fam_uid::uuid)
 -- 7. The nanny's side of the conversation is intact
 -- ---------------------------------------------------------------------------
 do $$
-declare msgs int; sender text;
+declare msgs int; sender text; conv uuid;
 begin
-  select count(*) into msgs from public.messages
-   where body like 'Hello Grace%';
+  -- This suite's own conversation. The seed has a nanny called Grace too, and
+  -- matching on the message text alone quietly started counting hers.
+  select c.id into conv from public.conversations c
+    join public.nanny_profiles n on n.id = c.nanny_id
+   where n.user_id = '92222222-2222-4222-8222-222222222221';
+
+  select count(*) into msgs from public.messages where conversation_id = conv;
 
   select btrim(u.first_name || ' ' || coalesce(u.last_name, '')) into sender
     from public.messages m join public.users u on u.id = m.sender_id
-   where m.body like 'Hello Grace%' limit 1;
+   where m.conversation_id = conv limit 1;
 
   if msgs = 1 and sender = 'Deleted account' then
     raise notice 'PASS 7  the message she received is still there, from a deleted account';
@@ -194,7 +199,10 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- 9. Nothing new can arrive in that conversation
 -- ---------------------------------------------------------------------------
-select case when (select blocked_at from public.conversations limit 1) is not null
+select case when (
+         select c.blocked_at from public.conversations c
+           join public.nanny_profiles n on n.id = c.nanny_id
+          where n.user_id = :nanny_uid::uuid) is not null
        then 'PASS 9  the conversation is closed to new messages'
        else 'FAIL 9  the conversation is still open' end;
 

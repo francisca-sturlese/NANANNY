@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin, Clock, Home, Car, ChefHat, Sparkles, HeartPulse } from "lucide-react";
 import type { NannyCardData } from "@/lib/search/nannies";
 import { Badge } from "@/components/ui/badge";
-import { VERIFICATION_BADGES, type VerificationBadgeKey } from "@/components/ui/badge";
+import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { SaveButton } from "@/components/nanny/save-button";
 import { visaLabel } from "@/lib/nanny/visa";
 
@@ -152,9 +152,11 @@ export function NannyCard({
           </ul>
         )}
 
-        {/* Only what a human actually reviewed. Never a blanket claim. */}
-        {nanny.badges.length > 0 && (
+        {/* Only what a human actually reviewed. Never a blanket claim, and
+            when nobody has reviewed anything yet, that is what it says. */}
+        {(nanny.badges.length > 0 || !nanny.verified) && (
           <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-3">
+            {!nanny.verified && <UnverifiedBadge />}
             {nanny.badges.slice(0, 3).map((b) => {
               const meta = VERIFICATION_BADGES[b as VerificationBadgeKey];
               if (!meta) return null;

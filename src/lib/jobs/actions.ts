@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/dal";
 import type { ActionState } from "@/lib/auth/actions";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 /**
  * Job posts and applications.
@@ -207,10 +208,14 @@ export async function applyToJobAction(
     .maybeSingle();
 
   if (!nanny) return { error: "Complete your profile first." };
-  if (nanny.status !== "approved") {
+  // Discoverable, not approved. Being findable and being able to apply are the
+  // same question from where she is standing, and letting her be seen while
+  // refusing her the button is the dead end this was meant to remove. The
+  // family sees "not reviewed yet" on her application.
+  if (!DISCOVERABLE_STATUSES.includes(nanny.status as never)) {
     return {
       error:
-        "Your profile is still being reviewed. You can apply as soon as it is approved.",
+        "Finish your profile before applying. Families need something to read.",
     };
   }
 
