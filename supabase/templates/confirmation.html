@@ -1,0 +1,17 @@
+<!-- Links straight to the app with a token hash, so confirmation works in any
+     browser, not only the one where signup happened. Born from a real user who
+     signed up inside the Facebook in-app browser, opened the email in Gmail,
+     and could never get in: confirmed three times, signed in zero. -->
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #111111;">
+  <h2 style="font-weight: 700;">Welcome to NaNanny</h2>
+  <p>You are one click away. Confirm your email address and you can start right away.</p>
+  <p style="margin: 28px 0;">
+    <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+       style="background: #111111; color: #ffffff; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 700;">
+      Confirm my email
+    </a>
+  </p>
+  <p style="font-size: 13px; color: #555555;">The link works for one hour, and only the newest email counts. If the button does not work, copy this address into your browser:</p>
+  <p style="font-size: 12px; color: #555555; word-break: break-all;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email</p>
+  <p style="font-size: 13px; color: #555555;">If you did not create a NaNanny account, you can ignore this email.</p>
+</div>
