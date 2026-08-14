@@ -45,6 +45,10 @@ declare
     'is_conversation_participant',
     -- Checks is_admin() itself, like every other admin capability.
     'admin_update_reminders',
+    -- Stricter than is_admin(): both refuse anybody who is not a super_admin,
+    -- and an invite is how the next administrator is appointed, so a plain
+    -- admin reaching them would be the whole appointment rule undone.
+    'admin_invite_create', 'admin_invite_revoke',
     -- Acts only on the caller, refuses anything but the typed confirmation,
     -- and is how somebody leaves. It has to be reachable from a session.
     'delete_my_account'

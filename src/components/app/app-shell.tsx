@@ -3,6 +3,9 @@ import { Logo, LogoMark } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { cn } from "@/lib/utils";
 import { PromoBanner } from "@/components/promo/promo-banner";
+import { NotificationBell } from "@/components/notifications/bell";
+import { getNotifications } from "@/lib/notifications/read";
+import { getSession } from "@/lib/auth/dal";
 import {
   Home,
   Search,
@@ -54,6 +57,14 @@ export async function AppShell({
   name: string;
   children: React.ReactNode;
 }) {
+  /**
+   * Fetched here rather than passed in by each page, so the bell is on all
+   * fourteen signed-in screens instead of the ones somebody remembered. Both
+   * calls are React.cache'd, so the page above has already paid for the
+   * session and this adds one query.
+   */
+  const [session, feed] = await Promise.all([getSession(), getNotifications()]);
+
   return (
     <div className="min-h-dvh bg-surface">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
@@ -81,8 +92,17 @@ export async function AppShell({
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
-            <span className="hidden max-w-40 truncate text-sm text-muted lg:inline">{name}</span>
+          <div className="flex items-center gap-1">
+            <span className="mr-1 hidden max-w-40 truncate text-sm text-muted lg:inline">
+              {name}
+            </span>
+            {session && (
+              <NotificationBell
+                userId={session.id}
+                initialUnread={feed.unread}
+                initialItems={feed.items}
+              />
+            )}
             <LogoutButton />
           </div>
         </div>

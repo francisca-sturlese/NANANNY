@@ -20,8 +20,8 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 132 SQL checks across eleven suites
-npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 end-to-end checks
+npm run test:db        # 151 SQL checks across fourteen suites
+npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 + 8 + 16 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
 npm run test:mobile    # 252 viewport/engine combinations
@@ -179,6 +179,22 @@ target is a worker runtime where those cannot load, and the failure is a 500 at
 request time with a green build. Photos are shrunk in the browser by
 `components/ui/photo-input.tsx`; the server check in `lib/storage/images.ts` is
 the control. `sharp` is a devDependency for build scripts only.
+
+**A notification is written by a trigger, and says nothing until it is read.**
+The row records that something happened; the sentence is built in
+`lib/notifications/copy.ts` when somebody opens the bell. That keeps the
+wording changeable without a migration that rewrites history, and it keeps text
+one user typed from ever being stored as something the platform said. Triggers
+rather than calls in the actions, for the same reason the rate limits are
+triggers: the row is what happened, an action is one of several ways to write
+it. See `20260814320000_notification_events.sql`.
+
+**A table missing from `supabase_realtime` fails silently.** The subscription
+connects, reports SUBSCRIBED, and delivers nothing for the rest of time, which
+looks exactly like an account with no notifications. The publication is asserted
+in `supabase/tests/notification_events.sql`, and the bell carries `data-live`
+so `scripts/e2e-notifications.mjs` can wait for the socket instead of sleeping
+and hoping. A test that sleeps here does not test realtime, it tests the sleep.
 
 **An email never carries text another user typed.** The new message email says
 a message arrived and links to it. Including the body would let any stranger
