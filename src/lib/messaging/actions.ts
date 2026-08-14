@@ -104,6 +104,9 @@ export async function sendMessageAction(
   if (error) {
     if (error.code === "CONV2") return { error: "This conversation is blocked." };
     if (error.code === "ROLE1") return { error: "You are not part of this conversation." };
+    // The database writes this one for a person to read, so it is passed
+    // through instead of being replaced with a generic apology.
+    if (error.code === "RATE1") return { error: error.message };
     console.error("[messaging] send_message failed:", error);
     return { error: "Message not sent. Please try again." };
   }

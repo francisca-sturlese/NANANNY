@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Steps, Section } from "@/components/site/marketing-page";
 import { getPricingConfig } from "@/lib/pricing";
 
 export const metadata: Metadata = {
+  alternates: canonical("/how-it-works"),
   title: "How it works",
   description:
     "How NaNanny connects families and nannies directly across the UAE. Search, match, message and hire, with no agency in between.",

@@ -1,0 +1,225 @@
+/**
+ * What a crawler and a share preview actually get.
+ *
+ * Fetched from a running production build rather than read out of the source,
+ * because the failures worth catching are the ones the framework introduces:
+ * a canonical pointing at the wrong host, a sitemap listing a page that 404s,
+ * a private route that quietly became indexable.
+ *
+ * Run:  npm run build && npx next start -p 3100 && node scripts/seo-check.mjs
+ */
+
+import { readFileSync } from "node:fs";
+
+const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3100";
+
+const results = [];
+function check(name, ok, detail = "") {
+  results.push({ name, ok, detail });
+  console.log(`${ok ? "  PASS" : "  FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);
+}
+
+const text = async (path) => (await fetch(`${BASE}${path}`)).text();
+
+// ------------------------------------------------------------------ robots
+console.log("\n--- ROBOTS ---\n");
+
+const robotsResponse = await fetch(`${BASE}/robots.txt`);
+check("robots.txt is served", robotsResponse.ok, String(robotsResponse.status));
+const robots = await robotsResponse.text();
+
+for (const path of ["/family/", "/nanny/", "/admin/", "/media/", "/nannies/"]) {
+  check(`robots.txt disallows ${path}`, robots.includes(`Disallow: ${path}`));
+}
+check("robots.txt points at the sitemap", /Sitemap:\s*https?:\/\/\S+\/sitemap\.xml/.test(robots));
+
+// ----------------------------------------------------------------- sitemap
+console.log("\n--- SITEMAP ---\n");
+
+const sitemapResponse = await fetch(`${BASE}/sitemap.xml`);
+check("sitemap.xml is served", sitemapResponse.ok, String(sitemapResponse.status));
+const sitemap = await sitemapResponse.text();
+
+const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+check("the sitemap lists pages", urls.length > 5, `${urls.length} urls`);
+
+for (const page of ["/", "/for-families", "/for-nannies", "/pricing", "/nannies", "/jobs"]) {
+  check(`the sitemap lists ${page}`, urls.some((u) => new URL(u).pathname === page));
+}
+
+// The point of the exclusion, asserted rather than assumed.
+check(
+  "no individual nanny profile is listed",
+  !urls.some((u) => /^\/nannies\/.+/.test(new URL(u).pathname)),
+  urls.find((u) => /^\/nannies\/.+/.test(new URL(u).pathname)) ?? "",
+);
+
+const jobUrls = urls.filter((u) => /^\/jobs\/.+/.test(new URL(u).pathname));
+check("open jobs are listed", jobUrls.length > 0, `${jobUrls.length} jobs`);
+
+// Every listed URL must actually resolve. A sitemap full of 404s is worse
+// than no sitemap.
+const statuses = await Promise.all(
+  urls.slice(0, 30).map(async (u) => {
+    const path = new URL(u).pathname;
+    const response = await fetch(`${BASE}${path}`, { redirect: "manual" });
+    return { path, status: response.status };
+  }),
+);
+const broken = statuses.filter((s) => s.status >= 400);
+check(
+  "every listed page resolves",
+  broken.length === 0,
+  broken.map((b) => `${b.path} ${b.status}`).join(", "),
+);
+
+// -------------------------------------------------------------- canonicals
+console.log("\n--- CANONICALS ---\n");
+
+const siteOrigin = new URL(
+  readFileSync(new URL("../.env.local", import.meta.url), "utf8")
+    .split("\n")
+    .find((l) => l.startsWith("NEXT_PUBLIC_SITE_URL="))
+    .split("=")[1]
+    .trim(),
+).origin;
+
+for (const page of ["/", "/for-families", "/pricing", "/nannies", "/jobs"]) {
+  const html = await text(page);
+  const href = html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/)?.[1];
+  const ok = href ? new URL(href).origin === siteOrigin && new URL(href).pathname === page : false;
+  check(`${page} declares its canonical`, ok, href ?? "missing");
+}
+
+// ----------------------------------------------------------- share preview
+console.log("\n--- SHARE PREVIEW ---\n");
+
+const home = await text("/");
+
+const og = Object.fromEntries(
+  [...home.matchAll(/<meta property="(og:[^"]+)" content="([^"]*)"/g)].map((m) => [m[1], m[2]]),
+);
+
+for (const tag of ["og:title", "og:description", "og:image", "og:site_name", "og:url"]) {
+  check(`${tag} is present`, Boolean(og[tag]), og[tag] ?? "missing");
+}
+
+check(
+  "the share image is absolute",
+  (og["og:image"] ?? "").startsWith("http"),
+  og["og:image"] ?? "",
+);
+
+if (og["og:image"]) {
+  const image = await fetch(`${BASE}${new URL(og["og:image"]).pathname}`);
+  const bytes = Number(image.headers.get("content-length") ?? 0);
+  check("the share image is served", image.ok, String(image.status));
+  // Several platforms refuse to fetch anything over 5 MB.
+  check("the share image is a sensible size", bytes > 0 && bytes < 5_000_000, `${Math.round(bytes / 1024)} KB`);
+}
+
+check(
+  "a large twitter card is declared",
+  /name="twitter:card" content="summary_large_image"/.test(home),
+);
+
+// --------------------------------------------------------- structured data
+console.log("\n--- STRUCTURED DATA ---\n");
+
+function structuredData(html) {
+  return [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) =>
+    JSON.parse(m[1]),
+  );
+}
+
+let homeData = [];
+try {
+  homeData = structuredData(home);
+  check("the homepage structured data parses", true);
+} catch (error) {
+  check("the homepage structured data parses", false, String(error));
+}
+check(
+  "the homepage declares the organisation",
+  homeData.some((d) => d["@type"] === "Organization"),
+);
+
+const firstJob = jobUrls[0] ? new URL(jobUrls[0]).pathname : null;
+if (firstJob) {
+  const jobHtml = await text(firstJob);
+  let jobData = [];
+  try {
+    jobData = structuredData(jobHtml);
+    check("the job structured data parses", true);
+  } catch (error) {
+    check("the job structured data parses", false, String(error));
+  }
+
+  const posting = jobData.find((d) => d["@type"] === "JobPosting");
+  check("a job page declares a JobPosting", Boolean(posting));
+  if (posting) {
+    for (const field of ["title", "description", "jobLocation", "hiringOrganization"]) {
+      check(`the JobPosting has ${field}`, Boolean(posting[field]));
+    }
+    // The family behind a job is never named, on the page or in the markup.
+    check(
+      "the family is not named in the markup",
+      posting.hiringOrganization?.name === "A family on NaNanny UAE",
+      posting.hiringOrganization?.name ?? "",
+    );
+  }
+} else {
+  check("a job page declares a JobPosting", false, "no open job to check");
+}
+
+// ------------------------------------------------------------ noindex rules
+console.log("\n--- WHAT STAYS OUT OF THE INDEX ---\n");
+
+const nannyUrl = (await text("/nannies")).match(/href="(\/nannies\/[0-9a-f-]{36})"/)?.[1];
+if (nannyUrl) {
+  const profile = await fetch(`${BASE}${nannyUrl}`);
+  const html = await profile.text();
+  const meta = html.match(/<meta name="robots" content="([^"]+)"/)?.[1] ?? "";
+  const header = profile.headers.get("x-robots-tag") ?? "";
+  check(
+    "an individual nanny profile is noindex",
+    meta.includes("noindex") || header.includes("noindex"),
+    meta || header || "neither",
+  );
+  check("but it is still readable without an account", profile.ok, String(profile.status));
+} else {
+  check("an individual nanny profile is noindex", false, "no profile link found");
+}
+
+const search = await fetch(`${BASE}/nannies`);
+const searchMeta = (await search.text()).match(/<meta name="robots" content="([^"]+)"/)?.[1] ?? "";
+check(
+  "the search page itself stays indexable",
+  !searchMeta.includes("noindex"),
+  searchMeta || "no robots meta",
+);
+
+// ------------------------------------------------------- copy matches truth
+console.log("\n--- THE CLAIM IN THE METADATA ---\n");
+
+// The description promises a specific number of free contacts. That number
+// lives in pricing_config, and the two drifting apart would put a false claim
+// in every search result.
+const { execSync } = await import("node:child_process");
+const freeContacts = execSync(
+  `psql "${process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54422/postgres"}" -tA -c "select free_contacts from pricing_config limit 1"`,
+)
+  .toString()
+  .trim();
+
+const description = home.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
+const claimed = description.match(/first (\d+)/)?.[1];
+check(
+  "the free contact count in the description is the real one",
+  claimed === freeContacts,
+  `description says ${claimed ?? "nothing"}, pricing_config says ${freeContacts}`,
+);
+
+const failed = results.filter((r) => !r.ok);
+console.log(`\n${results.length - failed.length}/${results.length} checks passed.`);
+process.exit(failed.length === 0 ? 0 : 1);

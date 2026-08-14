@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Section, FaqList } from "@/components/site/marketing-page";
 import { SupportForm } from "@/components/safety/support-form";
 import { getSession } from "@/lib/auth/dal";
 
 export const metadata: Metadata = {
+  alternates: canonical("/support"),
   title: "Support",
   description: "Get help with your NaNanny account, your profile or your subscription.",
 };

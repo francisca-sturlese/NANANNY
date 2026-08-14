@@ -47,7 +47,7 @@ export async function reportContentAction(
   });
 
   if (error) {
-    if (error.code === "RPT1" || error.code === "RPT2") {
+    if (error.code === "RPT1" || error.code === "RPT2" || error.code === "RATE1") {
       return { error: error.message.replace(/^.*?:\s*/, "") };
     }
     console.error("[safety] report failed:", error);
@@ -147,6 +147,8 @@ export async function submitSupportRequestAction(
   });
 
   if (error) {
+    // Written by the database for a person to read.
+    if (error.code === "RATE1") return { error: error.message };
     console.error("[support] could not open request:", error);
     return { error: "We could not send that. Please email support@nananny.ae instead." };
   }

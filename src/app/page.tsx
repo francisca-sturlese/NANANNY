@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Photo } from "@/components/ui/photo";
 import { largestSrc, photo, srcSet } from "@/lib/photos";
 import { getPricingConfig } from "@/lib/pricing";
+import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
+
+export const metadata = { alternates: canonical("/") };
 
 /**
  * Homepage, mobile first.
@@ -22,6 +25,24 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Structured data, so a search result can show what this is and where it
+          operates. Rendered as a child of the script tag rather than through
+          dangerouslySetInnerHTML: React writes it as text either way, and not
+          using that API anywhere is one of the assumptions the Content Security
+          Policy rests on. */}
+      <script type="application/ld+json">
+        {jsonLd({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "NaNanny UAE",
+          url: absoluteUrl("/"),
+          logo: absoluteUrl("/icon.svg"),
+          description:
+            "A marketplace connecting families and nannies across the United Arab Emirates.",
+          areaServed: { "@type": "Country", name: "United Arab Emirates" },
+        })}
+      </script>
+
       <SiteHeader />
 
       <main>

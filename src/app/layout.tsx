@@ -14,12 +14,34 @@ export const metadata: Metadata = {
   applicationName: "NaNanny UAE",
   openGraph: {
     title: "NaNanny UAE. Find the right nanny for your family",
-    description: "Connect directly with nannies across the UAE. Your first 3 contacts are free.",
+    description: "Connect directly with nannies across the UAE. Your first contacts are free.",
     siteName: "NaNanny UAE",
     locale: "en_AE",
     type: "website",
+    url: siteUrl,
+    // Built once by scripts/make-og-image.mjs rather than rendered per request:
+    // it never changes, and next/og would put a font shaper and an SVG renderer
+    // in a server bundle that has a hard size ceiling.
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "NaNanny UAE. Find the right nanny for your family.",
+      },
+    ],
   },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: "summary_large_image",
+    title: "NaNanny UAE. Find the right nanny for your family",
+    description: "Connect directly with nannies across the UAE. Your first contacts are free.",
+    images: ["/og.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
 };
 
 export const viewport: Viewport = {

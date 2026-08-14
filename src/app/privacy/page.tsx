@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Section } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
+  alternates: canonical("/privacy"),
   title: "Privacy",
   description: "What NaNanny collects, who can see it, and how it is protected.",
   robots: { index: true, follow: true },

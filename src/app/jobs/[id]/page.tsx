@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ApplyPanel } from "@/components/jobs/apply-panel";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/dal";
+import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
 import { ReportButton } from "@/components/safety/report-button";
 
 type JobRow = {
@@ -58,6 +59,7 @@ export async function generateMetadata({
   return {
     title: data.title,
     description: `Nanny job in ${data.emirate ?? "the UAE"}, posted directly by the family.`,
+    alternates: canonical(`/jobs/${id}`),
   };
 }
 
@@ -147,6 +149,50 @@ export default async function JobDetailPage({
 
   return (
     <>
+      {/* A real JobPosting: this is a genuine open role, written by the family
+          that will hire for it. Only fields the page already shows are
+          included, and the family is never named. */}
+      <script type="application/ld+json">
+        {jsonLd({
+          "@context": "https://schema.org",
+          "@type": "JobPosting",
+          title: job.title,
+          description: job.responsibilities ?? job.additional_information ?? job.title,
+          datePosted: job.published_at ?? undefined,
+          employmentType: job.employment_type === "part_time" ? "PART_TIME" : "FULL_TIME",
+          url: absoluteUrl(`/jobs/${job.id}`),
+          directApply: true,
+          hiringOrganization: {
+            "@type": "Organization",
+            name: "A family on NaNanny UAE",
+            sameAs: absoluteUrl("/"),
+          },
+          jobLocation: {
+            "@type": "Place",
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: job.area ?? undefined,
+              addressRegion: job.emirate ?? undefined,
+              addressCountry: "AE",
+            },
+          },
+          ...(job.salary_min_aed != null
+            ? {
+                baseSalary: {
+                  "@type": "MonetaryAmount",
+                  currency: "AED",
+                  value: {
+                    "@type": "QuantitativeValue",
+                    minValue: job.salary_min_aed,
+                    maxValue: job.salary_max_aed ?? job.salary_min_aed,
+                    unitText: "MONTH",
+                  },
+                },
+              }
+            : {}),
+        })}
+      </script>
+
       <SiteHeader />
 
       <main className="mx-auto max-w-3xl px-5 pt-6 pb-32 sm:px-8 sm:pt-10 sm:pb-16">

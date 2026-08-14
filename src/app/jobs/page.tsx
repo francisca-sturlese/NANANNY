@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { MapPin, Home, Clock, Baby } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
@@ -11,6 +12,7 @@ import { getSession } from "@/lib/auth/dal";
 import { EMIRATES, EMPLOYMENT_TYPES, ARRANGEMENTS } from "@/lib/uae";
 
 export const metadata: Metadata = {
+  alternates: canonical("/jobs"),
   title: "Nanny jobs in the UAE",
   description:
     "Browse live nanny jobs posted directly by families across Dubai, Abu Dhabi, Sharjah and the rest of the UAE. Free for nannies, always.",

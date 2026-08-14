@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 import { NannyCard } from "@/components/nanny/nanny-card";
@@ -13,6 +14,7 @@ import { getSession } from "@/lib/auth/dal";
 import { getPricingConfig } from "@/lib/pricing";
 
 export const metadata: Metadata = {
+  alternates: canonical("/nannies"),
   title: "Find a nanny in the UAE",
   description:
     "Browse approved nanny profiles across Dubai, Abu Dhabi, Sharjah and the rest of the UAE. Viewing profiles is always free.",

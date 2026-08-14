@@ -49,6 +49,16 @@ export async function generateMetadata({
     description:
       data.headline ??
       `${data.first_name ?? "A nanny"} has ${data.years_experience} years of childcare experience in the UAE.`,
+    /**
+     * Readable without an account, but never indexed.
+     *
+     * A family should be able to see who is available before signing up. That
+     * is not the same as leaving a real person's photo, first name and emirate
+     * in a search index long after she has found a job. The search page carries
+     * the same value for a visitor arriving from Google without pinning anyone
+     * to a URL. Mirrored in robots.ts and sitemap.ts.
+     */
+    robots: { index: false, follow: true },
   };
 }
 

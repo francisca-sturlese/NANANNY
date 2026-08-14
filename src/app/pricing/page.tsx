@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { Check } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
@@ -9,6 +10,7 @@ import { FaqList } from "@/components/site/marketing-page";
 import { getPricingConfig } from "@/lib/pricing";
 
 export const metadata: Metadata = {
+  alternates: canonical("/pricing"),
   title: "Pricing",
   description:
     "Your first nanny contacts are free. After that, choose a weekly or monthly plan for unlimited contacts. No commission on the nanny's salary, no placement fee.",

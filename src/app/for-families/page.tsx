@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Section, FaqList } from "@/components/site/marketing-page";
 import { getPricingConfig } from "@/lib/pricing";
 
 export const metadata: Metadata = {
+  alternates: canonical("/for-families"),
   title: "For families",
   description:
     "Search every approved nanny in the UAE, compare candidates and message them yourself. Your first contacts are free.",

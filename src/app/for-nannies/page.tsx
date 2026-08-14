@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Section, FaqList } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
+  alternates: canonical("/for-nannies"),
   title: "For nannies",
   description:
     "Create a free NaNanny profile, appear in search across the UAE and talk to families directly. No fees, no commission on your salary.",

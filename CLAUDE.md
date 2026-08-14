@@ -20,8 +20,10 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 12 + 24 + 10 + 17 SQL checks
+npm run test:db        # 12 + 24 + 10 + 17 + 10 SQL checks
 npm run test:e2e       # 29 + 20 + 15 + 28 + 15 end-to-end checks
+npm run test:security  # headers, noindex, secrets, action guards
+npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
 npm run test:mobile    # 252 viewport/engine combinations
 npm run test:links     # every internal link as 4 audiences, plus no dashes in copy
 npm run test:overlays  # sheets and menus actually cover the viewport
@@ -72,6 +74,35 @@ The column grants deliberately stop even an admin from setting `users.status` or
 that checks `is_admin()` itself and writes to `audit_logs`, so the audit trail
 cannot be skipped and a stolen anon key gets nowhere. See
 `20260813150000_admin_capabilities.sql`.
+
+**Security headers live in `lib/security/headers.ts`, not in next.config.**
+One source of truth for the CSP, the noindex prefixes and the cache rules on
+`/media`. The CSP allows `'unsafe-inline'` for scripts, deliberately: the strict
+alternative is a per-request nonce, which forces every static page to render on
+the server. That trade is only defensible while there is no
+`dangerouslySetInnerHTML` and no third-party script anywhere in `src/`, and
+`npm run test:security` fails if either appears.
+
+**`upgrade-insecure-requests` and HSTS are gated on the site URL, not NODE_ENV.**
+The browser suites run against a production build on http://127.0.0.1, where
+NODE_ENV is "production" and https does not exist. Emitting the directive there
+rewrote every script URL to https and the app stopped loading its own
+JavaScript.
+
+**Rate limits are in the database, applied by triggers.**
+Not in the app: the deployment target keeps nothing between requests, and these
+paths are database functions an attacker could call directly. Triggers rather
+than edited function bodies, because copying a function to insert one line is
+how a `btrim` goes missing. Support requests are counted against the row's
+`user_id`, since that form is submitted through the service client and
+`auth.uid()` is null inside the trigger.
+
+**Individual nanny profiles are readable but never indexed.**
+Noindex in the page metadata, disallowed in robots.txt, absent from the
+sitemap. A family should see who is available before signing up; that is not
+the same as leaving a real person's photo, first name and emirate in a search
+index after she has found a job. Job posts are indexed, since they carry no
+personal detail and a family posting one wants it found.
 
 **No LLM anywhere in this product.** Decided 2026-08-14. The free text
 assistant described in the PRD is out of scope, and nothing that reaches a
@@ -156,4 +187,4 @@ docs/                  mobile-first constraints, reuse notes
 6. ✅ Matching and explainable scores. No LLM, by decision: the free text
    assistant in the PRD is out of scope and the score stays deterministic
 7. ✅ Admin, moderation, analytics
-8. ⬜ Security, performance, SEO, deployment
+8. 🔶 Security, SEO and query indexes done. Deployment not started
