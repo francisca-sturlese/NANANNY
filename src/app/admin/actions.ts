@@ -217,6 +217,66 @@ const pricingSchema = z.object({
   monthlyIsBestValue: z.coerce.boolean(),
 });
 
+/**
+ * Opening, moving or closing the launch window.
+ *
+ * Separate from the pricing form because it is a different decision with a
+ * different blast radius: this one switches the paywall off for everybody.
+ * Empty dates close it.
+ */
+const promoSchema = z.object({
+  startsAt: z.string().trim(),
+  endsAt: z.string().trim(),
+  label: z.string().trim().max(80),
+});
+
+export async function updatePromoAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = promoSchema.safeParse({
+    startsAt: formData.get("startsAt") ?? "",
+    endsAt: formData.get("endsAt") ?? "",
+    label: formData.get("label") ?? "",
+  });
+  if (!parsed.success) return { error: "Check the dates and try again." };
+
+  const startsAt = parsed.data.startsAt ? new Date(parsed.data.startsAt) : null;
+  const endsAt = parsed.data.endsAt ? new Date(parsed.data.endsAt) : null;
+
+  if (startsAt && Number.isNaN(startsAt.getTime())) return { error: "That start date is not a date." };
+  if (endsAt && Number.isNaN(endsAt.getTime())) return { error: "That end date is not a date." };
+  if (startsAt && endsAt && endsAt <= startsAt) {
+    return { error: "The window has to end after it starts." };
+  }
+
+  const supabase = await createServerSupabase();
+  // Nulls clear the window. The generated types declare the parameters as
+  // required strings because the function has no defaults for them, so the cast
+  // is what lets an empty form close the promotion.
+  const { error } = await supabase.rpc("admin_set_promo", {
+    p_starts_at: startsAt ? startsAt.toISOString() : (null as unknown as string),
+    p_ends_at: endsAt ? endsAt.toISOString() : (null as unknown as string),
+    p_label: parsed.data.label,
+  });
+
+  if (error) return { error: cleanMessage(error.message) };
+
+  // The banner reads this on every page a family can reach.
+  for (const path of ["/", "/pricing", "/admin/pricing", "/family", "/nannies"]) {
+    revalidatePath(path);
+  }
+
+  return {
+    message:
+      startsAt || endsAt
+        ? "Launch window saved. The banner and the paywall follow these dates."
+        : "Launch window cleared. The paywall is back to normal.",
+  };
+}
+
 export async function updatePricingAction(
   _prev: ActionState,
   formData: FormData,

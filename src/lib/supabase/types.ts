@@ -1450,6 +1450,9 @@ export type Database = {
           monthly_enabled: boolean
           monthly_is_best_value: boolean
           monthly_price_aed: number
+          promo_ends_at: string | null
+          promo_label: string | null
+          promo_starts_at: string | null
           updated_at: string
           updated_by: string | null
           weekly_enabled: boolean
@@ -1462,6 +1465,9 @@ export type Database = {
           monthly_enabled?: boolean
           monthly_is_best_value?: boolean
           monthly_price_aed?: number
+          promo_ends_at?: string | null
+          promo_label?: string | null
+          promo_starts_at?: string | null
           updated_at?: string
           updated_by?: string | null
           weekly_enabled?: boolean
@@ -1474,6 +1480,9 @@ export type Database = {
           monthly_enabled?: boolean
           monthly_is_best_value?: boolean
           monthly_price_aed?: number
+          promo_ends_at?: string | null
+          promo_label?: string | null
+          promo_starts_at?: string | null
           updated_at?: string
           updated_by?: string | null
           weekly_enabled?: boolean
@@ -1965,6 +1974,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_promo: {
+        Args: { p_ends_at: string; p_label?: string; p_starts_at: string }
+        Returns: Json
+      }
       admin_set_user_role: {
         Args: {
           p_reason?: string
@@ -2048,6 +2061,8 @@ export type Database = {
           free_contacts_remaining: number
           free_contacts_used: number
           plan: Database["public"]["Enums"]["subscription_plan"]
+          promo_active: boolean
+          promo_ends_at: string
           subscription_active: boolean
         }[]
       }
@@ -2084,12 +2099,16 @@ export type Database = {
           free_contacts_remaining: number
           free_contacts_used: number
           plan: Database["public"]["Enums"]["subscription_plan"]
+          promo_active: boolean
+          promo_ends_at: string
           subscription_active: boolean
         }[]
       }
       my_family_id: { Args: never; Returns: string }
       my_nanny_id: { Args: never; Returns: string }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
+      promo_active: { Args: never; Returns: boolean }
+      promo_window: { Args: never; Returns: Json }
       record_payment: {
         Args: {
           p_amount_aed: number

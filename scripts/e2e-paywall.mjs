@@ -41,6 +41,16 @@ function check(name, ok, detail = "") {
 
 await mkdir(SHOTS, { recursive: true });
 
+// This suite is about the ordinary case: three free contacts, then a paywall.
+// The launch window deliberately suspends exactly that, so with one open every
+// check here fails and looks like a broken gate rather than a promotion doing
+// its job. Closed as a precondition, and stated so nobody reads a red run as a
+// regression. `supabase/tests/launch_promo.sql` covers the window itself.
+await db
+  .from("pricing_config")
+  .update({ promo_starts_at: null, promo_ends_at: null })
+  .eq("id", true);
+
 // ---------------------------------------------------------------- fixtures
 const { data: familyUser } = await db
   .from("users")

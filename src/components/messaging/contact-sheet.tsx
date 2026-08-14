@@ -37,6 +37,7 @@ export function ContactSheet({
   nannyName,
   contactsRemaining,
   subscribed,
+  promoActive = false,
   pricing,
   source = "profile",
 }: {
@@ -44,6 +45,8 @@ export function ContactSheet({
   nannyName: string;
   contactsRemaining: number;
   subscribed: boolean;
+  /** The launch window is open, so nothing costs a contact for anyone. */
+  promoActive?: boolean;
   pricing: PricingSummary;
   source?: string;
 }) {
@@ -63,10 +66,19 @@ export function ContactSheet({
         Message {nannyName}
       </Button>
 
-      {!subscribed && contactsRemaining > 0 && (
-        <p className="mt-1 text-center text-[0.6875rem] text-subtle">
-          {contactsRemaining} free {contactsRemaining === 1 ? "contact" : "contacts"} left
+      {/* During the window the counter is not just irrelevant, it is wrong:
+          nothing is being spent, so showing what is left implies it is. */}
+      {promoActive ? (
+        <p className="mt-1 text-center text-[0.6875rem] text-sage-deep">
+          Free right now. This does not use a contact.
         </p>
+      ) : (
+        !subscribed &&
+        contactsRemaining > 0 && (
+          <p className="mt-1 text-center text-[0.6875rem] text-subtle">
+            {contactsRemaining} free {contactsRemaining === 1 ? "contact" : "contacts"} left
+          </p>
+        )
       )}
 
       {open && (
@@ -134,11 +146,18 @@ export function ContactSheet({
                     Send message
                   </SubmitButton>
 
-                  {!subscribed && (
+                  {promoActive ? (
                     <p className="text-center text-xs text-muted">
-                      This uses one of your {pricing.freeContacts} free contacts. Every
-                      message after this one, with her, is included.
+                      Free while we are launching. This does not use any of your{" "}
+                      {pricing.freeContacts} contacts, and neither will the next one.
                     </p>
+                  ) : (
+                    !subscribed && (
+                      <p className="text-center text-xs text-muted">
+                        This uses one of your {pricing.freeContacts} free contacts. Every
+                        message after this one, with her, is included.
+                      </p>
+                    )
                   )}
                 </form>
               )}

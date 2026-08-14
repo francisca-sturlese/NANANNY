@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { cn } from "@/lib/utils";
+import { PromoBanner } from "@/components/promo/promo-banner";
 import {
   Home,
   Search,
@@ -42,7 +43,7 @@ export const NANNY_NAV: NavItem[] = [
  *
  * Desktop expands that into a horizontal nav in the header and drops the bar.
  */
-export function AppShell({
+export async function AppShell({
   nav,
   active,
   name,
@@ -86,6 +87,10 @@ export function AppShell({
           </div>
         </div>
       </header>
+
+      {/* Families only. A nanny pays nothing either way, and telling her the
+          contacts are free is telling her about somebody else's bill. */}
+      {nav === FAMILY_NAV && <PromoBanner audience="family" />}
 
       <main className="mx-auto max-w-5xl px-4 py-6 pb-nav sm:px-6 sm:py-10 md:pb-10">
         {children}

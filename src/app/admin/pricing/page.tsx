@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PricingForm } from "@/components/admin/pricing-form";
+import { PromoForm } from "@/components/admin/promo-form";
+import { getPromo } from "@/lib/promo";
 import { Card, CardBody } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Pricing" };
@@ -11,7 +13,7 @@ export default async function AdminPricingPage() {
   const admin = await requireAdmin("/admin/pricing");
   const supabase = await createServerSupabase();
 
-  const [{ data: config }, { data: recentChanges }] = await Promise.all([
+  const [{ data: config }, { data: recentChanges }, promo] = await Promise.all([
     supabase.from("pricing_config").select("*").single(),
     supabase
       .from("audit_logs")
@@ -19,6 +21,7 @@ export default async function AdminPricingPage() {
       .eq("action", "pricing_changed")
       .order("created_at", { ascending: false })
       .limit(5),
+    getPromo(),
   ]);
 
   if (!config) return null;
@@ -41,6 +44,25 @@ export default async function AdminPricingPage() {
               weeklyEnabled={config.weekly_enabled}
               monthlyEnabled={config.monthly_enabled}
               monthlyIsBestValue={config.monthly_is_best_value}
+            />
+          </CardBody>
+        </Card>
+      </div>
+
+      <div className="mt-6 max-w-xl">
+        <Card>
+          <CardBody>
+            <h2 className="text-base font-semibold">Launch window</h2>
+            <p className="mt-1 mb-5 text-sm leading-relaxed text-muted">
+              While this is open, contacting a nanny is free for everyone and none
+              of it counts against a family&apos;s free contacts. When it closes,
+              every family still has its full allowance.
+            </p>
+            <PromoForm
+              startsAt={promo.startsAt}
+              endsAt={promo.endsAt}
+              label={promo.label}
+              active={promo.active}
             />
           </CardBody>
         </Card>

@@ -407,6 +407,7 @@ export default async function NannyProfilePage({
                 nannyName={nanny.first_name ?? "her"}
                 contactsRemaining={contacts?.free_contacts_remaining ?? pricing.freeContacts}
                 subscribed={Boolean(contacts?.subscription_active)}
+                promoActive={Boolean(contacts?.promo_active)}
                 pricing={pricing}
                 source="profile"
               />

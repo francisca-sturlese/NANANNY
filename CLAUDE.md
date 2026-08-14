@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 SQL checks
+npm run test:db        # 12 + 24 + 10 + 17 + 10 + 5 + 11 SQL checks
 npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
@@ -48,6 +48,15 @@ it takes a per-family advisory lock so two concurrent requests cannot both spend
 the last credit. Viewing, saving and shortlisting are free — only opening a new
 conversation costs. Never change this without re-running
 `free_contacts_gate.sql`.
+
+**The launch window suspends the gate without touching how it counts.**
+`pricing_config.promo_starts_at/ends_at` open a period in which
+`start_conversation()` writes `consumed_free_credit = false`, exactly as it
+already does for a subscriber. Nothing is stored differently and no counter
+appears: the contacts simply were never in the derived count. When the window
+closes every family still has its full allowance, which is the point.
+Both dates default to null, so the mechanism ships switched off. Never change
+this without re-running `free_contacts_gate.sql` and `launch_promo.sql`.
 
 **Pricing is server-side config.** 3 / 89 / 250 live in `pricing_config`, read
 through `lib/pricing.ts`. Never hardcode a price or a free-contact count in a
