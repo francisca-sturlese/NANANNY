@@ -63,6 +63,12 @@ function daysUntil(iso: string): number {
  * Vague while there is plenty of time, precise once there is not. "Ends in 2
  * days" is useful; "ends in 19 days" is noise that trains people to ignore the
  * banner before it matters.
+ *
+ * The date shown is the last day the promotion still applies, not the instant
+ * it stops. A window running to the end of 4 September is stored as midnight on
+ * the 5th, because that is when it closes, and printing "ends on 5 September"
+ * to somebody who was told the 4th reads as a mistake, or worse as a day they
+ * still have.
  */
 export function endsPhrase(promo: Promo): string | null {
   if (!promo.endsAt) return null;
@@ -71,8 +77,10 @@ export function endsPhrase(promo: Promo): string | null {
   if (promo.daysLeft <= 1) return "Ends today";
   if (promo.daysLeft <= 7) return `Ends in ${promo.daysLeft} days`;
 
-  return `Ends on ${new Date(promo.endsAt).toLocaleDateString("en-GB", {
+  const lastDay = new Date(new Date(promo.endsAt).getTime() - 1000);
+  return `Ends on ${lastDay.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
+    timeZone: "Asia/Dubai",
   })}`;
 }

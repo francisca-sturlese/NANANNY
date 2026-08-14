@@ -10,6 +10,13 @@
 begin;
 
 \set QUIET on
+
+-- The launch window suspends the paywall for everybody, which is what this file
+-- exists to test the absence of. Closed inside the transaction, so it is rolled
+-- back with the rest and a window open in the database is left exactly as it
+-- was found. Without this the suite fails and reads as a broken gate.
+update public.pricing_config set promo_starts_at = null, promo_ends_at = null;
+
 \set ON_ERROR_STOP on
 
 -- Fixed UUIDs make failures readable.

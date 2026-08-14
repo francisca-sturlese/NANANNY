@@ -73,15 +73,7 @@ export default async function HomePage() {
           </div>
 
           <div className="mx-auto w-full max-w-3xl px-5 pb-10 text-center sm:px-8 sm:pb-14">
-            {/* An aside, not a headline: pushed right and half the size, so it
-                informs without competing with the promise above the buttons. */}
-            <div className="flex justify-end">
-              <Badge variant="butter" size="xs">
-                First {pricing.freeContacts} nanny contacts free
-              </Badge>
-            </div>
-
-            <h1 className="mt-3 text-[2.15rem] leading-[1.08] font-semibold sm:text-5xl lg:text-6xl">
+            <h1 className="text-[2.15rem] leading-[1.08] font-semibold sm:text-5xl lg:text-6xl">
               Find the right nanny for your family
             </h1>
 

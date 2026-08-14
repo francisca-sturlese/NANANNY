@@ -44,8 +44,23 @@ await mkdir(SHOTS, { recursive: true });
 // This suite is about the ordinary case: three free contacts, then a paywall.
 // The launch window deliberately suspends exactly that, so with one open every
 // check here fails and looks like a broken gate rather than a promotion doing
-// its job. Closed as a precondition, and stated so nobody reads a red run as a
-// regression. `supabase/tests/launch_promo.sql` covers the window itself.
+// its job. `supabase/tests/launch_promo.sql` covers the window itself.
+//
+// Saved and put back rather than simply cleared. An earlier version cleared it,
+// which meant running the tests switched off a live promotion and nothing said
+// so. Restoring is in a `finally` because a suite that dies half way through
+// must not leave the paywall in a state nobody chose.
+const { data: promoBefore } = await db
+  .from("pricing_config")
+  .select("promo_starts_at, promo_ends_at, promo_label")
+  .eq("id", true)
+  .single();
+
+async function restorePromo() {
+  if (!promoBefore) return;
+  await db.from("pricing_config").update(promoBefore).eq("id", true);
+}
+
 await db
   .from("pricing_config")
   .update({ promo_starts_at: null, promo_ends_at: null })
@@ -255,6 +270,8 @@ check(
 await nannyContext.close();
 await context.close();
 await browser.close();
+
+await restorePromo();
 
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed.`);

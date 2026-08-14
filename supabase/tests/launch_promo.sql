@@ -13,6 +13,12 @@ begin;
 \set QUIET on
 \set ON_ERROR_STOP on
 
+-- Start from no window, whatever the database happens to have configured. This
+-- file opens and closes windows itself, so inheriting a live promotion would
+-- make its first two cases assert the opposite of what they mean. Rolled back
+-- with everything else, so a real window is left untouched.
+update public.pricing_config set promo_starts_at = null, promo_ends_at = null, promo_label = null;
+
 \set family_uid '''51111111-1111-4111-8111-111111111111'''
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -54,8 +60,8 @@ grant select on nannies to authenticated;
 -- 1. Shipped with no window configured, nothing has changed
 -- ---------------------------------------------------------------------------
 select case when public.promo_active() = false
-       then 'PASS 1  no window configured means no promotion'
-       else 'FAIL 1  a promotion is running by default' end;
+       then 'PASS 1  with no window configured there is no promotion'
+       else 'FAIL 1  a promotion is running with no window configured' end;
 
 set local role authenticated;
 select set_config('request.jwt.claims',
