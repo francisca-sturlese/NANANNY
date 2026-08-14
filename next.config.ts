@@ -36,6 +36,26 @@ const nextConfig: NextConfig = {
   // The version banner tells an attacker which advisories to try first.
   poweredByHeader: false,
 
+  experimental: {
+    /**
+     * How big a form post can be.
+     *
+     * Next defaults this to 1 MB and it was never set, while the app accepted
+     * photos up to 5 MB and videos up to 80 MB through the same server
+     * actions. Every nanny who chose a real photo from a phone was rejected,
+     * on a required field, at the first step of onboarding. It never showed up
+     * in a test because no suite ever uploaded a real file: the seed avatars go
+     * to storage directly.
+     *
+     * 6 MB covers the 5 MB photo limit with room for the rest of the form.
+     * Video is deliberately not covered: 80 MB through a server action would
+     * mean holding it all in memory on a worker, and that upload wants to go
+     * straight to storage instead. Until it does, the video limit below is cut
+     * to fit.
+     */
+    serverActions: { bodySizeLimit: "6mb" },
+  },
+
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
 

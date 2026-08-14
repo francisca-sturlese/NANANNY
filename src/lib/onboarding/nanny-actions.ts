@@ -45,7 +45,10 @@ export async function ensureNannyProfile(userId: string): Promise<string> {
 
 const emptyToNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
+// Cut from 80 MB to fit inside the server action body limit in next.config.
+// A larger video needs to go straight to storage rather than through a form
+// post, which is worth doing and is not this fix.
+const MAX_VIDEO_BYTES = 5 * 1024 * 1024;
 
 const aboutSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(80),

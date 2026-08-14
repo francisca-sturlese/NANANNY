@@ -539,7 +539,7 @@ export function NannyStepForm({
           <Field
             label="Video introduction"
             htmlFor="video"
-            hint="Optional, but profiles with a video get many more replies. Up to 80 MB, one minute is plenty."
+            hint="Optional, but profiles with a video get many more replies. Up to 5 MB, one minute is plenty."
             error={err.video}
           >
             <Input

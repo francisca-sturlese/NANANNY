@@ -126,11 +126,27 @@ async function shrink(file: File): Promise<File | null> {
   context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
+  /**
+   * What the browser actually produced, not what it was asked for.
+   *
+   * `toBlob` takes a type as a request, not an instruction. WebKit cannot
+   * encode WebP and quietly returns a PNG instead, and naming the result .webp
+   * with a webp mime type produced a file whose declared type and first bytes
+   * disagreed. The server checks exactly that, correctly refused it, and every
+   * nanny using Safari was stopped on a required field at the first step of
+   * onboarding with "that file is not the kind of image it claims to be".
+   *
+   * So the type is read off the blob afterwards. WebP is still asked for,
+   * because the browsers that can do it produce a much smaller file.
+   */
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, "image/webp", QUALITY),
   );
   if (!blob) return null;
 
+  const produced = blob.type || "image/png";
+  const extension = produced === "image/webp" ? "webp" : produced === "image/jpeg" ? "jpg" : "png";
   const base = file.name.replace(/\.[^.]+$/, "") || "photo";
-  return new File([blob], `${base}.webp`, { type: "image/webp" });
+
+  return new File([blob], `${base}.${extension}`, { type: produced });
 }
