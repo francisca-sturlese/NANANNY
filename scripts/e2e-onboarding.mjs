@@ -305,6 +305,56 @@ if (nannyLink) {
   const submitButton = page.getByRole("button", { name: /Submit profile for review/ });
   check("submit is disabled while the profile is incomplete", await submitButton.isDisabled());
   await shot("10-nanny-review-blocked");
+
+  /**
+   * Every Continue button is wired to something.
+   *
+   * The Documents step shipped with a bare `<form>`: no action, no handler.
+   * Pressing Continue submitted a GET to the page it was already on, so the
+   * page reloaded, nothing was saved, and nothing said so. A real nanny sat on
+   * step six unable to go forward and it was reported as "clicking continue
+   * does nothing", which is exactly what it did.
+   *
+   * The family wizard is already proven behaviourally further up, because that
+   * walk completes onboarding one step at a time and could not finish if a
+   * button were dead. The nanny wizard had no such walk, which is why the dead
+   * button lived there.
+   *
+   * The assertion is structural rather than a click, deliberately. Clicking
+   * proves a step only when its required fields are filled, so a click based
+   * check would go green on a validation error and quietly stop testing. React
+   * renders a server action form with `$ACTION` hidden inputs and method POST;
+   * a form with no action has neither. That is the difference between the bug
+   * and a working step, with nothing in between.
+   */
+  for (const slug of ["about", "experience", "skills", "availability", "story", "documents"]) {
+    await page.goto(`/nanny/onboarding/${slug}`);
+
+    const wiring = await page.evaluate(() => {
+      const button = [...document.querySelectorAll("button")].find((b) =>
+        /^(continue|submit)/i.test(b.textContent?.trim() ?? ""),
+      );
+      if (!button) return { found: false };
+
+      const form = button.closest("form");
+      if (!form) return { found: true, inForm: false };
+
+      return {
+        found: true,
+        inForm: true,
+        method: (form.getAttribute("method") ?? "get").toLowerCase(),
+        wired: [...form.querySelectorAll("input[type=hidden]")].some((i) =>
+          i.name.startsWith("$ACTION"),
+        ),
+      };
+    });
+
+    check(
+      `the ${slug} step has a Continue button that posts somewhere`,
+      wiring.found && wiring.inForm && wiring.wired && wiring.method === "post",
+      JSON.stringify(wiring),
+    );
+  }
 }
 
 await context.close();

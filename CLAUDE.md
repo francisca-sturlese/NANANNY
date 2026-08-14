@@ -21,7 +21,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 
 ```bash
 npm run test:db        # 151 SQL checks across fourteen suites
-npm run test:e2e       # 29 + 20 + 15 + 28 + 15 + 29 + 8 + 16 end-to-end checks
+npm run test:e2e       # 35 + 20 + 15 + 28 + 15 + 29 + 8 + 16 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data
 npm run test:mobile    # 252 viewport/engine combinations
@@ -251,6 +251,15 @@ through short-lived signed URLs minted server-side by
 `lib/storage/private-assets.ts`, after the caller has been authorised. Object
 keys are always `<owner uuid>/<file>`; the storage policies pin that first
 segment to `auth.uid()`.
+
+**A Continue button in a form with no action is a silent dead end.** It
+submits a GET to the page it is already on: the page reloads, nothing is saved,
+and nothing says so. It shipped that way on the Documents step and a real nanny
+sat on step six. `scripts/e2e-onboarding.mjs` now asserts every step of the
+nanny wizard renders its Continue inside a form React wired to a server action.
+Structural rather than a click, because a click only proves a step whose
+required fields are filled, so a click based check goes green on a validation
+error and stops testing.
 
 **A `"use server"` file may export only async functions.** Exporting a constant
 from one breaks the entire server-action graph at runtime, and it fails as
