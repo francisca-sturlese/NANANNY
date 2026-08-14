@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/auth/dal";
 import { FAMILY_STEPS, nextSlug, stepIndex } from "@/lib/onboarding/steps";
 import type { ActionState } from "@/lib/auth/actions";
 import { ownedPath } from "@/lib/storage/private-assets";
-import sharp from "sharp";
+import { checkImage, extensionFor } from "@/lib/storage/images";
 
 /**
  * Family onboarding.
@@ -291,26 +291,17 @@ async function uploadFamilyPhoto(
   userId: string,
 ): Promise<{ path?: string; error?: string } | null> {
   if (!(value instanceof File) || value.size === 0) return null;
-  if (value.size > MAX_PHOTO_BYTES) return { error: "That image is too large (max 5 MB)" };
 
-  let body: Buffer;
-  try {
-    body = await sharp(Buffer.from(await value.arrayBuffer()))
-      .rotate()
-      .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 82 })
-      .toBuffer();
-  } catch (error) {
-    console.error("[upload] could not process family photo:", error);
-    return { error: "We could not read that image. Try a JPG or PNG." };
-  }
+  const verdict = await checkImage(value);
+  if (!verdict.ok) return { error: verdict.error };
 
   const supabase = await createServerSupabase();
-  const path = ownedPath(userId, value.name.replace(/\.[^.]+$/, "") + ".webp");
+  const base = value.name.replace(/\.[^.]+$/, "") || "photo";
+  const path = ownedPath(userId, `${base}.${extensionFor(verdict.contentType)}`);
 
   const { error } = await supabase.storage
     .from("family-photos")
-    .upload(path, body, { contentType: "image/webp", upsert: false });
+    .upload(path, value, { contentType: verdict.contentType, upsert: false });
 
   if (error) {
     console.error("[upload] family photo:", error.message);

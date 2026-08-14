@@ -5,6 +5,7 @@ import { saveFamilyStep } from "@/lib/onboarding/family-actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { StepNav } from "@/components/onboarding/shell";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { PhotoInput } from "@/components/ui/photo-input";
 import { ChoiceCard, ChoiceGroup, PillCheckbox, PillGroup } from "@/components/ui/choice";
 import { FormError } from "@/components/auth/form-parts";
 import { Button } from "@/components/ui/button";
@@ -172,11 +173,14 @@ export function FamilyStepForm({
                   Photo
                 </span>
               )}
-              <Input
+              {/* Shrinks the picture before it is sent. HEIC is not in the
+                  accept list any more: no browser canvas can decode it, so it
+                  would upload at full size and then be refused by the server.
+                  iOS converts to JPEG when the accept list asks for it. */}
+              <PhotoInput
                 id="photo"
                 name="photo"
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic"
+                accept="image/jpeg,image/png,image/webp"
                 className="h-auto py-2.5"
               />
             </div>

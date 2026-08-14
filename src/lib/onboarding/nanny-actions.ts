@@ -7,7 +7,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/dal";
 import { NANNY_STEPS, nextSlug, stepIndex } from "@/lib/onboarding/steps";
 import { ownedPath } from "@/lib/storage/private-assets";
-import sharp from "sharp";
+import { checkImage, extensionFor } from "@/lib/storage/images";
 import type { ActionState } from "@/lib/auth/actions";
 
 /**
@@ -481,29 +481,22 @@ async function uploadIfPresent(
 
   const supabase = await createServerSupabase();
 
-  let body: File | Buffer = value;
+  const body: File = value;
   let contentType = value.type;
   let filename = value.name;
 
-  // Photos are resized here, on upload, rather than on every read. A phone
-  // camera produces 3–5 MB images, and a search page showing twelve cards
-  // would otherwise pull tens of megabytes over mobile data. 800px is more
-  // than the largest place a profile photo is ever displayed.
+  // Photos are shrunk in the browser before they are sent, by
+  // components/ui/photo-input.tsx. That saves the uploader's bandwidth rather
+  // than ours, and it keeps a native image library out of a request path that
+  // has to run on a worker runtime where one cannot load.
+  //
+  // What happens here is the check that a request cannot skip.
   if (bucket === "nanny-photos") {
-    try {
-      const resized = await sharp(Buffer.from(await value.arrayBuffer()))
-        .rotate() // honour EXIF orientation before stripping it
-        .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
-        .webp({ quality: 82 })
-        .toBuffer();
-      body = resized;
-      contentType = "image/webp";
-      filename = filename.replace(/\.[^.]+$/, "") + ".webp";
-    } catch (error) {
-      // A photo we cannot decode is not a photo we should store.
-      console.error("[upload] could not process image:", error);
-      return { error: "We could not read that image. Try a JPG or PNG." };
-    }
+    const verdict = await checkImage(value);
+    if (!verdict.ok) return { error: verdict.error };
+
+    contentType = verdict.contentType;
+    filename = `${filename.replace(/\.[^.]+$/, "") || "photo"}.${extensionFor(contentType)}`;
   }
 
   const path = ownedPath(userId, filename);

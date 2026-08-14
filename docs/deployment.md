@@ -3,20 +3,25 @@
 Target: Cloudflare Workers, free plan, packaged by OpenNext. The domain
 `nananny.com` is on Cloudflare Registrar with DNS there.
 
-## Not ready yet
+## Images, and why none of this uses sharp any more
 
-`sharp` cannot load on Workers. It is a native Node module, so every onboarding
-page answers 500 in the worker even though the bundle builds and the size is
-comfortable. This is a blocker, not a warning. It was found by running the
-worker in workerd, which is the only way to find it: `wrangler deploy --dry-run`
-reports a healthy bundle.
+`sharp` is a native Node module and cannot load on Workers at all. Every
+onboarding page answered 500 in the worker while the bundle built cleanly and
+came in well under the size limit, which is why `wrangler deploy --dry-run` is
+not a substitute for running the thing.
 
-The fix is to resize the uploaded photo in the browser before it is sent, and
-keep the type and size check on the server as the real guard. See
-`lib/onboarding/nanny-actions.ts` and `lib/onboarding/family-actions.ts`, the
-only two places `sharp` is imported at runtime. The build scripts that use it
-(`scripts/optimise-photos.mjs`, `scripts/make-og-image.mjs`) run on Node and are
-fine as they are.
+Photos are now shrunk in the browser by `components/ui/photo-input.tsx` before
+they are sent, and the server checks the declared type, the size and the file's
+own leading bytes in `lib/storage/images.ts`. That check is the control; the
+resize is a convenience, and the form can be posted without it ever running.
+
+The trade worth knowing: nothing on the server decodes the image any more, so a
+corrupt file that carries a valid JPEG header will be stored and will fail to
+render rather than being refused at upload. In exchange the uploader's own
+bandwidth is no longer spent sending several megabytes we immediately discard.
+
+`sharp` is still a devDependency, used by `scripts/optimise-photos.mjs` and
+`scripts/make-og-image.mjs`. Those run on Node at build time and are fine.
 
 ## Why middleware.ts and not proxy.ts
 

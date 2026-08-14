@@ -136,6 +136,12 @@ out of a conversation they are in the middle of, over an expired card.
 rule survives a price change. Which one carries "best value" is a separate
 question.
 
+**Nothing in the request path may be a native Node module.** The deployment
+target is a worker runtime where those cannot load, and the failure is a 500 at
+request time with a green build. Photos are shrunk in the browser by
+`components/ui/photo-input.tsx`; the server check in `lib/storage/images.ts` is
+the control. `sharp` is a devDependency for build scripts only.
+
 **No LLM anywhere in this product.** Decided 2026-08-14. The free text
 assistant described in the PRD is out of scope, and nothing that reaches a
 family may be generated. If a feature seems to need a model, it needs a
@@ -220,5 +226,5 @@ docs/                  mobile-first constraints, reuse notes
 6. ✅ Matching and explainable scores. No LLM, by decision: the free text
    assistant in the PRD is out of scope and the score stays deterministic
 7. ✅ Admin, moderation, analytics
-8. 🔶 Security, SEO, indexes and Workers packaging done.
-   Blocked on `sharp`, which cannot run on Workers. See `docs/deployment.md`
+8. 🔶 Security, SEO, indexes and Workers packaging done and verified in
+   workerd. Deploy itself not run. See `docs/deployment.md`
