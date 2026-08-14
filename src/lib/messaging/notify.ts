@@ -19,7 +19,23 @@ import { sendEmail, newMessageEmail } from "@/lib/email/send";
  * Never throws. A message has been delivered inside the product whether or not
  * the email went out, and turning a mail failure into an error the sender sees
  * would be the worse outcome.
+ *
+ * The email is currently off. Federico asked for the opposite of a per message
+ * notification: a reminder only after somebody has been away for a long time
+ * with something waiting. Until that is built, the in app record is still
+ * written on every message, so the bell and the digest that follows will have
+ * the history they need. Only the immediate send is suppressed.
  */
+/**
+ * Whether a message sends an email straight away.
+ *
+ * False, because the requirement changed after this shipped: an email per
+ * message, even at one per fifteen minutes, is more than anybody wants. What
+ * replaces it is a reminder after a long silence, which is a different feature
+ * and is being built next.
+ */
+const IMMEDIATE_EMAIL = false;
+
 export async function notifyNewMessage(
   conversationId: string,
   senderId: string,
@@ -47,6 +63,17 @@ export async function notifyNewMessage(
     } | null;
 
     if (!decision?.send || !decision.event_id || !decision.to) return;
+
+    // Off on purpose, and not by deleting the path: the queued row stays, so
+    // when the inactivity reminder lands it can see what was pending and when.
+    if (!IMMEDIATE_EMAIL) {
+      await service.rpc("record_email_result", {
+        p_event_id: decision.event_id,
+        p_status: "skipped",
+        p_error: "immediate message email is switched off, pending the inactivity reminder",
+      });
+      return;
+    }
 
     const mail = newMessageEmail({
       name: decision.name ?? "there",
