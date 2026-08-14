@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site/header";
 import { PromoBanner } from "@/components/promo/promo-banner";
+import { getPromo, endsPhrase } from "@/lib/promo";
 import { SiteFooter } from "@/components/site/footer";
 import { SearchModule } from "@/components/site/search-module";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export const metadata = { alternates: canonical("/") };
  * starting at a desktop size and being shrunk.
  */
 export default async function HomePage() {
-  const pricing = await getPricingConfig();
+  const [pricing, promo] = await Promise.all([getPricingConfig(), getPromo()]);
   const hero = photo("family-sunset");
   const nannyPhoto = photo("nanny-reading");
 
@@ -137,7 +138,9 @@ export default async function HomePage() {
               },
               {
                 step: "Connect",
-                copy: `Message your first ${pricing.freeContacts} nannies without paying.`,
+                copy: promo.active
+                  ? "Message as many nannies as you like. Free while we launch."
+                  : `Message your first ${pricing.freeContacts} nannies without paying.`,
                 tint: "var(--butter-wash)",
               },
               {
@@ -164,13 +167,29 @@ export default async function HomePage() {
           <div className="rounded-xl border border-border bg-surface p-6 sm:p-10 lg:p-12">
             <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-12">
               <div>
+                {/* While the window is open the allowance is not the current
+                    state, it is what happens afterwards. Leading with it told a
+                    family it was on a meter when nothing was being counted. */}
                 <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">
-                  Your first {pricing.freeContacts} nanny contacts are free.
+                  {promo.active
+                    ? "Right now every nanny contact is free."
+                    : `Your first ${pricing.freeContacts} nanny contacts are free.`}
                 </h2>
                 <p className="mt-3 max-w-md leading-relaxed text-muted">
-                  Search, compare and save as many profiles as you like without paying.
-                  You only choose a plan when you want to contact a{" "}
-                  {ordinal(pricing.freeContacts + 1)} nanny.
+                  {promo.active ? (
+                    <>
+                      Message as many nannies as you like while we are launching
+                      {endsPhrase(promo) ? `. ${endsPhrase(promo)}` : ""}. Afterwards
+                      your first {pricing.freeContacts} nanny contacts are free, and
+                      none of what you do now counts against them.
+                    </>
+                  ) : (
+                    <>
+                      Search, compare and save as many profiles as you like without
+                      paying. You only choose a plan when you want to contact a{" "}
+                      {ordinal(pricing.freeContacts + 1)} nanny.
+                    </>
+                  )}
                 </p>
 
                 <ul className="mt-6 space-y-2.5">

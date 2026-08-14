@@ -62,9 +62,20 @@ export default async function FamilyDashboard({
               ` · ${profile.children_count} ${profile.children_count === 1 ? "child" : "children"}`}
           </p>
         </div>
-        <Link href="/nannies">
-          <Button>Find a nanny</Button>
-        </Link>
+        {/* Two ways to start, side by side, because they are two different
+            intentions and a family arriving with the second one had nowhere to
+            go: posting a job lived behind a page that is not in the navigation,
+            so the only way to reach it was to know the URL. */}
+        <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row">
+          <Link href="/nannies" className="sm:w-auto">
+            <Button block>Find a nanny</Button>
+          </Link>
+          <Link href="/family/jobs/new" className="sm:w-auto">
+            <Button block variant="outline">
+              Post a job
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -127,6 +138,11 @@ export default async function FamilyDashboard({
             copy: "Scored against what you asked for, with the reasons shown.",
           },
           { href: "/nannies", title: "Search nannies", copy: "Browse every approved profile." },
+          {
+            href: "/family/jobs",
+            title: "Your job posts",
+            copy: "Write what you need and let nannies come to you.",
+          },
           { href: "/family/saved", title: "Saved profiles", copy: "Your shortlist, always free." },
           { href: "/family/profile", title: "Your profile", copy: "Update what you're looking for." },
         ].map((item) => (

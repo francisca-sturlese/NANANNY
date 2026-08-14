@@ -119,10 +119,14 @@ check(
   publicPricing.includes(String(newMonthly)),
   `looking for ${newMonthly}`,
 );
+// The phrasing differs during a launch window, where the allowance is
+// described as what happens afterwards rather than as the current state. What
+// must hold in both is that the number came from the database and reached the
+// page with no deploy, which is the thing this test is actually about.
 check(
   "the public pricing page shows the new free allowance",
   publicPricing.includes(`first ${newFree} nanny contacts`),
-  `looking for "first ${newFree}"`,
+  `looking for "first ${newFree} nanny contacts"`,
 );
 
 const home = stripComments(await fetch(BASE).then((r) => r.text()));

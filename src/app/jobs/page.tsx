@@ -64,10 +64,22 @@ export default async function JobsPage({
       <SiteHeader />
 
       <main className="mx-auto max-w-4xl px-5 pt-6 pb-16 sm:px-8 sm:pt-10">
-        <h1 className="text-2xl font-semibold sm:text-4xl">Nanny jobs</h1>
-        <p className="mt-1.5 text-sm text-muted sm:text-base">
-          Posted directly by families. Applying is free and always will be.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold sm:text-4xl">Nanny jobs</h1>
+            <p className="mt-1.5 text-sm text-muted sm:text-base">
+              Posted directly by families. Applying is free and always will be.
+            </p>
+          </div>
+
+          {/* This page is mostly read by nannies, but a family who lands here
+              is one who has already decided to post rather than search. Sending
+              her to sign up is a shorter path than making her find the family
+              area first. */}
+          <Link href="/family/jobs/new" className="shrink-0">
+            <Button variant="outline">Post a job</Button>
+          </Link>
+        </div>
 
         {/* Three filters only, laid out as a grid. A scrolling row put half the
             controls off screen with nothing to say they were there. */}

@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Steps, Section } from "@/components/site/marketing-page";
 import { getPricingConfig } from "@/lib/pricing";
+import { getPromo, endsPhrase } from "@/lib/promo";
+
+// The launch window opens and closes on dates in the database, so this page
+// cannot be frozen at build time with whatever it said then.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   alternates: canonical("/how-it-works"),
@@ -11,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HowItWorksPage() {
-  const pricing = await getPricingConfig();
+  const [pricing, promo] = await Promise.all([getPricingConfig(), getPromo()]);
 
   return (
     <MarketingPage
@@ -37,7 +42,9 @@ export default async function HowItWorksPage() {
             },
             {
               title: "Message the ones you like",
-              body: `Your first ${pricing.freeContacts} conversations are free. Browsing, viewing and saving profiles never costs anything at all.`,
+              body: promo.active
+                ? `While we are launching, every conversation is free and none of it uses your ${pricing.freeContacts} free contacts. ${endsPhrase(promo) ?? ""} Browsing, viewing and saving profiles never costs anything at all.`.trim()
+                : `Your first ${pricing.freeContacts} conversations are free. Browsing, viewing and saving profiles never costs anything at all.`,
             },
             {
               title: "Interview and decide",

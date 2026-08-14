@@ -206,11 +206,11 @@ console.log("\n--- THE CLAIM IN THE METADATA ---\n");
 // lives in pricing_config, and the two drifting apart would put a false claim
 // in every search result.
 const { execSync } = await import("node:child_process");
-const freeContacts = execSync(
-  `psql "${process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54422/postgres"}" -tA -c "select free_contacts from pricing_config limit 1"`,
-)
-  .toString()
-  .trim();
+const db = process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54422/postgres";
+const query = (sql) => execSync(`psql "${db}" -tA -c "${sql}"`).toString().trim();
+
+const freeContacts = query("select free_contacts from pricing_config limit 1");
+const promoActive = query("select promo_active()") === "t";
 
 const description = home.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
 const claimed = description.match(/first (\d+)/)?.[1];
@@ -219,6 +219,31 @@ check(
   claimed === freeContacts,
   `description says ${claimed ?? "nothing"}, pricing_config says ${freeContacts}`,
 );
+
+// During a launch window the pages a family reads before signing up must not
+// present the allowance as the current state, because it is not. This is a
+// conversion problem as much as an honesty one: a family told it has three
+// contacts behaves as though it is on a meter when nothing is being counted.
+if (promoActive) {
+  const pricingPage = await text("/pricing");
+  const leads = /free right now|costs nothing at all|it is all free/i.test(pricingPage);
+  check(
+    "the pricing page leads with the launch offer while the window is open",
+    leads,
+    leads ? "" : "found no promotional lead",
+  );
+  check(
+    "and explains what happens when the window closes",
+    /when the launch period ends|untouched/i.test(pricingPage),
+  );
+  const howItWorks = await text("/how-it-works");
+  check(
+    "how it works says the launch period is free",
+    /while we are launching/i.test(howItWorks),
+  );
+} else {
+  console.log("  SKIP  promotional copy checks, no window is open");
+}
 
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed.`);

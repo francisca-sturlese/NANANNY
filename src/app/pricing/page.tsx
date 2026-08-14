@@ -4,6 +4,7 @@ import { canonical } from "@/lib/seo/site";
 import { Check } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
 import { PromoBanner } from "@/components/promo/promo-banner";
+import { getPromo, endsPhrase } from "@/lib/promo";
 import { SiteFooter } from "@/components/site/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PricingPage() {
-  const pricing = await getPricingConfig();
+  const [pricing, promo] = await Promise.all([getPricingConfig(), getPromo()]);
 
   const free = [
     `${pricing.freeContacts} nanny contacts`,
@@ -59,12 +60,26 @@ export default async function PricingPage() {
       <PromoBanner audience="public" />
 
       <main className="mx-auto max-w-4xl px-5 pt-8 pb-16 sm:px-8 sm:pt-14">
+        {/* While the window is open, the three free contacts are not what is
+            happening: they are what happens afterwards. Leading with them here
+            told a family it was on a meter when it was not. */}
         <h1 className="text-3xl leading-tight font-semibold sm:text-5xl">
-          Find your nanny. Start for free.
+          {promo.active ? "Right now it is all free." : "Find your nanny. Start for free."}
         </h1>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-          Your first {pricing.freeContacts} nanny contacts are free. Then choose the plan
-          that works for you.
+          {promo.active ? (
+            <>
+              While we are launching, contacting a nanny costs nothing at all
+              {endsPhrase(promo) ? `. ${endsPhrase(promo)}` : ""}. After that,
+              your first {pricing.freeContacts} nanny contacts are free and then
+              you choose a plan.
+            </>
+          ) : (
+            <>
+              Your first {pricing.freeContacts} nanny contacts are free. Then choose the
+              plan that works for you.
+            </>
+          )}
         </p>
 
         {/* Ascending: free, then the cheaper plan, then the dearer one. The
@@ -120,10 +135,23 @@ export default async function PricingPage() {
                   q: "What counts as a contact?",
                   a: `Opening a conversation with a nanny you have not messaged before. Viewing her profile, saving her, or adding her to your shortlist costs nothing. Once you have messaged someone, every message after that is included, and she is never charged twice.`,
                 },
-                {
-                  q: `What happens after my ${pricing.freeContacts} free contacts?`,
-                  a: "Nothing changes until you want to message someone new. At that point you choose a weekly or monthly plan. You can keep browsing, saving and replying to conversations you have already started.",
-                },
+                ...(promo.active
+                  ? [
+                      {
+                        q: "Is it really free right now?",
+                        a: `Yes. While we are launching, contacting a nanny costs nothing and does not use up any of your ${pricing.freeContacts} free contacts. ${endsPhrase(promo) ?? "We will say here when that changes"}.`,
+                      },
+                      {
+                        q: `What happens when the launch period ends?`,
+                        a: `You still have all ${pricing.freeContacts} of your free contacts, untouched. Nothing you did during the launch is counted against them. After those, you choose a weekly or monthly plan.`,
+                      },
+                    ]
+                  : [
+                      {
+                        q: `What happens after my ${pricing.freeContacts} free contacts?`,
+                        a: "Nothing changes until you want to message someone new. At that point you choose a weekly or monthly plan. You can keep browsing, saving and replying to conversations you have already started.",
+                      },
+                    ]),
                 {
                   q: "Do you take a cut of the nanny's salary?",
                   a: "No. NaNanny is a technology platform, not an agency. There is no commission and no placement fee. You agree the salary directly with her.",
