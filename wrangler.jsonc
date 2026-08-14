@@ -1,0 +1,30 @@
+{
+  // Cloudflare Workers, free plan. See docs/deployment.md for what that costs
+  // us and where the ceilings are.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nananny",
+  "main": ".open-next/worker.js",
+
+  // Pinned rather than floating: the compatibility date is what decides which
+  // runtime behaviours this worker gets, and a moving one means a deploy can
+  // change behaviour without a code change.
+  "compatibility_date": "2026-08-14",
+
+  // OpenNext's server bundle uses Node built-ins. Without this the worker fails
+  // at import time rather than at request time, which at least is loud.
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "observability": {
+    "enabled": true
+  },
+
+  // Secrets are never here. NEXT_PUBLIC_* values are inlined into the client
+  // bundle at build time, so they are set in the build environment, not as
+  // worker vars. SUPABASE_SERVICE_ROLE_KEY is set with `wrangler secret put`.
+  "vars": {}
+}

@@ -1,8 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { PRIVATE_PATH_PREFIXES } from "@/lib/security/headers";
 
 /**
- * Next 16 renamed `middleware.ts` to `proxy.ts`. Same runtime, same matcher.
+ * Next 16 renamed this file to `proxy.ts`, and `middleware.ts` is deprecated.
+ * It is still called `middleware.ts` here because of the deployment target,
+ * not by preference.
+ *
+ * `proxy.ts` runs on the Node runtime and refuses a `runtime` config outright:
+ * setting it throws. OpenNext, which is what packages this app for Cloudflare
+ * Workers, does not support a Node proxy and fails the build with "Node.js
+ * middleware is not currently supported". The deprecated convention is the only
+ * one that builds for Workers today.
+ *
+ * The code inside needs nothing from Node: it is @supabase/ssr, cookies and a
+ * redirect. If Workers stops being the host, or OpenNext gains Node proxy
+ * support, this goes back to `proxy.ts` with a rename of the file and the
+ * exported function and nothing else.
  *
  * Two jobs only:
  *   1. Refresh the Supabase auth cookie so a session survives a page load.
@@ -18,7 +32,23 @@ import { createServerClient } from "@supabase/ssr";
 const PRIVATE_PREFIXES = ["/family", "/nanny", "/admin", "/account"];
 const AUTH_PAGES = ["/login", "/signup", "/forgot-password"];
 
-export async function proxy(request: NextRequest) {
+/**
+ * Keeps signed-in areas out of search results.
+ *
+ * Set here rather than only in next.config, because the rules there are
+ * applied to rendered routes and are lost on a response this file produces.
+ * On Cloudflare Workers that meant every private path answered a redirect with
+ * no `X-Robots-Tag` at all, while the same paths carried it correctly under
+ * `next start`. Setting it on the way out covers both.
+ */
+function markPrivate(response: NextResponse, path: string): NextResponse {
+  if (PRIVATE_PATH_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+  return response;
+}
+
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -53,7 +83,7 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = `?next=${encodeURIComponent(path)}`;
-    return NextResponse.redirect(url);
+    return markPrivate(NextResponse.redirect(url), path);
   }
 
   if (user && isAuthPage) {
@@ -62,10 +92,10 @@ export async function proxy(request: NextRequest) {
     // the role read from the database.
     url.pathname = "/account";
     url.search = "";
-    return NextResponse.redirect(url);
+    return markPrivate(NextResponse.redirect(url), path);
   }
 
-  return response;
+  return markPrivate(response, path);
 }
 
 export const config = {

@@ -22,7 +22,11 @@
     "test:all": "npm run typecheck && npm run lint && npm run test:security && npm run test:seo && npm run test:mobile && npm run test:overlays && npm run test:links && npm run test:e2e",
     "seed:avatars": "node scripts/seed-avatars.mjs",
     "photos": "node scripts/optimise-photos.mjs",
-    "og": "node scripts/make-og-image.mjs"
+    "og": "node scripts/make-og-image.mjs",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare preview",
+    "cf:check": "opennextjs-cloudflare build && wrangler deploy --dry-run",
+    "cf:deploy": "opennextjs-cloudflare build && wrangler deploy"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -40,6 +44,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20",
@@ -53,6 +58,7 @@
     "supabase": "^2.114.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.123.0"
   }
 }
