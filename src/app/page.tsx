@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site/header";
+import { PromoBanner } from "@/components/promo/promo-banner";
 import { SiteFooter } from "@/components/site/footer";
 import { SearchModule } from "@/components/site/search-module";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ export default async function HomePage() {
       </script>
 
       <SiteHeader />
+      <PromoBanner audience="public" />
 
       <main>
         {/* ---------------- Hero ---------------- */}

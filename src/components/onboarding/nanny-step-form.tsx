@@ -7,6 +7,7 @@ import type { ActionState } from "@/lib/auth/actions";
 import { StepNav } from "@/components/onboarding/shell";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { PhotoInput } from "@/components/ui/photo-input";
+import { VISA_STATUSES } from "@/lib/nanny/visa";
 import { ChoiceCard, ChoiceGroup, PillCheckbox, PillGroup } from "@/components/ui/choice";
 import { FormError } from "@/components/auth/form-parts";
 import {
@@ -125,6 +126,30 @@ export function NannyStepForm({
                 {NATIONALITIES.map((n) => (
                   <option key={n} value={n}>
                     {n}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Visa status"
+              htmlFor="visaStatus"
+              required
+              hint="Families search by this, so a profile without it is much harder to find. We do not check it, we only show what you tell us."
+              error={err.visaStatus}
+            >
+              <Select
+                id="visaStatus"
+                name="visaStatus"
+                defaultValue={profile?.visa_status ?? ""}
+                required
+              >
+                <option value="" disabled>
+                  Choose
+                </option>
+                {VISA_STATUSES.map((v) => (
+                  <option key={v.value} value={v.value}>
+                    {v.forNannies}
                   </option>
                 ))}
               </Select>

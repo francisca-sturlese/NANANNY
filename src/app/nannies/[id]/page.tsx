@@ -27,6 +27,7 @@ import { ContactSheet } from "@/components/messaging/contact-sheet";
 import { loadContactState } from "@/lib/messaging/actions";
 import { ReportButton } from "@/components/safety/report-button";
 import { getPricingConfig } from "@/lib/pricing";
+import { visaLabel, visaNote } from "@/lib/nanny/visa";
 
 export async function generateMetadata({
   params,
@@ -82,6 +83,7 @@ export default async function NannyProfilePage({
         "description",
         "emirate",
         "nationality",
+        "visa_status",
         "years_experience",
         "uae_experience_years",
         "arrangement",
@@ -202,6 +204,25 @@ export default async function NannyProfilePage({
             </p>
           </div>
         </header>
+
+        {/* Kept apart from the badges below, and worded as hers rather than
+            ours. A family reading this must not come away thinking anyone
+            checked it: the visa document and its review are what verification
+            means, and this is not that. */}
+        {visaLabel(nanny.visa_status) && (
+          <div className="mt-5 rounded-md border border-border bg-surface px-4 py-3">
+            <p className="text-sm font-medium">
+              Visa: {visaLabel(nanny.visa_status)}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-muted">
+              {visaNote(nanny.visa_status)}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-subtle">
+              She told us this herself. We have not checked it. Ask to see the
+              document before you agree anything.
+            </p>
+          </div>
+        )}
 
         {/* Badges are specific claims about what was actually reviewed. */}
         {badges && badges.length > 0 && (
@@ -469,6 +490,7 @@ type NannyRow = {
   description: string | null;
   emirate: string | null;
   nationality: string | null;
+  visa_status: string;
   years_experience: number;
   uae_experience_years: number;
   arrangement: string;

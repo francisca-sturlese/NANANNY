@@ -51,6 +51,12 @@ const aboutSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(80),
   lastName: z.string().trim().min(1, "Last name is required").max(80),
   nationality: z.string().trim().min(1, "Choose your nationality"),
+  // `not_said` is missing on purpose. It is the column default and the state a
+  // half finished profile is in, not an answer a nanny can submit.
+  visaStatus: z.enum(
+    ["own_visa", "family_visa", "cancelled_visa", "needs_sponsorship"],
+    { message: "Choose your visa status" },
+  ),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   emirate: z.string().trim().min(1, "Choose where you are based"),
   area: z.preprocess(emptyToNull, z.string().trim().max(120).nullable()),
@@ -118,6 +124,7 @@ export async function saveNannyStep(
           firstName: formData.get("firstName"),
           lastName: formData.get("lastName"),
           nationality: formData.get("nationality"),
+          visaStatus: formData.get("visaStatus"),
           dateOfBirth: formData.get("dateOfBirth"),
           emirate: formData.get("emirate"),
           area: formData.get("area"),
@@ -153,6 +160,7 @@ export async function saveNannyStep(
           .update({
             first_name: parsed.data.firstName,
             nationality: parsed.data.nationality,
+            visa_status: parsed.data.visaStatus,
             date_of_birth: parsed.data.dateOfBirth,
             emirate: parsed.data.emirate,
             area: parsed.data.area,

@@ -44,6 +44,7 @@ const NANNY_COLUMNS = [
   "headline",
   "emirate",
   "nationality",
+  "visa_status",
   "years_experience",
   "uae_experience_years",
   "arrangement",
@@ -134,6 +135,7 @@ export async function loadMatches(limit = 30): Promise<{
       headline: row.headline,
       emirate: row.emirate,
       nationality: row.nationality,
+      visaStatus: row.visa_status ?? "not_said",
       yearsExperience: row.years_experience ?? 0,
       uaeExperienceYears: row.uae_experience_years ?? 0,
       arrangement: row.arrangement,
@@ -183,6 +185,7 @@ type NannyProfileRow = {
   headline: string | null;
   emirate: string | null;
   nationality: string | null;
+  visa_status: NannyCardData["visaStatus"];
   years_experience: number;
   uae_experience_years: number;
   arrangement: NannyCardData["arrangement"];

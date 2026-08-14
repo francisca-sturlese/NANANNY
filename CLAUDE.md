@@ -164,6 +164,14 @@ as half a fit. `refresh_matches()` is the only writer of `matches`; the table is
 read only for `authenticated`. Anything that would make the number unexplainable
 breaks the product requirement, not just the tests.
 
+**Visa status is declared, never verified.** `nanny_profiles.visa_status` is
+what the nanny said, the same way years of experience is. The `visa` document
+and its human review are what verification means. It is required to submit a
+profile because families filter on it, it is rendered in neutral colours rather
+than a badge's, and the profile says in plain words that nobody checked it.
+Labels live in `lib/nanny/visa.ts` and are written twice: once for the family
+reading a card, once for the nanny reading her own profile.
+
 **Approved ≠ verified.** Approval means a profile is live. Verification badges
 are granted one at a time, only for something a human actually reviewed. Never
 render a blanket "background checked" claim.

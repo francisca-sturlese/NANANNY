@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { canonical } from "@/lib/seo/site";
 import { Check } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
+import { PromoBanner } from "@/components/promo/promo-banner";
 import { SiteFooter } from "@/components/site/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export default async function PricingPage() {
   return (
     <>
       <SiteHeader />
+      <PromoBanner audience="public" />
 
       <main className="mx-auto max-w-4xl px-5 pt-8 pb-16 sm:px-8 sm:pt-14">
         <h1 className="text-3xl leading-tight font-semibold sm:text-5xl">

@@ -17,7 +17,7 @@ import {
   NATIONALITIES,
   SALARY_BANDS,
 } from "@/lib/uae";
-import { SKILL_FILTERS, SORT_OPTIONS } from "@/lib/search/options";
+import { SKILL_FILTERS, SORT_OPTIONS, VISA_FILTERS } from "@/lib/search/options";
 
 /**
  * Search controls.
@@ -250,6 +250,24 @@ export function FilterBar({
                 ))}
               </PillGroup>
 
+              {/* Above nationality on purpose: in the UAE this is the first
+                  thing a family narrows by, because it decides what hiring
+                  actually involves. */}
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium">Visa status</span>
+                <Select name="visa" defaultValue={value("visa")}>
+                  <option value="">Any visa status</option>
+                  {VISA_FILTERS.map((v) => (
+                    <option key={v.value} value={v.value}>
+                      {v.label}
+                    </option>
+                  ))}
+                </Select>
+                <span className="mt-1.5 block text-xs leading-relaxed text-subtle">
+                  What each nanny told us. We have not checked it.
+                </span>
+              </label>
+
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Nationality</span>
                 <Select name="nationality" defaultValue={value("nationality")}>
@@ -302,6 +320,7 @@ export function ActiveFilterChips() {
     language: (v) => v,
     salary_max: (v) => `Up to AED ${Number(v).toLocaleString("en-AE")}`,
     nationality: (v) => v,
+    visa: (v) => VISA_FILTERS.find((f) => f.value === v)?.label ?? v,
     skills: (v) => ({ driving: "Drives", cooking: "Cooks", housekeeping: "Housekeeps", first_aid: "First aid" })[v] ?? v,
   };
 

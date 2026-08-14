@@ -3,9 +3,11 @@ import "server-only";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { signedUrls } from "@/lib/storage/private-assets";
 import type { Database } from "@/lib/supabase/types";
-import { PAGE_SIZE, type NannyFilters } from "@/lib/search/options";
+import { PAGE_SIZE, VISA_FILTERS, type NannyFilters } from "@/lib/search/options";
 
 export type { NannyFilters };
+
+type VisaFilterValue = (typeof VISA_FILTERS)[number]["value"];
 export { PAGE_SIZE };
 
 /**
@@ -24,6 +26,8 @@ export type NannyCardData = {
   headline: string | null;
   emirate: string | null;
   nationality: string | null;
+  /** Self declared by the nanny. Never a verification. */
+  visaStatus: Database["public"]["Enums"]["visa_status"];
   yearsExperience: number;
   uaeExperienceYears: number;
   arrangement: Database["public"]["Enums"]["care_arrangement"];
@@ -52,6 +56,7 @@ const PUBLIC_COLUMNS = [
   "headline",
   "emirate",
   "nationality",
+  "visa_status",
   "years_experience",
   "uae_experience_years",
   "arrangement",
@@ -80,6 +85,7 @@ type SearchRow = {
   headline: string | null;
   emirate: string | null;
   nationality: string | null;
+  visa_status: Database["public"]["Enums"]["visa_status"];
   years_experience: number;
   uae_experience_years: number;
   arrangement: Database["public"]["Enums"]["care_arrangement"];
@@ -118,6 +124,12 @@ export async function searchNannies(filters: NannyFilters): Promise<{
 
   if (filters.emirate) query = query.eq("emirate", filters.emirate);
   if (filters.nationality) query = query.eq("nationality", filters.nationality);
+  // Checked against the vocabulary rather than passed through: this comes
+  // straight from a query string, and an unknown value should return the
+  // unfiltered list rather than an error.
+  if (filters.visa && VISA_FILTERS.some((v) => v.value === filters.visa)) {
+    query = query.eq("visa_status", filters.visa as VisaFilterValue);
+  }
 
   // "Live out" should also surface nannies open to either — excluding them
   // would hide willing candidates for no reason.
@@ -211,6 +223,7 @@ export async function searchNannies(filters: NannyFilters): Promise<{
     headline: row.headline,
     emirate: row.emirate,
     nationality: row.nationality,
+    visaStatus: row.visa_status ?? "not_said",
     yearsExperience: row.years_experience ?? 0,
     uaeExperienceYears: row.uae_experience_years ?? 0,
     arrangement: row.arrangement,

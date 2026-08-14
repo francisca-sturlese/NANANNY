@@ -1160,6 +1160,7 @@ export type Database = {
           updated_at: string
           user_id: string
           video_url: string | null
+          visa_status: Database["public"]["Enums"]["visa_status"]
           years_experience: number
         }
         Insert: {
@@ -1213,6 +1214,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           video_url?: string | null
+          visa_status?: Database["public"]["Enums"]["visa_status"]
           years_experience?: number
         }
         Update: {
@@ -1266,6 +1268,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string | null
+          visa_status?: Database["public"]["Enums"]["visa_status"]
           years_experience?: number
         }
         Relationships: [
@@ -2204,6 +2207,12 @@ export type Database = {
         | "expired"
         | "refunded"
       user_role: "family" | "nanny" | "admin" | "super_admin"
+      visa_status:
+        | "own_visa"
+        | "family_visa"
+        | "cancelled_visa"
+        | "needs_sponsorship"
+        | "not_said"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2391,6 +2400,13 @@ export const Constants = {
         "refunded",
       ],
       user_role: ["family", "nanny", "admin", "super_admin"],
+      visa_status: [
+        "own_visa",
+        "family_visa",
+        "cancelled_visa",
+        "needs_sponsorship",
+        "not_said",
+      ],
     },
   },
 } as const

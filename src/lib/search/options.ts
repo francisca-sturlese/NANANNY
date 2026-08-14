@@ -16,6 +16,7 @@ export type NannyFilters = {
   salaryMax?: string;
   skills?: string[];
   nationality?: string;
+  visa?: string;
   sort?: string;
   page?: number;
 };
@@ -28,6 +29,17 @@ export const SORT_OPTIONS = [
   { value: "salary_low", label: "Salary: low to high" },
   { value: "available", label: "Available soonest" },
   { value: "newest", label: "Recently joined" },
+] as const;
+
+/**
+ * The first thing a family in the UAE wants to narrow by, because it decides
+ * what hiring actually involves. Self declared, which the sheet says out loud.
+ */
+export const VISA_FILTERS = [
+  { value: "own_visa", label: "Own visa" },
+  { value: "family_visa", label: "Family visa" },
+  { value: "cancelled_visa", label: "Visa cancelled" },
+  { value: "needs_sponsorship", label: "Needs sponsorship" },
 ] as const;
 
 export const SKILL_FILTERS = [
@@ -56,6 +68,7 @@ export function parseFilters(
     language: one(params.language),
     salaryMax: one(params.salary_max),
     nationality: one(params.nationality),
+    visa: one(params.visa),
     skills: many(params.skills),
     sort: one(params.sort) ?? "relevance",
     page: Number.isFinite(page) && page > 0 ? Math.min(page, 200) : 1,

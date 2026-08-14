@@ -4,6 +4,7 @@ import type { NannyCardData } from "@/lib/search/nannies";
 import { Badge } from "@/components/ui/badge";
 import { VERIFICATION_BADGES, type VerificationBadgeKey } from "@/components/ui/badge";
 import { SaveButton } from "@/components/nanny/save-button";
+import { visaLabel } from "@/lib/nanny/visa";
 
 /**
  * The search result card, designed for a thumb scrolling a phone.
@@ -117,6 +118,12 @@ export function NannyCard({
             From AED {nanny.salaryMin.toLocaleString("en-AE")}
             <span className="font-normal text-muted"> / month</span>
           </p>
+        )}
+
+        {/* Deliberately not a verification badge and deliberately not in the
+            sage or peach used for one. She said this; nobody checked it. */}
+        {visaLabel(nanny.visaStatus) && (
+          <p className="mt-3 text-xs text-muted">{visaLabel(nanny.visaStatus)}</p>
         )}
 
         {(ages.length > 0 || nanny.languages.length > 0) && (

@@ -143,7 +143,8 @@ begin
       languages, headline, description,
       employment_types, available_days, available_hours_start, available_hours_end,
       available_from, date_of_birth, education, certificates, preferred_locations,
-      onboarding_step, onboarding_completed_at, submitted_at, created_at
+      onboarding_step, onboarding_completed_at, submitted_at, created_at,
+      visa_status
     )
     values (
       uid,
@@ -197,7 +198,13 @@ begin
            then now() - (i * interval '2 days') else null end,
       -- Staggered on purpose: every row in one transaction shares now(), which
       -- makes "order by created_at" arbitrary and "recently joined" meaningless.
-      now() - (i * interval '3 days')
+      now() - (i * interval '3 days'),
+      -- Spread across the vocabulary so the filter has something to filter.
+      -- No 'not_said' here: it is required to submit a profile, so an approved
+      -- nanny without one is a state that cannot occur and seeding it would
+      -- have every reader wondering how.
+      (array['own_visa','family_visa','cancelled_visa','needs_sponsorship',
+             'own_visa','family_visa'])[1 + (i % 6)]::public.visa_status
     )
     returning id into nid;
 
