@@ -16,13 +16,17 @@ import { Share, X } from "lucide-react";
  * families use, a person who never finds this menu never gets notified that a
  * nanny applied, and finds out days later or not at all.
  *
- * Shown everywhere on iOS, including to somebody who has not signed up, which
- * was Federico's call and reverses how this shipped. The reason it was scoped
- * to signed-in pages was that the only honest argument for installing is one
- * you cannot make to a stranger: notifications, which on iOS do not work until
- * this is on the home screen. So the argument changes with the reader rather
- * than the placement, and a visitor is told the plain truth instead, that it
- * opens without a browser bar.
+ * Signed-in areas only, and that placement has now been decided three times.
+ * It shipped scoped, was opened to every visitor, and was scoped again within
+ * the hour. Worth writing down why it settled here, so it is not reopened a
+ * fourth time by reasoning from scratch.
+ *
+ * The only honest argument for installing this on iOS is notifications: web
+ * push does not work at all until a page is on the home screen, so a family
+ * that skips it never hears that a nanny applied. That argument cannot be made
+ * to somebody without an account, because it describes something they do not
+ * have. Anything weaker is a product asking a stranger for a commitment before
+ * it has given them a reason.
  *
  * Dismissed once, gone for good, and gone if it is already installed. The
  * answer to "no" is not to ask again next week.
@@ -30,21 +34,7 @@ import { Share, X } from "lucide-react";
 
 const DISMISSED = "nananny.install-hint.dismissed";
 
-export function InstallHint({
-  /**
-   * Whether the reader has an account.
-   *
-   * The reason to install differs, and the wrong one is worse than none. To
-   * somebody signed in, the honest reason is notifications: on iOS web push
-   * does not work until this is on the home screen, so a family that skips it
-   * never hears that a nanny applied. To somebody who has not signed up, that
-   * sentence describes a thing they do not have, which reads as a product
-   * talking to itself.
-   */
-  signedIn = false,
-}: {
-  signedIn?: boolean;
-} = {}) {
+export function InstallHint() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -87,10 +77,9 @@ export function InstallHint({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">Keep NaNanny on your home screen</p>
         <p className="mt-1 text-sm leading-relaxed text-muted">
-          Tap the share button at the bottom of Safari, then Add to Home Screen.
-          {signedIn
-            ? " It opens like an app, and it is how we can tell you about a new application without you having to check."
-            : " It opens like an app, without the browser bar in the way."}
+          Tap the share button at the bottom of Safari, then Add to Home Screen. It
+          opens like an app, and it is how we can tell you about a new application
+          without you having to check.
         </p>
       </div>
       <button
