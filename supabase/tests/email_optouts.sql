@@ -65,6 +65,25 @@ begin
   end if;
 end $$;
 
+-- 3b. a family who never opened the onboarding is due the family nudge, once
+do $$
+declare uid uuid := extensions.gen_random_uuid(); due jsonb; n int;
+begin
+  set local role postgres;
+  insert into auth.users (id, email, raw_user_meta_data, created_at, updated_at)
+  values (uid, 'neverstarted-family@example.test', '{"role":"family"}'::jsonb, now(), now());
+  update public.users set created_at = now() - interval '3 days' where id = uid;
+
+  due := public.due_reminders(500);
+  select count(*) into n from jsonb_array_elements(due) e where (e->>'user_id')::uuid = uid;
+  if n = 1 and exists (select 1 from jsonb_array_elements(due) e
+                        where (e->>'user_id')::uuid = uid and e->>'reason' = 'nudge_family') then
+    raise notice 'PASS 3b the family who never started is due the nudge, exactly once';
+  else
+    raise notice 'FAIL 3b rows for her: %', n;
+  end if;
+end $$;
+
 -- 4. the optout table is not reachable from a session
 do $$
 begin
