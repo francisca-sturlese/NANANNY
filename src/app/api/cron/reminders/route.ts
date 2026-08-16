@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail, reminderEmail } from "@/lib/email/send";
 import { unsubscribeUrl } from "@/lib/email/unsubscribe";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 /**
  * Sends the reminders that are due.
@@ -86,15 +87,18 @@ export async function POST(request: Request): Promise<Response> {
      * of required stays the only one. Costs one read per nanny in a batch that
      * is capped at a hundred, and only for the nudge that needs it.
      */
-    const missing =
-      person.reason === "nudge_nanny" ? await missingFieldsFor(service, person.user_id) : [];
+    const state =
+      person.reason === "nudge_nanny"
+        ? await profileStateFor(service, person.user_id)
+        : { missing: [], visible: false };
 
     const mail = reminderEmail({
       name: person.name,
       reason: person.reason,
       conversations: person.conversations,
       messages: person.messages,
-      missing,
+      missing: state.missing,
+      visible: state.visible,
       unsubscribeUrl: await unsubscribeUrl(person.user_id),
     });
 
@@ -144,25 +148,31 @@ export async function POST(request: Request): Promise<Response> {
  * who never opened the onboarding has nothing missing in the sense this means,
  * she has not started. The generic sentence is right for her.
  */
-async function missingFieldsFor(
+async function profileStateFor(
   service: ReturnType<typeof createServiceClient>,
   userId: string,
-): Promise<string[]> {
+): Promise<{ missing: string[]; visible: boolean }> {
   try {
     const { data: profile } = await service
       .from("nanny_profiles")
-      .select("id")
+      .select("id, status")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!profile) return [];
+    if (!profile) return { missing: [], visible: false };
 
     const { data } = await service.rpc("nanny_profile_completion", { p_nanny_id: profile.id });
     const completion = data as { required_missing?: string[] } | null;
-    return Array.isArray(completion?.required_missing) ? completion.required_missing : [];
+
+    return {
+      missing: Array.isArray(completion?.required_missing) ? completion.required_missing : [],
+      // Asked of the same list the search page uses, so the mail cannot claim
+      // she is hidden while she is on the first page of results.
+      visible: DISCOVERABLE_STATUSES.includes(profile.status as never),
+    };
   } catch {
     // A reminder without the list is still a reminder.
-    return [];
+    return { missing: [], visible: false };
   }
 }
 

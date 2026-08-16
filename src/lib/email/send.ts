@@ -205,19 +205,38 @@ function escapeHeader(value: string): string {
  * different from a vague "not finished". The list comes from the database's own
  * idea of required, so it cannot drift from what the submit button checks.
  */
-function nannyLine(missing?: string[]): string {
+function nannyLine(missing: string[] | undefined, visible: boolean): string {
   const items = (missing ?? []).filter(Boolean);
+  const list = items.map((i) => i.toLowerCase());
+  const readable =
+    list.length > 1 ? `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}` : list[0];
+
+  /**
+   * Already on the site, and still incomplete.
+   *
+   * Four profiles were published by hand to fill an empty marketplace, below
+   * the completeness the product asks for. Telling those four that families
+   * cannot find them would be a lie they can disprove by opening the search
+   * page, and a mail somebody can catch out is a mail they stop reading. What
+   * is true for them is that families can see them and there is not much there.
+   */
+  if (visible) {
+    if (items.length === 0) {
+      return "Your profile is live on NaNanny and families are looking. Filling in the rest of it is what turns a visit into a message.";
+    }
+    return items.length === 1
+      ? `Your profile is live on NaNanny, but it is missing your ${readable}, which is the first thing a family looks for. Adding it takes a minute.`
+      : `Your profile is live on NaNanny, but families are seeing very little: your ${readable} are still empty. Filling them in is what gets you replies.`;
+  }
 
   if (items.length === 0) {
     return "There are new job offers from families on NaNanny, but your profile is not finished, so they cannot find you and you cannot apply. Finishing it takes a few minutes.";
   }
 
   if (items.length === 1) {
-    return `There are new job offers from families on NaNanny, and you are one thing away from being able to apply: your ${items[0].toLowerCase()}. Add it and families can find you straight away.`;
+    return `There are new job offers from families on NaNanny, and you are one thing away from being able to apply: your ${readable}. Add it and families can find you straight away.`;
   }
 
-  const list = items.map((i) => i.toLowerCase());
-  const readable = `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
   return `There are new job offers from families on NaNanny, but they cannot see you yet. What is missing is your ${readable}. It takes a few minutes.`;
 }
 
@@ -249,6 +268,15 @@ export function reminderEmail(params: {
    * between her and being found. Naming it turns a chore into a task.
    */
   missing?: string[];
+  /**
+   * Whether families can already see her.
+   *
+   * Not the same as complete. Some profiles were published by hand while still
+   * short of what the product asks for, so "families cannot find you" and "your
+   * profile is thin" are both real situations and only one of them is true for
+   * any given reader.
+   */
+  visible?: boolean;
   /**
    * Per recipient. Reminder mail without a way out is a nuisance with a logo.
    *
@@ -290,8 +318,10 @@ export function reminderEmail(params: {
             button: "Post what you need",
           }
         : {
-            subject: "Families are hiring on NaNanny right now",
-            line: nannyLine(params.missing),
+            subject: params.visible
+              ? "Your NaNanny profile is missing a few things"
+              : "Families are hiring on NaNanny right now",
+            line: nannyLine(params.missing, params.visible ?? false),
             button: "Finish your profile",
           };
 
