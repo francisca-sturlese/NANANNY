@@ -10,7 +10,7 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "npm run clean:dupes && supabase db reset",
-    "clean:dupes": "find supabase src scripts -name '* [0-9].*' -delete 2>/dev/null || true",
+    "clean:dupes": "node scripts/clean-dupes.mjs",
     "db:studio": "open http://127.0.0.1:54423",
     "typecheck": "tsc --noEmit",
     "test:db": "psql \"$SUPABASE_DB_URL\" -f supabase/tests/free_contacts_gate.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/privacy_rls.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/jobs_and_shortlist.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/matching.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/rate_limits.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/admin_roles.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/launch_promo.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/notifications.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/phone_normalisation.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/function_grants.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/onboarding_publishes.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/delete_account.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/notification_events.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/admin_invites.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/reminders.sql && psql \"$SUPABASE_DB_URL\" -f supabase/tests/application_email.sql",
