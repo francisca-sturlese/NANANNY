@@ -149,14 +149,19 @@ export default async function AdminJobsPage({
                   {job.responsibilities && (
                     <p className="mt-2 line-clamp-2 text-sm text-muted">{job.responsibilities}</p>
                   )}
-                  {job.status === "active" && (
+                  <p className="mt-2 flex flex-wrap gap-3 text-xs">
+                    {job.status === "active" && (
+                      <Link href={`/jobs/${job.id}`} className="underline underline-offset-4">
+                        View as a nanny sees it
+                      </Link>
+                    )}
                     <Link
-                      href={`/jobs/${job.id}`}
-                      className="mt-2 inline-block text-xs underline underline-offset-4"
+                      href={`/admin/jobs/${job.id}/applications`}
+                      className="underline underline-offset-4"
                     >
-                      View as a nanny sees it
+                      View as the family sees it
                     </Link>
-                  )}
+                  </p>
 
                   {(() => {
                     const fam = familyById.get(job.family_id);
