@@ -47,7 +47,7 @@ export default async function AdminJobsPage({
   // working": how many applied, how far did they get, is anybody waiting.
   const jobIds = rows.map((j) => j.id);
   const familyIds = [...new Set(rows.map((j) => j.family_id))];
-  const [{ data: applications }, { data: families }] = await Promise.all([
+  const [{ data: applications }, { data: families }, { data: children }] = await Promise.all([
     jobIds.length
       ? supabase
           .from("job_applications")
@@ -56,11 +56,38 @@ export default async function AdminJobsPage({
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] as never[] }),
     familyIds.length
-      ? supabase.from("family_profiles").select("id, display_name").in("id", familyIds)
+      ? supabase
+          .from("family_profiles")
+          .select(
+            "id, display_name, emirate, area, children_count, created_at, users(email, phone, status)",
+          )
+          .in("id", familyIds)
+      : Promise.resolve({ data: [] as never[] }),
+    familyIds.length
+      ? supabase.from("family_children").select("family_id, age_years").in("family_id", familyIds)
       : Promise.resolve({ data: [] as never[] }),
   ]);
 
-  const familyName = new Map((families ?? []).map((f) => [f.id, f.display_name]));
+  type FamilyRow = {
+    id: string;
+    display_name: string;
+    emirate: string | null;
+    area: string | null;
+    children_count: number;
+    created_at: string;
+    users: { email: string; phone: string | null; status: string } | null;
+  };
+  const familyById = new Map(((families ?? []) as FamilyRow[]).map((f) => [f.id, f]));
+  const agesByFamily = new Map<string, number[]>();
+  for (const c of (children ?? []) as { family_id: string; age_years: number | null }[]) {
+    if (c.age_years == null) continue;
+    const list = agesByFamily.get(c.family_id) ?? [];
+    list.push(c.age_years);
+    agesByFamily.set(c.family_id, list);
+  }
+  const familyName = new Map(
+    ((families ?? []) as FamilyRow[]).map((f) => [f.id, f.display_name]),
+  );
 
   type AppRow = {
     id: string;
@@ -130,6 +157,47 @@ export default async function AdminJobsPage({
                       View as a nanny sees it
                     </Link>
                   )}
+
+                  {(() => {
+                    const fam = familyById.get(job.family_id);
+                    if (!fam) return null;
+                    const ages = (agesByFamily.get(fam.id) ?? []).sort((a, b) => a - b);
+                    return (
+                      <details className="mt-2">
+                        <summary className="tap-target cursor-pointer text-xs text-muted underline underline-offset-4">
+                          About the family
+                        </summary>
+                        <div className="mt-2 space-y-1 border-l border-border pl-4 text-sm">
+                          <p>
+                            <span className="font-medium">{fam.display_name}</span>
+                            {fam.users?.status === "suspended" && (
+                              <Badge variant="neutral" size="sm" className="ml-2">
+                                suspended
+                              </Badge>
+                            )}
+                          </p>
+                          {fam.users?.email && (
+                            <p className="text-muted">{fam.users.email}</p>
+                          )}
+                          {fam.users?.phone && <p className="text-muted">{fam.users.phone}</p>}
+                          <p className="text-muted">
+                            {[fam.area, fam.emirate].filter(Boolean).join(", ") || "No area given"}
+                            {` · ${fam.children_count} ${fam.children_count === 1 ? "child" : "children"}`}
+                            {ages.length > 0 && ` (ages ${ages.join(", ")})`}
+                            {` · joined ${new Date(fam.created_at).toLocaleDateString("en-GB")}`}
+                          </p>
+                          {fam.users?.email && (
+                            <Link
+                              href={`/admin/users?q=${encodeURIComponent(fam.users.email)}`}
+                              className="inline-block text-xs underline underline-offset-4"
+                            >
+                              Open in Users
+                            </Link>
+                          )}
+                        </div>
+                      </details>
+                    );
+                  })()}
 
                   {(() => {
                     const apps = appsByJob.get(job.id) ?? [];
