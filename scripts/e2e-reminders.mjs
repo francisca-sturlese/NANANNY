@@ -132,6 +132,12 @@ check("no dash in the copy", !/[—–]/.test(text));
  * joined two days ago and left is the sentence that says we are a script.
  */
 check(
+  "the unsubscribe link does not promise less than the click does",
+  !/stop these reminder emails/i.test(text),
+  "one click silences the application email too, so the link cannot say reminders only",
+);
+
+check(
   "it does not greet a stranger by a placeholder",
   !/hello there/i.test(text),
   text.split("\n")[0],
@@ -145,7 +151,7 @@ check(
 // renders when EMAIL_LINK_SECRET is set, so the suite sets one.
 check(
   "it carries a way to stop these emails",
-  /Stop these reminder emails: https?:\/\/\S+\/email\/unsubscribe\?u=.+&t=.+/.test(text),
+  /Stop emails from NaNanny: https?:\/\/\S+\/email\/unsubscribe\?u=.+&t=.+/.test(text),
   text.split("\n").slice(-2).join(" "),
 );
 

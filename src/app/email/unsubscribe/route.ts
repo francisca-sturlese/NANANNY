@@ -56,6 +56,6 @@ export async function GET(request: Request): Promise<Response> {
 
   return page(
     "You are unsubscribed",
-    "You will not receive reminder emails from NaNanny any more. Emails about your own account and things that happen to you directly, like an application to your job, still arrive.",
+    "You will not receive reminder emails from NaNanny any more, and you will not be told when a nanny applies to your job. Emails about signing in and your own account still arrive. If you only meant to stop the reminders, write to support@nananny.com and a person will put the application emails back.",
   );
 }

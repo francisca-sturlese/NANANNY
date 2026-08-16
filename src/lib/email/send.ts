@@ -196,7 +196,19 @@ export function reminderEmail(params: {
   reason: "unread" | "nudge_family" | "nudge_nanny";
   conversations: number;
   messages: number;
-  /** Per recipient. Reminder mail without a way out is a nuisance with a logo. */
+  /**
+   * Per recipient. Reminder mail without a way out is a nuisance with a logo.
+   *
+   * The wording is "stop emails from NaNanny" rather than "stop these
+   * reminders", because one click writes one row in `email_optouts` and that
+   * row silences every non-account email we send, including the one telling a
+   * family that somebody applied. A link that promises less than the click does
+   * is worse than no link: it takes away the most useful message we send, from
+   * somebody who was only trying to stop being nagged.
+   *
+   * The honest wording is the stopgap. The fix is an opt-out that knows what it
+   * is opting out of.
+   */
   unsubscribeUrl?: string | null;
 }): { subject: string; html: string; text: string } {
   const link = absoluteUrl("/account");
@@ -239,7 +251,7 @@ export function reminderEmail(params: {
     "",
     "NaNanny UAE",
     ...(params.unsubscribeUrl
-      ? ["", `Stop these reminder emails: ${params.unsubscribeUrl}`]
+      ? ["", `Stop emails from NaNanny: ${params.unsubscribeUrl}`]
       : []),
   ].join("\n");
 
@@ -259,7 +271,7 @@ export function reminderEmail(params: {
       </tr>
     </table>
     <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE${params.unsubscribeUrl ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop these reminder emails</a>` : ""}
+      NaNanny UAE${params.unsubscribeUrl ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop emails from NaNanny</a>` : ""}
     </p>
   </body>
 </html>`.trim();
@@ -337,7 +349,7 @@ export function applicationEmail(params: {
     "NaNanny UAE",
     "You get at most one of these a day, however many applications arrive.",
     ...(params.unsubscribeUrl
-      ? ["", `Stop being told about applications: ${params.unsubscribeUrl}`]
+      ? ["", `Stop emails from NaNanny: ${params.unsubscribeUrl}`]
       : []),
   ].join("\n");
 
@@ -361,7 +373,7 @@ export function applicationEmail(params: {
       NaNanny UAE<br />
       You get at most one of these a day, however many applications arrive.${
         params.unsubscribeUrl
-          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop being told about applications</a>`
+          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop emails from NaNanny</a>`
           : ""
       }
     </p>
