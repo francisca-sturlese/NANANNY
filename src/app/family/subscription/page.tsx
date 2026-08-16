@@ -5,6 +5,7 @@ import { Check, AlertTriangle } from "lucide-react";
 import { requireRole } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getPricingConfig } from "@/lib/pricing";
+import { getPromo, lastDay } from "@/lib/promo";
 import { plansFrom } from "@/lib/billing/plans";
 import { billingConfigured, isTestMode } from "@/lib/billing/stripe";
 import { AppShell, FAMILY_NAV } from "@/components/app/app-shell";
@@ -35,9 +36,10 @@ export default async function SubscriptionPage({
 
   if (!family) redirect("/family/onboarding");
 
-  const [pricing, { data: subscription }, { data: contactState }, { data: payments }] =
+  const [pricing, promo, { data: subscription }, { data: contactState }, { data: payments }] =
     await Promise.all([
       getPricingConfig(),
+      getPromo(),
       supabase
         .from("subscriptions")
         .select("plan, status, price_aed, currency, current_period_end, cancel_at_period_end")
@@ -57,10 +59,26 @@ export default async function SubscriptionPage({
   const contacts = Array.isArray(contactState) ? contactState[0] : contactState;
   const plans = plansFrom(pricing).filter((p) => p.enabled);
 
+
   const periodEnd = subscription?.current_period_end
     ? new Date(subscription.current_period_end)
     : null;
   const active = Boolean(contacts?.subscription_active);
+
+  /**
+   * The launch window, on the one page where somebody decides whether to pay.
+   *
+   * This page was promo blind, which is the same fault that was fixed three
+   * times on the marketing pages and worse here: those pages describe the offer,
+   * this one takes the money. It was showing a plan picker and a Subscribe
+   * button during a period in which subscribing buys nothing that is not
+   * already free, to a family whose counter reads 0 of 3 and is not moving.
+   *
+   * A family that pays here is not defrauded, they keep the subscription and the
+   * access, but they have paid early for no reason and will work that out later.
+   * That is worse for us than the money is worth.
+   */
+  const inWindow = promo.active && !active;
 
   return (
     <AppShell nav={FAMILY_NAV} active="/family/subscription" name="Subscription">
@@ -75,6 +93,21 @@ export default async function SubscriptionPage({
           <div className="rounded-md border border-butter bg-butter-wash px-4 py-3">
             <p className="text-sm leading-relaxed text-butter-deep">
               Payments are in test mode. Nothing here charges a real card.
+            </p>
+          </div>
+        )}
+
+        {inWindow && (
+          <div className="rounded-md border border-sage bg-sage-wash px-4 py-3.5">
+            <h2 className="text-sm font-semibold text-sage-deep">
+              You do not need to pay anything right now.
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-sage-deep/90">
+              While we are launching, contacting nannies is free for everyone and none
+              of it uses your {pricing.freeContacts} free contacts.
+              {lastDay(promo) ? ` This lasts until ${lastDay(promo)}.` : ""} When it
+              ends you will still have all {pricing.freeContacts} of them, and you can
+              subscribe then if you want more.
             </p>
           </div>
         )}
@@ -167,9 +200,18 @@ export default async function SubscriptionPage({
         {/* --------------------------------------------------------- the plans */}
         {!active && billingConfigured() && (
           <div>
-            <h2 className="mb-3 text-base font-semibold">Continue without limits</h2>
+            <h2 className="mb-3 text-base font-semibold">
+              {inWindow ? "For later, when the launch period ends" : "Continue without limits"}
+            </h2>
+            {/* Shown rather than hidden. Somebody comparing us to an agency
+                wants to know what this costs before they invest a week in it,
+                and a price that appears only once you are out of free contacts
+                reads as a trap. The heading says when it applies. */}
             <PlanPicker plans={plans} />
             <p className="mt-3 text-xs leading-relaxed text-subtle">
+              {inWindow
+                ? `Subscribing now is allowed, and it starts charging immediately, so there is no reason to before ${lastDay(promo) ?? "the launch period ends"}. `
+                : ""}
               Cancel any time and keep access until the period you have paid for ends.
               Conversations you have already started stay open and free either way.
               There is no commission on a nanny&apos;s salary and no placement fee.

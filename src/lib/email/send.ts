@@ -277,6 +277,16 @@ export function applicationEmail(params: {
   waiting: number;
   /** How many of their jobs those are spread across. */
   jobs: number;
+  /**
+   * Where to press to stop receiving these.
+   *
+   * Present on this email for the same reason it is on the reminders, and the
+   * wording is different on purpose. Somebody unsubscribing here is turning off
+   * being told that people applied for their job, which is the most useful
+   * message this product sends. Saying so is not a dark pattern, it is the one
+   * fact they need in order to make the choice they actually mean.
+   */
+  unsubscribeUrl?: string | null;
 }): { subject: string; html: string; text: string } {
   const link = absoluteUrl("/family/jobs");
   const many = params.waiting > 1;
@@ -307,6 +317,9 @@ export function applicationEmail(params: {
     "",
     "NaNanny UAE",
     "You get at most one of these a day, however many applications arrive.",
+    ...(params.unsubscribeUrl
+      ? ["", `Stop being told about applications: ${params.unsubscribeUrl}`]
+      : []),
   ].join("\n");
 
   const html = `
@@ -327,7 +340,11 @@ export function applicationEmail(params: {
     </table>
     <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
       NaNanny UAE<br />
-      You get at most one of these a day, however many applications arrive.
+      You get at most one of these a day, however many applications arrive.${
+        params.unsubscribeUrl
+          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop being told about applications</a>`
+          : ""
+      }
     </p>
   </body>
 </html>`.trim();

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail, applicationEmail } from "@/lib/email/send";
+import { unsubscribeUrl } from "@/lib/email/unsubscribe";
 
 /**
  * Telling a family that somebody applied.
@@ -39,6 +40,7 @@ export async function notifyApplicationReceived(jobId: string): Promise<void> {
       event_id?: string;
       to?: string;
       name?: string;
+      user_id?: string;
       waiting?: number;
       jobs?: number;
     };
@@ -49,6 +51,7 @@ export async function notifyApplicationReceived(jobId: string): Promise<void> {
       name: decision.name ?? "there",
       waiting: decision.waiting ?? 1,
       jobs: decision.jobs ?? 1,
+      unsubscribeUrl: decision.user_id ? await unsubscribeUrl(decision.user_id) : null,
     });
 
     const result = await sendEmail({ to: decision.to, ...mail });

@@ -207,7 +207,54 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- 8. And a session cannot call it
+-- 8. Somebody who unsubscribed is not written to
+-- ---------------------------------------------------------------------------
+-- An opt-out that covers two emails out of three is not an opt-out. A person
+-- who has said no and is written to anyway does not report a bug, they press
+-- the button their mail client offers, and that button is spam.
+do $$
+declare v_job uuid; decision jsonb;
+begin
+  select id into v_job from public.jobs where title = 'Live out help in Mirdif';
+  update public.users set status = 'active'
+   where id = '6c111111-1111-4111-8111-11111111111c';
+  delete from public.email_events where email_type = 'application_received';
+
+  insert into public.email_optouts (user_id)
+  values ('6c111111-1111-4111-8111-11111111111c')
+  on conflict do nothing;
+
+  decision := public.notify_application_email(v_job);
+
+  if not (decision ->> 'send')::boolean
+     and decision ->> 'reason' = 'unsubscribed' then
+    raise notice 'PASS 8  a family that unsubscribed is not emailed about applications either';
+  else
+    raise notice 'FAIL 8  %', decision;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 9. And nothing was written for them anyway
+-- ---------------------------------------------------------------------------
+-- Refused before the row is claimed, not after. A queued event nobody sends is
+-- a row that says we tried to write to somebody who said no.
+do $$
+declare events int;
+begin
+  select count(*) into events from public.email_events
+   where recipient = 'app-family@test.local'
+     and email_type = 'application_received';
+
+  if events = 0 then
+    raise notice 'PASS 9  no event is claimed for somebody who has opted out';
+  else
+    raise notice 'FAIL 9  % events queued for an unsubscribed family', events;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 10. And a session cannot call it
 -- ---------------------------------------------------------------------------
 -- It returns a family's email address and it makes us send mail.
 do $$
@@ -217,9 +264,9 @@ begin
     'public.notify_application_email(uuid)', 'execute') into reachable;
 
   if not reachable then
-    raise notice 'PASS 8  only the backend can call it';
+    raise notice 'PASS 10  only the backend can call it';
   else
-    raise notice 'FAIL 8  a signed in user can make us send mail';
+    raise notice 'FAIL 10  a signed in user can make us send mail';
   end if;
 end $$;
 
