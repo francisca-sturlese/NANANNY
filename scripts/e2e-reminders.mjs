@@ -122,6 +122,20 @@ const text = composed?.metadata?.text ?? "";
 check("it is addressed to a person, not to a list", /Quiet/.test(text), text.slice(0, 60));
 check("it links back into the product", /https?:\/\//.test(text));
 check("no dash in the copy", !/[—–]/.test(text));
+
+/**
+ * The people this reaches usually have no name.
+ *
+ * The name is asked for inside the onboarding they never opened, so the person
+ * most likely to receive a reminder is exactly the one we cannot address. The
+ * database hands over "there" as a stand in, and "Hello there" to somebody who
+ * joined two days ago and left is the sentence that says we are a script.
+ */
+check(
+  "it does not greet a stranger by a placeholder",
+  !/hello there/i.test(text),
+  text.split("\n")[0],
+);
 check(
   "it says why they are hearing from us",
   /profile|post|job/i.test(text),

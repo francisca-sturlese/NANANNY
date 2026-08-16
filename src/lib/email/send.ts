@@ -178,7 +178,21 @@ function escapeHeader(value: string): string {
  * here is only that somebody has been away a while.
  */
 export function reminderEmail(params: {
-  name: string;
+  /**
+   * Their first name, when we have one.
+   *
+   * Most of the people this reaches do not have one. The reminder exists for
+   * somebody who signed up and never came back, and the name is asked for
+   * inside the onboarding they never opened, so the person most likely to get
+   * this email is exactly the person we cannot address by name.
+   *
+   * The database hands over 'there' as a stand-in, which is fine for a greeting
+   * with a name in front of it and wrong on its own: "Hello there" to somebody
+   * who joined two days ago and left is the sentence that says we are a script.
+   * So a missing name means no greeting line at all, rather than a greeting
+   * with a placeholder in it.
+   */
+  name?: string | null;
   reason: "unread" | "nudge_family" | "nudge_nanny";
   conversations: number;
   messages: number;
@@ -186,6 +200,9 @@ export function reminderEmail(params: {
   unsubscribeUrl?: string | null;
 }): { subject: string; html: string; text: string } {
   const link = absoluteUrl("/account");
+
+  const named = params.name?.trim();
+  const greeting = named && named.toLowerCase() !== "there" ? `Hello ${named},` : null;
 
   const copy =
     params.reason === "unread"
@@ -215,8 +232,7 @@ export function reminderEmail(params: {
           };
 
   const text = [
-    `Hello ${params.name},`,
-    "",
+    ...(greeting ? [greeting, ""] : []),
     copy.line,
     "",
     `${copy.button}: ${link}`,
@@ -234,7 +250,7 @@ export function reminderEmail(params: {
     <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
       <tr>
         <td style="padding:28px">
-          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello ${escapeHtml(params.name)},</p>
+          ${greeting ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(greeting)}</p>` : ""}
           <p style="margin:0 0 24px;font-size:16px;line-height:1.5">${escapeHtml(copy.line)}</p>
           <p style="margin:0">
             <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">${escapeHtml(copy.button)}</a>
@@ -272,7 +288,8 @@ export function reminderEmail(params: {
  * envelope this product could hand anybody.
  */
 export function applicationEmail(params: {
-  name: string;
+  /** Same rule as the reminder: no name means no greeting, never a placeholder. */
+  name?: string | null;
   /** Applications waiting on them, across every job they have open. */
   waiting: number;
   /** How many of their jobs those are spread across. */
@@ -291,6 +308,9 @@ export function applicationEmail(params: {
   const link = absoluteUrl("/family/jobs");
   const many = params.waiting > 1;
 
+  const named = params.name?.trim();
+  const greeting = named && named.toLowerCase() !== "there" ? `Hello ${named},` : null;
+
   const subject = many
     ? `${params.waiting} nannies are waiting to hear from you`
     : "A nanny applied to your job";
@@ -307,8 +327,7 @@ export function applicationEmail(params: {
     : "Replying quickly is what gets you the nanny you want.";
 
   const text = [
-    `Hello ${params.name},`,
-    "",
+    ...(greeting ? [greeting, ""] : []),
     line,
     "",
     nudge,
@@ -329,7 +348,7 @@ export function applicationEmail(params: {
     <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
       <tr>
         <td style="padding:28px">
-          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello ${escapeHtml(params.name)},</p>
+          ${greeting ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(greeting)}</p>` : ""}
           <p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(line)}</p>
           <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#555">${escapeHtml(nudge)}</p>
           <p style="margin:0">
