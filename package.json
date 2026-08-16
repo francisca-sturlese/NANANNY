@@ -10,6 +10,7 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "npm run clean:dupes && supabase db reset",
+    "prepare": "node scripts/install-hooks.mjs",
     "clean:dupes": "node scripts/clean-dupes.mjs",
     "db:studio": "open http://127.0.0.1:54423",
     "typecheck": "tsc --noEmit",

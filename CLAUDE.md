@@ -20,8 +20,8 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 168 SQL checks across sixteen suites
-npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 17 end-to-end checks
+npm run test:db        # 175 SQL checks across seventeen suites
+npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
                        # and the free contact claim on every page that makes it
@@ -313,6 +313,15 @@ the bar they were opened from. `npm run test:overlays` guards this.
 constraints, not advice, and `scripts/mobile-audit.mjs` enforces the mechanical
 half of it.
 
+## Git hooks
+
+`npm install` installs them, through the `prepare` script. The only one is a
+pre-commit that refuses a macOS duplicate file: `bell 2.tsx` and friends.
+Twelve of those reached the remote once, one being a copy of a migration whose
+version was already in the ledger, which the next `db push` would have picked
+up. `npm run clean:dupes` removes them from disk, but the disk is not where
+they do harm.
+
 ## Copy
 
 Plain sentences. **No em or en dashes anywhere a user can read** — not in
@@ -349,10 +358,16 @@ docs/                  mobile-first constraints, reuse notes
 2. ✅ Auth, onboarding, profiles, completion, review states, seed, mobile pass
 3. ✅ Search, filters, jobs, applications, shortlist
 4. ✅ Messaging, contact counter, paywall
-5. 🔶 Subscriptions, checkout, webhooks, billing portal. Test mode only,
-   and never verified against real Stripe payloads
+5. ✅ Subscriptions, checkout, webhooks, billing portal. Verified against real
+   Stripe in test mode on 16 August: hosted checkout, test card, signature
+   check, subscription active, payment recorded, portal opens. Live keys not
+   in use yet, which is a switch rather than work
 6. ✅ Matching and explainable scores. No LLM, by decision: the free text
    assistant in the PRD is out of scope and the score stays deterministic
 7. ✅ Admin, moderation, analytics
-8. 🔶 Security, SEO, indexes and Workers packaging done and verified in
-   workerd. Deploy itself not run. See `docs/deployment.md`
+8. ✅ Security, SEO, indexes and Workers packaging. Deployed and serving on
+   nananny.com. See `docs/deployment.md`
+
+9. 🔶 Email. Application notifications, inactivity reminders and unsubscribe
+   are live. The opt-out is one row per person, so refusing the reminders also
+   refuses the application email: it needs a scope before anybody relies on it
