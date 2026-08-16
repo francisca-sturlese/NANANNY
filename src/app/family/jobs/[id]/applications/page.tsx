@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { signedUrls } from "@/lib/storage/private-assets";
 import { AppShell, FAMILY_NAV } from "@/components/app/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,35 @@ export default async function JobApplicationsPage({
     "nanny-photos",
     rows.map((r) => r.nanny?.photo_url ?? null),
   );
+
+  /**
+   * The documents these nannies chose to carry with their applications.
+   *
+   * Read through the service client because a family is not granted the
+   * nanny_documents table; the media route makes the same decision again on
+   * every download, so this list can only ever point at files the family is
+   * allowed to open. Identity documents never appear: the kinds here are the
+   * evaluative ones, and the same list guards the actual bytes.
+   */
+  const FAMILY_VISIBLE_DOCUMENT_KINDS = ["cv", "certificate", "first_aid", "reference"];
+  const DOC_LABEL: Record<string, string> = {
+    cv: "CV",
+    certificate: "Certificate",
+    first_aid: "First aid certificate",
+    reference: "Written reference",
+  };
+  const service = createServiceClient();
+  const { data: sharedDocs } = await service
+    .from("nanny_documents")
+    .select("id, nanny_id, kind, label, storage_path, reviewed")
+    .in("nanny_id", rows.map((r) => r.nanny.id))
+    .in("kind", FAMILY_VISIBLE_DOCUMENT_KINDS);
+  const docsByNanny = new Map<string, NonNullable<typeof sharedDocs>>();
+  for (const d of sharedDocs ?? []) {
+    const list = docsByNanny.get(d.nanny_id) ?? [];
+    list.push(d);
+    docsByNanny.set(d.nanny_id, list);
+  }
 
   return (
     <AppShell nav={FAMILY_NAV} active="/family/jobs" name="Jobs">
@@ -143,6 +173,28 @@ export default async function JobApplicationsPage({
                         {l}
                       </Badge>
                     ))}
+                  </div>
+                )}
+
+                {(docsByNanny.get(nanny.id) ?? []).length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-muted">Documents you can review</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {(docsByNanny.get(nanny.id) ?? []).map((d) => (
+                        <a
+                          key={d.id}
+                          href={`/media/nanny-documents/${d.storage_path}`}
+                          className="tap-target inline-flex items-center gap-1 rounded-pill border border-border px-3 py-1.5 text-xs hover:border-foreground"
+                        >
+                          {d.label || DOC_LABEL[d.kind] || d.kind}
+                          {d.reviewed && (
+                            <span className="text-sage-deep" title="Our team has opened this document">
+                              ✓
+                            </span>
+                          )}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
 

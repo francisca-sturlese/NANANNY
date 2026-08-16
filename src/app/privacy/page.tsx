@@ -79,8 +79,11 @@ export default function PrivacyPage() {
           There is no link that keeps working if it is forwarded to someone else.
         </p>
         <p>
-          Documents and video are readable only by the nanny who uploaded them and by our
-          review team. A family never has access to them.
+          Identity documents, a passport, an ID card or a visa, are readable only by the
+          nanny who uploaded them and by our review team. A family never has access to
+          them. A CV, certificates and written references can also be opened by a family
+          a nanny has applied to, because they are part of the application. Video
+          introductions require an account to watch.
         </p>
       </Section>
 

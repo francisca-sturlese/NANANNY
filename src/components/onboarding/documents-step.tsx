@@ -74,8 +74,10 @@ export function DocumentsStep({
     <div className="space-y-7">
       <div className="rounded-md border border-sage bg-sage-wash px-4 py-3">
         <p className="text-sm leading-relaxed text-sage-deep">
-          Only you and our review team can open these. Families never see them, and
-          nothing here appears on your profile.
+          Your passport, ID and visa can be opened only by you and our review team,
+          never by a family. Your CV, certificates and references can also be seen by
+          a family after you apply to their job, because they are part of what you are
+          putting forward. Nothing here appears on your public profile.
         </p>
       </div>
 
