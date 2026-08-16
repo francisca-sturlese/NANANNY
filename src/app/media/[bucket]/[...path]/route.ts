@@ -41,32 +41,58 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const allowed = await mayRead(bucket as Bucket, ownerId);
+  const allowed = await mayRead(bucket as Bucket, ownerId, objectPath);
   if (!allowed) return new NextResponse("Not found", { status: 404 });
 
-  const service = createServiceClient();
-  const { data, error } = await service.storage.from(bucket).download(objectPath);
+  /**
+   * Fetched from storage directly, forwarding a Range header when the browser
+   * sent one, and answering with whatever status storage gave back.
+   *
+   * Two real problems this solves at once. Safari refuses to play a <video>
+   * from a server that cannot answer byte ranges: it probes with Range and,
+   * told no, shows a dead player. And the previous download() buffered the
+   * whole object into worker memory before the first byte went out, which for
+   * a video is the worst possible shape. Streaming the upstream body through
+   * fixes both, and the ownership check above still runs on every request.
+   */
+  const range = request.headers.get("range");
+  const upstream = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`,
+    {
+      headers: {
+        // Both headers on purpose: the new key format is honoured via apikey,
+        // and without it storage answers a misleading "Bucket not found".
+        authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+        ...(range ? { range } : {}),
+      },
+    },
+  );
 
-  if (error || !data) {
+  if (!upstream.ok && upstream.status !== 206) {
     return new NextResponse("Not found", { status: 404 });
   }
 
   const isPublicish = bucket === "nanny-photos";
-
-  return new NextResponse(data.stream(), {
-    headers: {
-      "Content-Type": data.type || "application/octet-stream",
-      "Content-Length": String(data.size),
-      // A profile photo rarely changes and is shown on every card, so it is
-      // worth caching. Documents are not: they are sensitive and read once.
-      "Cache-Control": isPublicish
-        ? "private, max-age=3600, stale-while-revalidate=86400"
-        : "private, no-store",
-      "X-Content-Type-Options": "nosniff",
-      // Never let a stored file be rendered as a page in its own right.
-      "Content-Disposition": bucket === "nanny-documents" ? "attachment" : "inline",
-    },
+  const headers = new Headers({
+    "Content-Type": upstream.headers.get("content-type") ?? "application/octet-stream",
+    // Telling the browser ranges are welcome is what makes Safari try at all.
+    "Accept-Ranges": "bytes",
+    // A profile photo rarely changes and is shown on every card, so it is
+    // worth caching. Documents are not: they are sensitive and read once.
+    "Cache-Control": isPublicish
+      ? "private, max-age=3600, stale-while-revalidate=86400"
+      : "private, no-store",
+    "X-Content-Type-Options": "nosniff",
+    // Never let a stored file be rendered as a page in its own right.
+    "Content-Disposition": bucket === "nanny-documents" ? "attachment" : "inline",
   });
+  for (const name of ["content-length", "content-range"]) {
+    const value = upstream.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+
+  return new NextResponse(upstream.body, { status: upstream.status, headers });
 }
 
 /**
@@ -75,7 +101,18 @@ export async function GET(
  * Deliberately explicit rather than clever: each bucket has different rules and
  * writing them out is what makes them checkable.
  */
-async function mayRead(bucket: Bucket, ownerId: string): Promise<boolean> {
+/**
+ * The kinds of document a family may see, and the ones it may not.
+ *
+ * Certificates, references, a CV and a first aid card are what a family needs
+ * to evaluate a candidate. A passport, an ID card or a visa is identity theft
+ * material, and the people uploading them here are exactly the people least
+ * able to recover from that. The line is drawn by kind, in one place, and an
+ * unknown kind falls on the private side of it.
+ */
+const FAMILY_VISIBLE_DOCUMENT_KINDS = ["cv", "certificate", "first_aid", "reference"];
+
+async function mayRead(bucket: Bucket, ownerId: string, objectPath: string): Promise<boolean> {
   const user = await getSession();
 
   // Your own files, always.
@@ -132,9 +169,33 @@ async function mayRead(bucket: Bucket, ownerId: string): Promise<boolean> {
       return Boolean(data && data.length > 0);
     }
 
-    case "nanny-documents":
-      // The owner and the review team, nobody else. A family never sees these.
-      return isAdmin(user?.role);
+    case "nanny-documents": {
+      // The owner and the review team always. A family too, but only for the
+      // evaluative kinds, and only when this nanny has applied to one of their
+      // jobs: an application is the nanny putting herself forward, and these
+      // documents are part of what she is putting forward. Identity documents
+      // never cross this line regardless.
+      if (isAdmin(user?.role)) return true;
+      if (!user || user.role !== "family") return false;
+
+      const { data: doc } = await supabase
+        .from("nanny_documents")
+        .select("kind, nanny_profiles!inner(id, user_id)")
+        .eq("storage_path", objectPath)
+        .maybeSingle();
+
+      if (!doc || !FAMILY_VISIBLE_DOCUMENT_KINDS.includes(doc.kind)) return false;
+
+      const nannyProfileId = (doc.nanny_profiles as unknown as { id: string }).id;
+      const { data: application } = await supabase
+        .from("job_applications")
+        .select("id, jobs!inner(family_id, family_profiles!inner(user_id))")
+        .eq("nanny_id", nannyProfileId)
+        .eq("jobs.family_profiles.user_id", user.id)
+        .limit(1);
+
+      return Boolean(application && application.length > 0);
+    }
   }
 }
 
