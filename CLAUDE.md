@@ -162,6 +162,14 @@ rather than unlikely. `scripts/e2e-billing.mjs` signs its own payloads, so the
 signature check, the handler and the database function are all under test
 without a Stripe account.
 
+**A stored provider customer id can stop existing.** Test and live are separate
+worlds, so an id created under test keys is unknown once live keys are in use,
+and the family it belongs to gets "No such customer" on their first real
+checkout. `openCheckoutAction` detects that and starts again without it: the id
+only buys keeping one family's history under one customer record, and being
+unable to pay costs more than that is worth. The portal cannot recover the same
+way, so it says something true instead of "try again".
+
 **Prices go to Stripe as `price_data`, not as a dashboard Price.** A Price
 created in Stripe's dashboard would be a second place 89 and 250 live, and an
 admin changing the number in our admin screen would change what the pricing

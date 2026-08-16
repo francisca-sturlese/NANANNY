@@ -62,18 +62,15 @@ export async function startCheckoutAction(
     p_family_id: family.id,
   });
 
-  let url: string | null = null;
-  try {
-    const session = await stripe().checkout.sessions.create({
+  const openCheckout = (customer: string | null) =>
+    stripe().checkout.sessions.create({
       mode: "subscription",
       line_items: [lineItemFor(plan)],
       // Read back from the webhook. Never trusted from the browser.
       client_reference_id: family.id,
       metadata: { family_id: family.id, plan: plan.key },
       subscription_data: { metadata: { family_id: family.id, plan: plan.key } },
-      ...(existingCustomer
-        ? { customer: existingCustomer as string }
-        : { customer_email: user.email }),
+      ...(customer ? { customer } : { customer_email: user.email }),
       // Built from the configured site URL, not from the request. These go to
       // Stripe and come back later; a Host header should not be able to decide
       // where a paying customer is returned to.
@@ -83,10 +80,47 @@ export async function startCheckoutAction(
       // hardcoding a rate that changes without telling us.
       automatic_tax: { enabled: false },
     });
+
+  let url: string | null = null;
+  try {
+    const session = await openCheckout((existingCustomer as string) ?? null);
     url = session.url;
   } catch (error) {
-    console.error("[billing] could not open checkout:", error);
-    return { error: "We could not open the payment page. Please try again." };
+    /**
+     * A stored customer that the provider does not recognise.
+     *
+     * The id we keep belongs to whichever set of keys created it, and test and
+     * live are separate worlds: an id minted while the account was in test mode
+     * does not exist once live keys are in use. So the first real checkout by
+     * anybody who was used as a test subject fails on an id that looks
+     * perfectly valid, with a message about a customer, to a family who has
+     * done nothing wrong.
+     *
+     * Starting again without it is exactly right. The only thing the id buys is
+     * keeping one family's payment history under one customer record, which is
+     * a convenience; being unable to pay is not. Stripe makes a new customer,
+     * the webhook stores the new id, and the next attempt reuses that one.
+     */
+    const message = error instanceof Error ? error.message : String(error);
+    const unknownCustomer = existingCustomer && /No such customer/i.test(message);
+
+    if (!unknownCustomer) {
+      console.error("[billing] could not open checkout:", error);
+      return { error: "We could not open the payment page. Please try again." };
+    }
+
+    console.warn(
+      "[billing] stored customer is unknown to the provider, starting a new one:",
+      existingCustomer,
+    );
+
+    try {
+      const session = await openCheckout(null);
+      url = session.url;
+    } catch (retryError) {
+      console.error("[billing] could not open checkout on retry:", retryError);
+      return { error: "We could not open the payment page. Please try again." };
+    }
   }
 
   if (!url) return { error: "We could not open the payment page. Please try again." };
@@ -138,6 +172,23 @@ export async function openBillingPortalAction(
     url = session.url;
   } catch (error) {
     console.error("[billing] could not open the portal:", error);
+
+    /**
+     * Nothing to retry here, unlike checkout.
+     *
+     * The portal is a view onto an existing customer, so there is no version of
+     * this that works without a customer the provider recognises. What can be
+     * done is say something true instead of "try again", which invites somebody
+     * to press the same button until they give up.
+     */
+    const message = error instanceof Error ? error.message : String(error);
+    if (/No such customer/i.test(message)) {
+      return {
+        error:
+          "We cannot open your billing page. Your payment record was created before we switched providers, so it is no longer readable. Write to billing@nananny.com and we will sort it out.",
+      };
+    }
+
     return { error: "We could not open your billing page. Please try again." };
   }
 
