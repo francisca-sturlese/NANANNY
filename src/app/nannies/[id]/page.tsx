@@ -30,6 +30,7 @@ import { getPricingConfig } from "@/lib/pricing";
 import { visaLabel, visaNote } from "@/lib/nanny/visa";
 import { isVerified } from "@/lib/nanny/discoverable";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
+import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
 
 export async function generateMetadata({
   params,
@@ -181,9 +182,7 @@ export default async function NannyProfilePage({
               className="size-24 shrink-0 rounded-lg object-cover sm:size-28"
             />
           ) : (
-            <span className="grid size-24 shrink-0 place-items-center rounded-lg bg-sage-wash text-sage-deep sm:size-28">
-              {nanny.first_name?.[0] ?? "N"}
-            </span>
+            <NannyPhotoFallback className="size-24 rounded-lg sm:size-28" />
           )}
 
           <div className="min-w-0">

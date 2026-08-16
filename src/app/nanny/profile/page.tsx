@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DeleteAccount } from "@/components/account/delete-account";
+import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
 
 export const metadata: Metadata = { title: "Your profile" };
 
@@ -57,9 +58,7 @@ export default async function NannyProfilePage() {
             className="size-18 rounded-lg object-cover"
           />
         ) : (
-          <span className="grid size-18 shrink-0 place-items-center rounded-lg bg-sage-wash text-sage-deep">
-            {profile.first_name?.[0] ?? "N"}
-          </span>
+          <NannyPhotoFallback className="size-18 rounded-lg" />
         )}
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold">{profile.first_name ?? "Your profile"}</h1>

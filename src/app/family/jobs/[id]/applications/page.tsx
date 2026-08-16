@@ -9,6 +9,7 @@ import { AppShell, FAMILY_NAV } from "@/components/app/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ApplicationStatusControl } from "@/components/jobs/application-status-control";
+import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
 
 export const metadata: Metadata = { title: "Applications" };
 
@@ -130,9 +131,7 @@ export default async function JobApplicationsPage({
                         className="size-16 rounded-md object-cover"
                       />
                     ) : (
-                      <span className="grid size-16 place-items-center rounded-md bg-sage-wash text-sage-deep">
-                        {nanny.first_name?.[0] ?? "N"}
-                      </span>
+                      <NannyPhotoFallback className="size-16 rounded-md" />
                     )}
                   </Link>
 

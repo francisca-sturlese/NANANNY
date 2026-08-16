@@ -5,6 +5,7 @@ import { DIMENSION_LABELS } from "@/lib/matching/matches";
 import { Badge } from "@/components/ui/badge";
 import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { SaveButton } from "@/components/nanny/save-button";
+import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
 
 /**
  * A scored nanny.
@@ -58,9 +59,7 @@ export function MatchCard({
               className="size-20 shrink-0 rounded-md object-cover"
             />
           ) : (
-            <span className="grid size-20 shrink-0 place-items-center rounded-md bg-sage-wash text-xs text-sage-deep">
-              {nanny.firstName?.[0] ?? "N"}
-            </span>
+            <NannyPhotoFallback className="size-20 rounded-md" />
           )}
 
           {/* pr-9 on the column, not just the first line: the Save button is

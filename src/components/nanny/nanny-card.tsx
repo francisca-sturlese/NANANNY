@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { SaveButton } from "@/components/nanny/save-button";
 import { visaLabel } from "@/lib/nanny/visa";
+import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
 
 /**
  * The search result card, designed for a thumb scrolling a phone.
@@ -70,9 +71,7 @@ export function NannyCard({
               className="size-20 shrink-0 rounded-md object-cover"
             />
           ) : (
-            <span className="grid size-20 shrink-0 place-items-center rounded-md bg-sage-wash text-xs text-sage-deep">
-              {nanny.firstName?.[0] ?? "N"}
-            </span>
+            <NannyPhotoFallback className="size-20 rounded-md" />
           )}
 
           <div className="min-w-0 flex-1">

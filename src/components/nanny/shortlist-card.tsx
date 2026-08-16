@@ -7,6 +7,7 @@ import { moveShortlistStageAction, type SaveResult } from "@/lib/shortlist/actio
 import { SaveButton } from "@/components/nanny/save-button";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/field";
+import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
 
 const STAGES = [
   { value: "interested", label: "Interested" },
@@ -77,9 +78,7 @@ export function ShortlistCard({
               className="size-16 rounded-md object-cover"
             />
           ) : (
-            <span className="grid size-16 place-items-center rounded-md bg-sage-wash text-sage-deep">
-              {firstName?.[0] ?? "N"}
-            </span>
+            <NannyPhotoFallback className="size-16 rounded-md" />
           )}
         </Link>
 
