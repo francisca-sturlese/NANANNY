@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Portal, useScrollLock } from "@/components/ui/portal";
+import { InstallHint } from "@/components/app/install-hint";
 
 const NAV = [
   { href: "/nannies", label: "Find a Nanny" },
@@ -26,6 +27,7 @@ export function SiteHeader() {
   useScrollLock(open);
 
   return (
+    <>
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:h-16 sm:px-8">
         <Link href="/" aria-label="NaNanny UAE home" className="tap-target">
@@ -117,5 +119,14 @@ export function SiteHeader() {
         </Portal>
       )}
     </header>
+
+      {/* Founder's call: the home-screen hint shows to every iPhone visitor,
+          not only the signed-in areas. The component still gates itself —
+          iOS Safari only, gone if installed, gone for good once dismissed —
+          so on desktop and Android this renders nothing at all. */}
+      <div className="mx-auto max-w-6xl px-5 pt-3 empty:hidden sm:px-8">
+        <InstallHint />
+      </div>
+    </>
   );
 }
