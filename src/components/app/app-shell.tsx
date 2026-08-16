@@ -116,7 +116,7 @@ export async function AppShell({
       <main className="mx-auto max-w-5xl px-4 py-6 pb-nav sm:px-6 sm:py-10 md:pb-10">
         {/* Signed in only. Somebody still deciding whether to sign up does not
             need to be asked to install anything. */}
-        <InstallHint />
+        <InstallHint signedIn />
         {children}
       </main>
 

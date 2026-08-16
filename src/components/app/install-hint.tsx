@@ -16,14 +16,35 @@ import { Share, X } from "lucide-react";
  * families use, a person who never finds this menu never gets notified that a
  * nanny applied, and finds out days later or not at all.
  *
- * The restraint is in when it appears. Signed-in pages only, never on the
- * marketing side where somebody has not decided anything yet. Dismissed once,
- * gone for good: the answer to "no" is not to ask again next week.
+ * Shown everywhere on iOS, including to somebody who has not signed up, which
+ * was Federico's call and reverses how this shipped. The reason it was scoped
+ * to signed-in pages was that the only honest argument for installing is one
+ * you cannot make to a stranger: notifications, which on iOS do not work until
+ * this is on the home screen. So the argument changes with the reader rather
+ * than the placement, and a visitor is told the plain truth instead, that it
+ * opens without a browser bar.
+ *
+ * Dismissed once, gone for good, and gone if it is already installed. The
+ * answer to "no" is not to ask again next week.
  */
 
 const DISMISSED = "nananny.install-hint.dismissed";
 
-export function InstallHint() {
+export function InstallHint({
+  /**
+   * Whether the reader has an account.
+   *
+   * The reason to install differs, and the wrong one is worse than none. To
+   * somebody signed in, the honest reason is notifications: on iOS web push
+   * does not work until this is on the home screen, so a family that skips it
+   * never hears that a nanny applied. To somebody who has not signed up, that
+   * sentence describes a thing they do not have, which reads as a product
+   * talking to itself.
+   */
+  signedIn = false,
+}: {
+  signedIn?: boolean;
+} = {}) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -66,9 +87,10 @@ export function InstallHint() {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">Keep NaNanny on your home screen</p>
         <p className="mt-1 text-sm leading-relaxed text-muted">
-          Tap the share button at the bottom of Safari, then Add to Home Screen. It
-          opens like an app, and it is how we can tell you about a new application
-          without you having to check.
+          Tap the share button at the bottom of Safari, then Add to Home Screen.
+          {signedIn
+            ? " It opens like an app, and it is how we can tell you about a new application without you having to check."
+            : " It opens like an app, without the browser bar in the way."}
         </p>
       </div>
       <button

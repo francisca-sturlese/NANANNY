@@ -24,8 +24,21 @@ const p = await iphone.newPage();
 
 await p.goto(`${BASE}`, { waitUntil: "domcontentloaded" });
 await p.waitForTimeout(1200);
-check("not shown to a visitor who has not signed up",
-  (await p.getByText(/Keep NaNanny on your home screen/).count()) === 0);
+check("shown to a visitor on the public site",
+  (await p.getByText(/Keep NaNanny on your home screen/).count()) === 1);
+
+/**
+ * The reason has to fit the reader.
+ *
+ * Notifications are the only honest argument for installing this on iOS, and
+ * they are an argument you cannot make to somebody without an account: telling
+ * a stranger we will let them know about "a new application" describes a thing
+ * they do not have.
+ */
+const publicText = await p.locator("body").innerText();
+check("and it does not promise a stranger news about their applications",
+  !/new application/i.test(publicText),
+  publicText.split("\n").find((l) => /home screen/i.test(l)) ?? "");
 
 await p.goto(`${BASE}/login`);
 await p.locator('input[name="email"]').fill("family1@nananny.example.test");
