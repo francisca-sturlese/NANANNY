@@ -20,8 +20,8 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 151 SQL checks across fourteen suites
-npm run test:e2e       # 35 + 20 + 15 + 28 + 15 + 29 + 8 + 16 end-to-end checks
+npm run test:db        # 160 SQL checks across fifteen suites
+npm run test:e2e       # 35 + 20 + 15 + 28 + 15 + 29 + 8 + 16 + 17 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
                        # and the free contact claim on every page that makes it
@@ -196,6 +196,20 @@ looks exactly like an account with no notifications. The publication is asserted
 in `supabase/tests/notification_events.sql`, and the bell carries `data-live`
 so `scripts/e2e-notifications.mjs` can wait for the socket instead of sleeping
 and hoping. A test that sleeps here does not test realtime, it tests the sleep.
+
+**Skipped is not failed.** A machine with no mail key composes the email and
+has nowhere to hand it. That is every development machine, and recording it as
+`failed` put a red row next to every message this product has ever composed.
+`sendEmail` returns a `skipped` reason, the callers record `status = 'skipped'`,
+and the composed subject and body are kept on the row. These emails carry
+nothing a user typed, so storing the text leaks nothing and is the only way the
+copy is ever read before it reaches a real person.
+
+**`paying` is about the conversation, not about the recipient.** A nanny never
+pays. If it meant "only write to people who pay", an unread message reminder
+could never reach the side of the marketplace that most needs it, and the person
+losing by that would be the family who paid to send it. Both directions are
+pinned in `supabase/tests/reminders.sql`.
 
 **An email never carries text another user typed.** The new message email says
 a message arrived and links to it. Including the body would let any stranger

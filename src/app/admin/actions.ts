@@ -394,3 +394,69 @@ export async function updateSupportRequestAction(
   revalidatePath("/admin/support");
   return { message: "Updated." };
 }
+
+// ---------------------------------------------------------------------------
+// Reminders
+// ---------------------------------------------------------------------------
+
+const remindersSchema = z.object({
+  audience: z.enum(["paying", "everyone", "off"]),
+  nudgeAfterHours: z.coerce.number().int().min(1).max(24 * 30),
+  unreadAfterHours: z.coerce.number().int().min(1).max(24 * 30),
+  minGapHours: z.coerce.number().int().min(1).max(24 * 90),
+});
+
+/**
+ * When the reminders go out, and to whom.
+ *
+ * Every bound here is deliberately wide. Nobody knows yet whether "a long time"
+ * is four hours or three days, and the point of putting these in a row rather
+ * than in code is that finding out does not need a deploy.
+ *
+ * The gap is the one that matters. Everything else decides whether an email is
+ * useful; the gap decides whether we are a product or a nuisance, and it is the
+ * number somebody will be tempted to lower on a quiet week.
+ */
+export async function updateRemindersAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = remindersSchema.safeParse({
+    audience: formData.get("audience"),
+    nudgeAfterHours: formData.get("nudgeAfterHours"),
+    unreadAfterHours: formData.get("unreadAfterHours"),
+    minGapHours: formData.get("minGapHours"),
+  });
+
+  if (!parsed.success) {
+    return { error: "Check the numbers. Hours have to be whole and at least one." };
+  }
+
+  if (parsed.data.minGapHours < parsed.data.unreadAfterHours) {
+    return {
+      error:
+        "The gap between reminders has to be at least as long as the wait before the first one. A shorter gap means somebody can be written to again before the reason for the first email has changed.",
+    };
+  }
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.rpc("admin_update_reminders", {
+    p_audience: parsed.data.audience,
+    p_nudge_after_hours: parsed.data.nudgeAfterHours,
+    p_unread_after_hours: parsed.data.unreadAfterHours,
+    p_min_gap_hours: parsed.data.minGapHours,
+  });
+
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/reminders");
+
+  return {
+    message:
+      parsed.data.audience === "off"
+        ? "Saved. No reminders will be sent to anybody."
+        : "Saved. The next scheduled run uses these.",
+  };
+}

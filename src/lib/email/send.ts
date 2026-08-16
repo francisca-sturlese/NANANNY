@@ -16,7 +16,15 @@ import { absoluteUrl, siteUrl } from "@/lib/seo/site";
  */
 
 export type SendResult =
+  /** Handed to the provider. */
   | { ok: true; id: string | null }
+  /**
+   * Composed, and deliberately not handed to anybody: a machine with no key, or
+   * a local build. Distinct from a failure because it is not one, and the two
+   * looked identical on the admin screen, where "failed" next to every reminder
+   * ever composed is the kind of thing that gets investigated for an hour.
+   */
+  | { ok: true; id: null; skipped: string }
   | { ok: false; error: string };
 
 export async function sendEmail(options: {
@@ -30,8 +38,7 @@ export async function sendEmail(options: {
   const from = process.env.EMAIL_FROM;
 
   if (!key || !from) {
-    // Not an error worth shouting about locally, where mail is not configured.
-    return { ok: false, error: "email is not configured" };
+    return { ok: true, id: null, skipped: "no mail provider is configured here" };
   }
 
   /**
@@ -45,7 +52,7 @@ export async function sendEmail(options: {
    */
   if (!siteUrl().startsWith("https://")) {
     console.info(`[email] not sent from a local build: ${options.subject} to ${options.to}`);
-    return { ok: true, id: null };
+    return { ok: true, id: null, skipped: "not sent from a local build" };
   }
 
   try {

@@ -55,7 +55,11 @@ export async function POST(request: Request): Promise<Response> {
   }[];
 
   let sent = 0;
+  // Composed but not handed to a provider: no mail key here, or a local build.
   let skipped = 0;
+  // Somebody else had already claimed it. A different thing from skipped, and
+  // they were the same counter until both could happen in one run.
+  let claimedElsewhere = 0;
   let failed = 0;
 
   for (const person of due) {
@@ -69,7 +73,7 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     if (!claimId) {
-      skipped += 1;
+      claimedElsewhere += 1;
       continue;
     }
 
@@ -81,19 +85,42 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     const result = await sendEmail({ to: person.email, ...mail });
+    const wasSkipped = result.ok && "skipped" in result;
 
+    /**
+     * What was composed, kept on the row.
+     *
+     * These emails carry nothing a user typed, by design, so storing the text
+     * leaks nothing and answers "what exactly did she get" without asking the
+     * provider. It is also the only way to see one at all on a machine with no
+     * mail key, which until now meant this copy had never been read by anybody
+     * before it went to a real person.
+     */
     await service.rpc("record_email_result", {
       p_event_id: claimId as string,
-      p_status: result.ok ? "sent" : "failed",
+      p_status: result.ok ? (wasSkipped ? "skipped" : "sent") : "failed",
       p_provider_message_id: (result.ok ? result.id : null) ?? undefined,
       p_error: result.ok ? undefined : result.error,
     });
 
-    if (result.ok) sent += 1;
-    else failed += 1;
+    await service
+      .from("email_events")
+      .update({
+        metadata: {
+          reason: person.reason,
+          subject: mail.subject,
+          text: mail.text,
+          ...(wasSkipped ? { skipped: (result as { skipped: string }).skipped } : {}),
+        },
+      })
+      .eq("id", claimId as string);
+
+    if (!result.ok) failed += 1;
+    else if (wasSkipped) skipped += 1;
+    else sent += 1;
   }
 
-  return Response.json({ due: due.length, sent, skipped, failed });
+  return Response.json({ due: due.length, sent, skipped, claimedElsewhere, failed });
 }
 
 function safeEqual(a: string, b: string): boolean {

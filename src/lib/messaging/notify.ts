@@ -81,14 +81,23 @@ export async function notifyNewMessage(
     });
 
     const result = await sendEmail({ to: decision.to, ...mail });
+    const wasSkipped = result.ok && "skipped" in result;
 
     // Recorded either way. "She never got the email" needs to be a question
     // with an answer, and a silent failure is how it stops being one.
+    //
+    // Skipped is not failed. A machine with no mail key composed the message
+    // and had nowhere to hand it, which is the normal state of every
+    // development machine and looked like a broken sender on the admin screen.
     await service.rpc("record_email_result", {
       p_event_id: decision.event_id,
-      p_status: result.ok ? "sent" : "failed",
+      p_status: result.ok ? (wasSkipped ? "skipped" : "sent") : "failed",
       p_provider_message_id: (result.ok ? result.id : null) ?? undefined,
-      p_error: result.ok ? undefined : result.error,
+      p_error: result.ok
+        ? wasSkipped
+          ? (result as { skipped: string }).skipped
+          : undefined
+        : result.error,
     });
 
     if (!result.ok) console.error("[notify] send failed:", result.error);
