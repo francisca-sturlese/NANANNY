@@ -245,3 +245,87 @@ export function reminderEmail(params: {
 
   return { subject: copy.subject, html, text };
 }
+
+/**
+ * The one email a family wants interrupting them for.
+ *
+ * Somebody applied to their job. That is the event the marketplace turns on,
+ * and the reason it is a mail rather than a bell is that a family with nothing
+ * to do on the site is not on the site: eight real applications sat unopened
+ * while the notifications for them were delivered perfectly.
+ *
+ * Written as an aggregate on purpose, and this is the part that is easy to get
+ * wrong. The email is capped at one per family per day, so it covers every
+ * application that arrives for the rest of that day. A subject naming a nanny,
+ * or saying "an application", stops being true the moment the second one lands
+ * and the family has already been told for today. So it counts, and the count
+ * is read at the moment of sending rather than passed in from whatever
+ * triggered it.
+ *
+ * No cover note, no name, nothing the applicant typed. Same rule as the message
+ * email, same reason: an email that genuinely came from us is the best phishing
+ * envelope this product could hand anybody.
+ */
+export function applicationEmail(params: {
+  name: string;
+  /** Applications waiting on them, across every job they have open. */
+  waiting: number;
+  /** How many of their jobs those are spread across. */
+  jobs: number;
+}): { subject: string; html: string; text: string } {
+  const link = absoluteUrl("/family/jobs");
+  const many = params.waiting > 1;
+
+  const subject = many
+    ? `${params.waiting} nannies are waiting to hear from you`
+    : "A nanny applied to your job";
+
+  const line = many
+    ? params.jobs > 1
+      ? `${params.waiting} nannies have applied across ${params.jobs} of your job posts, and none of them have heard back yet.`
+      : `${params.waiting} nannies have applied to your job post, and none of them have heard back yet.`
+    : "A nanny has applied to your job post. Her profile, experience and languages are on the application.";
+
+  // Said once, plainly, because it is the honest reason to open this today.
+  const nudge = many
+    ? "Nannies looking for work talk to several families at once. The ones who reply first are the ones who hire."
+    : "Replying quickly is what gets you the nanny you want.";
+
+  const text = [
+    `Hello ${params.name},`,
+    "",
+    line,
+    "",
+    nudge,
+    "",
+    `Read the applications: ${link}`,
+    "",
+    "NaNanny UAE",
+    "You get at most one of these a day, however many applications arrive.",
+  ].join("\n");
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background:#faf9f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000">
+    <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
+      <tr>
+        <td style="padding:28px">
+          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello ${escapeHtml(params.name)},</p>
+          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(line)}</p>
+          <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#555">${escapeHtml(nudge)}</p>
+          <p style="margin:0">
+            <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">Read the applications</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+    <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
+      NaNanny UAE<br />
+      You get at most one of these a day, however many applications arrive.
+    </p>
+  </body>
+</html>`.trim();
+
+  return { subject, html, text };
+}

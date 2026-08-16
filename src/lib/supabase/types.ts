@@ -2264,6 +2264,7 @@ export type Database = {
       my_notifications: { Args: { p_limit?: number }; Returns: Json }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
       normalise_phone: { Args: { p_raw: string }; Returns: string }
+      notify_application_email: { Args: { p_job_id: string }; Returns: Json }
       notify_new_message: {
         Args: { p_conversation_id: string; p_sender_id: string }
         Returns: Json

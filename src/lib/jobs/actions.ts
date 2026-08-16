@@ -7,6 +7,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/dal";
 import type { ActionState } from "@/lib/auth/actions";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
+import { notifyApplicationReceived } from "@/lib/jobs/notify";
 
 /**
  * Job posts and applications.
@@ -253,6 +254,17 @@ export async function applyToJobAction(
     if (error.code === "23505") return { message: "You have already applied to this job." };
     return { error: "Could not send your application. Please try again." };
   }
+
+  /**
+   * Awaited, not left running.
+   *
+   * A promise not awaited in a server action is a promise the runtime is
+   * entitled to discard the moment the response is written, and on the
+   * deployment target it does. The send is a few hundred milliseconds against a
+   * nanny pressing one button, and it never throws, so the worst it costs her is
+   * the wait. Losing the email costs the family the application.
+   */
+  await notifyApplicationReceived(jobId);
 
   revalidatePath("/nanny/applications");
   revalidatePath(`/jobs/${jobId}`);

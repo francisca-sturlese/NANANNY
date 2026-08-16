@@ -20,8 +20,8 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 160 SQL checks across fifteen suites
-npm run test:e2e       # 35 + 20 + 15 + 28 + 15 + 29 + 8 + 16 + 17 end-to-end checks
+npm run test:db        # 168 SQL checks across sixteen suites
+npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 17 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
                        # and the free contact claim on every page that makes it
@@ -196,6 +196,15 @@ looks exactly like an account with no notifications. The publication is asserted
 in `supabase/tests/notification_events.sql`, and the bell carries `data-live`
 so `scripts/e2e-notifications.mjs` can wait for the socket instead of sleeping
 and hoping. A test that sleeps here does not test realtime, it tests the sleep.
+
+**A family is emailed about applications once a day, whatever arrives.** It is
+the one event that genuinely warrants interrupting somebody, and it is also the
+one that turns into a filter rule if a busy afternoon sends four. The cap is a
+daily bucket in `email_events.idempotency_key`, in Dubai time rather than UTC
+so a day means the day where the reader lives. Because the mail covers
+everything that arrives afterwards, the copy is an aggregate read at send time:
+a subject naming one nanny stops being true the moment the second applies. See
+`20260816020000_application_email.sql`.
 
 **Skipped is not failed.** A machine with no mail key composes the email and
 has nowhere to hand it. That is every development machine, and recording it as

@@ -239,6 +239,65 @@ const { data: application } = await db
 
 check("application was recorded", Boolean(application), `status ${application?.status}`);
 
+/**
+ * The family is emailed about it, once.
+ *
+ * This is the event the marketplace turns on, and the reason it is a mail
+ * rather than a bell is that eight real applications sat unopened while the
+ * notifications for them were delivered perfectly. A family with nothing to do
+ * on the site is not on the site.
+ *
+ * Read off the event row: nothing is actually delivered from a machine with no
+ * mail key, and the composed text is kept there so the words are under test
+ * anyway.
+ */
+const { data: familyUserRow } = await db
+  .from("users")
+  .select("id, email")
+  .eq("email", "family1@nananny.example.test")
+  .single();
+
+const { data: applicationEmails } = await db
+  .from("email_events")
+  .select("status, metadata, subject")
+  .eq("user_id", familyUserRow.id)
+  .eq("email_type", "application_received")
+  .order("created_at", { ascending: false });
+
+check(
+  "the family was emailed about the application",
+  (applicationEmails ?? []).length >= 1,
+  `${(applicationEmails ?? []).length} events`,
+);
+
+const applicationMail = applicationEmails?.[0];
+if (applicationMail) {
+  const body = applicationMail.metadata?.text ?? "";
+  check("the email says what to do about it", /application/i.test(body), body.slice(0, 80));
+  check("it carries no cover note", !/cover|I have/i.test(body));
+  check("no dash in the copy", !/[—–]/.test(body));
+  check(
+    "it tells them it will not do this all day",
+    /at most one of these a day/i.test(body),
+  );
+}
+
+// A second application the same day is the bell only. Four emails in an
+// afternoon is how a notification somebody wanted becomes a filter rule.
+//
+// The decision is asked for directly rather than by staging another
+// application: inserting a row into the database does not go through the
+// action, so a second insert would prove nothing about what the product does.
+// The cap itself is covered from every angle in supabase/tests.
+const { data: secondDecision } = await db.rpc("notify_application_email", {
+  p_job_id: job.id,
+});
+check(
+  "a second application the same day is refused an email",
+  secondDecision?.send === false && secondDecision?.reason === "already emailed today",
+  JSON.stringify(secondDecision),
+);
+
 await nan.page.goto("/nanny/applications");
 await nan.page.waitForLoadState("networkidle");
 check(
