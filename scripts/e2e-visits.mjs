@@ -104,6 +104,41 @@ check(
   shaped[0]?.properties?.path,
 );
 
+/**
+ * The way back, and where somebody stops.
+ *
+ * A nanny who had been still for two days finished her profile inside a
+ * thirteen minute window and nothing recorded whether she arrived before or
+ * after the event we suspected of bringing her, because every page on her route
+ * is behind a login and none of them were counted. The instrument could not see
+ * returning, in a product whose problem is people not returning.
+ */
+await db.from("analytics_events").delete().eq("event", "page_view");
+
+await post("/nanny");
+await post("/nanny/onboarding/about");
+await post("/nanny/onboarding/documents");
+const journey = await views();
+check(
+  "coming back to a dashboard is counted",
+  journey.some((v) => v.properties.path === "/nanny"),
+  JSON.stringify(journey.map((v) => v.properties.path)),
+);
+check(
+  "and the onboarding step somebody stopped on is named",
+  journey.some((v) => v.properties.path === "/nanny/onboarding/documents"),
+);
+
+await db.from("analytics_events").delete().eq("event", "page_view");
+await post("/nanny/messages");
+await post("/family/subscription");
+await post("/admin/users");
+check(
+  "the rest of the signed in side stays uncounted",
+  (await views()).length === 0,
+  "messages, billing and the admin side answer questions nobody is asking",
+);
+
 // ---------------------------------------------------------------- source
 await db.from("analytics_events").delete().eq("event", "page_view");
 await post("/", { referer: "https://www.instagram.com/p/abc123/?igshid=secret" });

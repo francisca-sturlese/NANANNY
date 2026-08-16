@@ -29,12 +29,25 @@ const VISITOR_COOKIE = "nn_v";
 const SIX_MONTHS = 60 * 60 * 24 * 180;
 
 /**
- * The pages worth counting: the way in, and the way through.
+ * The pages worth counting: the way in, the way through, and the way back.
  *
  * A fixed list rather than whatever the browser sends, so a stray URL cannot
  * write a row, and so the table stays readable. A profile or a job post is
  * recorded as its shape, never its id: how many people read a nanny's profile
  * is a useful number, which nanny a particular visitor read is surveillance.
+ *
+ * The way back was missing at first, and the gap showed up within a day. A
+ * nanny who had been still for two days completed her profile inside a thirteen
+ * minute window, and nothing here could say whether she had arrived before or
+ * after the thing we suspected of bringing her: every page on her route is a
+ * signed-in one, and the list only had the marketing side on it. An instrument
+ * that cannot see returning is no use for a product whose problem is people not
+ * returning.
+ *
+ * So the two dashboards and the two onboarding wizards are counted now. Nothing
+ * else behind a login is: not messages, not a subscription, not the admin side.
+ * Those answer questions nobody is asking, and the reason this list is short is
+ * that a short list is the only kind anybody re-reads.
  */
 const COUNTED = new Set([
   "/",
@@ -47,6 +60,12 @@ const COUNTED = new Set([
   "/signup",
   "/login",
   "/faq",
+  // Did they come back. Recorded against a person who is signed in, on their
+  // own page, which is what "was she here" means and nothing more.
+  "/nanny",
+  "/family",
+  "/nanny/profile",
+  "/family/profile",
 ]);
 
 function shape(path: string): string | null {
@@ -56,6 +75,16 @@ function shape(path: string): string | null {
   if (/^\/(dubai|abu-dhabi|sharjah|ajman|fujairah|ras-al-khaimah|umm-al-quwain)(\/|$)/.test(path)) {
     return "/:emirate";
   }
+
+  // Where somebody stops. Sixty three per cent of the nannies who signed up in
+  // the first week never finished the wizard, and nothing recorded which step
+  // they were looking at when they gave up. The step is named because that is
+  // the whole question; there is no id in it.
+  const onboarding = /^\/(nanny|family)\/onboarding(?:\/([a-z-]+))?$/.exec(path);
+  if (onboarding) {
+    return `/${onboarding[1]}/onboarding/${onboarding[2] ?? "start"}`;
+  }
+
   return null;
 }
 

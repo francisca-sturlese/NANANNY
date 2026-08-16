@@ -154,7 +154,11 @@ policy, which is a rule worth keeping, so `/api/v` and `record_visit` do it
 instead. A visitor is a random id in a first-party cookie: enough to tell one
 person reading five pages from five people reading one, which is the whole
 question, and nothing beyond it. No IP, no user agent, no query string, and no
-path outside the allowlist in the route. A profile is recorded as `/nannies/:id`
+path outside the allowlist in the route. The allowlist covers the way in, the
+way through and the way back: the marketing pages, the two dashboards and the
+two onboarding wizards by step. Nothing else behind a login, because messages
+and billing answer questions nobody is asking. A profile is recorded as
+`/nannies/:id`
 because how many people read a profile is useful and which profile a particular
 visitor read is not ours to keep. `admin_traffic` checks `is_admin()` itself:
 the record of everywhere people went is not something a stolen key returns.
