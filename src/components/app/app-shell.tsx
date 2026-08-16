@@ -4,6 +4,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { cn } from "@/lib/utils";
 import { PromoBanner } from "@/components/promo/promo-banner";
 import { NotificationBell } from "@/components/notifications/bell";
+import { InstallHint } from "@/components/app/install-hint";
 import { getNotifications } from "@/lib/notifications/read";
 import { getSession } from "@/lib/auth/dal";
 import {
@@ -113,6 +114,9 @@ export async function AppShell({
       {nav === FAMILY_NAV && <PromoBanner audience="family" />}
 
       <main className="mx-auto max-w-5xl px-4 py-6 pb-nav sm:px-6 sm:py-10 md:pb-10">
+        {/* Signed in only. Somebody still deciding whether to sign up does not
+            need to be asked to install anything. */}
+        <InstallHint />
         {children}
       </main>
 

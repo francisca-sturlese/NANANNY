@@ -38,6 +38,27 @@ export async function sendEmail(options: {
   const from = process.env.EMAIL_FROM;
 
   if (!key || !from) {
+    /**
+     * On a real deployment this is not a skip, it is a broken deployment.
+     *
+     * A development machine with no mail key is the normal state and says so.
+     * A worker serving nananny.com with no key is a product that has silently
+     * stopped telling anybody anything, and calling that "skipped" is what let
+     * two real applications sit unsent for three hours: the row said exactly
+     * what had happened, in a colour that reads as fine.
+     *
+     * `EMAIL_FROM` was the one missing, not the key, which is why naming both
+     * matters. Recorded as a failure so it is red on the admin screen and loud
+     * in the logs, where a misconfiguration belongs.
+     */
+    if (siteUrl().startsWith("https://")) {
+      const missing = [!key && "RESEND_API_KEY", !from && "EMAIL_FROM"]
+        .filter(Boolean)
+        .join(" and ");
+      console.error(`[email] not configured on this deployment: ${missing} is missing`);
+      return { ok: false, error: `mail is not configured on this deployment: ${missing} is missing` };
+    }
+
     return { ok: true, id: null, skipped: "no mail provider is configured here" };
   }
 

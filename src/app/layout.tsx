@@ -12,6 +12,19 @@ export const metadata: Metadata = {
   description:
     "Connect directly with nannies across the UAE. Browse profiles for free, contact your first 3 nannies at no cost, and hire on your own terms.",
   applicationName: "NaNanny UAE",
+  /**
+   * iOS reads none of this from the manifest.
+   *
+   * Safari ignores `display: standalone` and the name in the web manifest, so
+   * without these an installed icon opens in a browser tab and is labelled with
+   * the page title, which for most pages is a sentence. `capable` is what makes
+   * it open full screen.
+   */
+  appleWebApp: {
+    capable: true,
+    title: "NaNanny",
+    statusBarStyle: "default",
+  },
   openGraph: {
     title: "NaNanny UAE. Find the right nanny for your family",
     description: "Connect directly with nannies across the UAE. Your first contacts are free.",
