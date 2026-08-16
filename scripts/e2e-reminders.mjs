@@ -127,6 +127,13 @@ check(
   /profile|post|job/i.test(text),
   text.replace(/\n/g, " ").slice(0, 120),
 );
+// A reminder without a way out is a nuisance with a logo. The link only
+// renders when EMAIL_LINK_SECRET is set, so the suite sets one.
+check(
+  "it carries a way to stop these emails",
+  /Stop these reminder emails: https?:\/\/\S+\/email\/unsubscribe\?u=.+&t=.+/.test(text),
+  text.split("\n").slice(-2).join(" "),
+);
 
 // ------------------------------------------------------------------- restraint
 // A scheduler that fires twice, or two of them firing at once, is ordinary.

@@ -182,6 +182,8 @@ export function reminderEmail(params: {
   reason: "unread" | "nudge_family" | "nudge_nanny";
   conversations: number;
   messages: number;
+  /** Per recipient. Reminder mail without a way out is a nuisance with a logo. */
+  unsubscribeUrl?: string | null;
 }): { subject: string; html: string; text: string } {
   const link = absoluteUrl("/account");
 
@@ -206,9 +208,9 @@ export function reminderEmail(params: {
             button: "Post what you need",
           }
         : {
-            subject: "Your NaNanny profile is not finished",
+            subject: "Families are hiring on NaNanny right now",
             line:
-              "Your profile is still a draft, so families cannot find you. Finishing it is what puts you in front of them.",
+              "There are new job offers from families on NaNanny, but your profile is not finished, so they cannot find you and you cannot apply. Finishing it takes a few minutes. Do not miss them.",
             button: "Finish your profile",
           };
 
@@ -220,6 +222,9 @@ export function reminderEmail(params: {
     `${copy.button}: ${link}`,
     "",
     "NaNanny UAE",
+    ...(params.unsubscribeUrl
+      ? ["", `Stop these reminder emails: ${params.unsubscribeUrl}`]
+      : []),
   ].join("\n");
 
   const html = `
@@ -238,7 +243,7 @@ export function reminderEmail(params: {
       </tr>
     </table>
     <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE
+      NaNanny UAE${params.unsubscribeUrl ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop these reminder emails</a>` : ""}
     </p>
   </body>
 </html>`.trim();

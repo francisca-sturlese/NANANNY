@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail, reminderEmail } from "@/lib/email/send";
+import { unsubscribeUrl } from "@/lib/email/unsubscribe";
 
 /**
  * Sends the reminders that are due.
@@ -82,6 +83,7 @@ export async function POST(request: Request): Promise<Response> {
       reason: person.reason,
       conversations: person.conversations,
       messages: person.messages,
+      unsubscribeUrl: await unsubscribeUrl(person.user_id),
     });
 
     const result = await sendEmail({ to: person.email, ...mail });
