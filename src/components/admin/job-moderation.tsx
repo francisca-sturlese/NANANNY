@@ -33,6 +33,37 @@ export function JobModeration({ jobId, status }: { jobId: string; status: string
             </SubmitButton>
           </form>
         )}
+
+        {/* Pause keeps the post but takes it out of search; filled is the happy
+            ending. Both were already legal states the moderation function
+            accepted, they simply had no buttons. */}
+        {status === "active" && (
+          <>
+            <form action={action}>
+              <input type="hidden" name="jobId" value={jobId} />
+              <input type="hidden" name="status" value="paused" />
+              <SubmitButton size="sm" variant="ghost" pendingLabel="…">
+                Pause
+              </SubmitButton>
+            </form>
+            <form action={action}>
+              <input type="hidden" name="jobId" value={jobId} />
+              <input type="hidden" name="status" value="filled" />
+              <SubmitButton size="sm" variant="ghost" pendingLabel="…">
+                Mark filled
+              </SubmitButton>
+            </form>
+          </>
+        )}
+        {(status === "paused" || status === "filled") && (
+          <form action={action}>
+            <input type="hidden" name="jobId" value={jobId} />
+            <input type="hidden" name="status" value="active" />
+            <SubmitButton size="sm" variant="secondary" pendingLabel="…">
+              Reactivate
+            </SubmitButton>
+          </form>
+        )}
       </div>
 
       {closing && (

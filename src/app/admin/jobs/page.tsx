@@ -42,6 +42,40 @@ export default async function AdminJobsPage({
   const { data: jobs } = await query;
   const rows = jobs ?? [];
 
+  // Applications and family names for everything on the page, two queries
+  // rather than one per row. The admin question this answers is "is this post
+  // working": how many applied, how far did they get, is anybody waiting.
+  const jobIds = rows.map((j) => j.id);
+  const familyIds = [...new Set(rows.map((j) => j.family_id))];
+  const [{ data: applications }, { data: families }] = await Promise.all([
+    jobIds.length
+      ? supabase
+          .from("job_applications")
+          .select("id, job_id, status, created_at, nanny_profiles(first_name)")
+          .in("job_id", jobIds)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] as never[] }),
+    familyIds.length
+      ? supabase.from("family_profiles").select("id, display_name").in("id", familyIds)
+      : Promise.resolve({ data: [] as never[] }),
+  ]);
+
+  const familyName = new Map((families ?? []).map((f) => [f.id, f.display_name]));
+
+  type AppRow = {
+    id: string;
+    job_id: string;
+    status: string;
+    created_at: string;
+    nanny_profiles: { first_name: string | null } | null;
+  };
+  const appsByJob = new Map<string, AppRow[]>();
+  for (const app of (applications ?? []) as AppRow[]) {
+    const list = appsByJob.get(app.job_id) ?? [];
+    list.push(app);
+    appsByJob.set(app.job_id, list);
+  }
+
   return (
     <AdminShell active="/admin/jobs" name={admin.firstName ?? "Admin"}>
       <h1 className="text-2xl font-semibold sm:text-3xl">Jobs</h1>
@@ -79,7 +113,8 @@ export default async function AdminJobsPage({
                     </Badge>
                   </div>
                   <p className="mt-1 text-xs text-muted">
-                    {[job.area, job.emirate].filter(Boolean).join(", ")}
+                    {familyName.get(job.family_id) ?? "Unknown family"}
+                    {` · ${[job.area, job.emirate].filter(Boolean).join(", ")}`}
                     {job.salary_min_aed != null &&
                       ` · AED ${job.salary_min_aed.toLocaleString("en-AE")}`}
                     {` · ${new Date(job.created_at).toLocaleDateString("en-GB")}`}
@@ -95,6 +130,58 @@ export default async function AdminJobsPage({
                       View as a nanny sees it
                     </Link>
                   )}
+
+                  {(() => {
+                    const apps = appsByJob.get(job.id) ?? [];
+                    if (apps.length === 0) {
+                      return <p className="mt-3 text-xs text-muted">No applications yet.</p>;
+                    }
+                    const byStatus = new Map<string, number>();
+                    for (const a of apps) byStatus.set(a.status, (byStatus.get(a.status) ?? 0) + 1);
+                    const waiting = byStatus.get("applied") ?? 0;
+                    return (
+                      <details className="mt-3">
+                        <summary className="tap-target cursor-pointer text-sm">
+                          <span className="font-medium">
+                            {apps.length} application{apps.length === 1 ? "" : "s"}
+                          </span>
+                          <span className="ml-2 text-xs text-muted">
+                            {[...byStatus.entries()].map(([s, n]) => `${n} ${s}`).join(" · ")}
+                          </span>
+                          {waiting > 0 && (
+                            <Badge variant="butter" size="sm" className="ml-2">
+                              {waiting} waiting
+                            </Badge>
+                          )}
+                        </summary>
+                        <ul className="mt-2 space-y-1 border-l border-border pl-4">
+                          {apps.map((a) => (
+                            <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
+                              <span className="font-medium">
+                                {(a.nanny_profiles as { first_name: string | null } | null)
+                                  ?.first_name ?? "Unknown nanny"}
+                              </span>
+                              <Badge
+                                variant={
+                                  a.status === "hired"
+                                    ? "sage"
+                                    : a.status === "rejected"
+                                      ? "neutral"
+                                      : "butter"
+                                }
+                                size="sm"
+                              >
+                                {a.status}
+                              </Badge>
+                              <span className="text-xs text-muted">
+                                {new Date(a.created_at).toLocaleDateString("en-GB")}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    );
+                  })()}
                 </div>
 
                 <JobModeration jobId={job.id} status={job.status} />
