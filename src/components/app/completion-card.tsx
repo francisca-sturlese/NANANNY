@@ -18,6 +18,21 @@ export function CompletionCard({
   percent,
   missing,
   requiredMissing = [],
+  /**
+   * Whether families can already see her.
+   *
+   * Approval used to imply a complete profile, so "families cannot find you"
+   * was safe to say to anybody with something required missing. Four profiles
+   * were published by hand into an empty marketplace and then approved from the
+   * review queue, and that assumption stopped holding within the afternoon:
+   * those four are on the search page today with several fields blank.
+   *
+   * Telling them families cannot find them is a claim they can disprove in one
+   * click, and a product somebody catches lying is one they stop reading. The
+   * true thing for them is different and just as motivating: a family is
+   * looking at this right now, and there is not much to look at.
+   */
+  visible = false,
   editHref,
   title = "Profile completeness",
   blurb,
@@ -25,6 +40,7 @@ export function CompletionCard({
   percent: number;
   missing: string[];
   requiredMissing?: string[];
+  visible?: boolean;
   editHref: string;
   title?: string;
   blurb?: string;
@@ -66,9 +82,13 @@ export function CompletionCard({
             </p>
             {requiredMissing.length > 0 && (
               <p className="mt-1 text-sm leading-relaxed text-peach-deep">
-                {requiredMissing.length === 1
-                  ? `Families cannot find you until you add this one thing.`
-                  : `Families cannot find you until these ${requiredMissing.length} are filled in.`}{" "}
+                {visible
+                  ? requiredMissing.length === 1
+                    ? "Your profile is live, and this is the first thing a family looks for."
+                    : `Your profile is live, and families are seeing very little: these ${requiredMissing.length} are still empty.`
+                  : requiredMissing.length === 1
+                    ? "Families cannot find you until you add this one thing."
+                    : `Families cannot find you until these ${requiredMissing.length} are filled in.`}{" "}
                 Everything else on the list is optional.
               </p>
             )}

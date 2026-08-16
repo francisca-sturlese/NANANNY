@@ -10,6 +10,7 @@ import { CompletionCard } from "@/components/app/completion-card";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge, VerificationBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 export const metadata: Metadata = { title: "Your dashboard" };
 
@@ -174,6 +175,7 @@ export default async function NannyDashboard({
           percent={done?.percent ?? 0}
           missing={done?.missing ?? []}
           requiredMissing={done?.required_missing ?? []}
+          visible={DISCOVERABLE_STATUSES.includes(profile.status as never)}
           editHref="/nanny/onboarding"
           blurb="Complete profiles appear higher and get more replies."
         />

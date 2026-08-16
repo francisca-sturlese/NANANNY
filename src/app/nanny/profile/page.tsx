@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DeleteAccount } from "@/components/account/delete-account";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 
 export const metadata: Metadata = { title: "Your profile" };
 
@@ -86,6 +87,7 @@ export default async function NannyProfilePage() {
           percent={done?.percent ?? 0}
           missing={done?.missing ?? []}
           requiredMissing={done?.required_missing ?? []}
+          visible={DISCOVERABLE_STATUSES.includes(profile.status as never)}
           editHref={step("about")}
           blurb="Complete profiles appear higher and get more replies."
         />
