@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -77,7 +78,12 @@ export default async function AdminUsersPage({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-semibold">
-                      {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}
+                      <Link
+                        href={`/admin/users/${user.id}`}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}
+                      </Link>
                     </h2>
                     <Badge variant="neutral" size="sm">
                       {user.role}
