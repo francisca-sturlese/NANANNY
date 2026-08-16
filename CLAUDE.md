@@ -136,6 +136,17 @@ how a `btrim` goes missing. Support requests are counted against the row's
 `user_id`, since that form is submitted through the service client and
 `auth.uid()` is null inside the trigger.
 
+**Visits are counted first-party, and count people rather than views.** The
+Cloudflare beacon that would have done this is blocked by our own script
+policy, which is a rule worth keeping, so `/api/v` and `record_visit` do it
+instead. A visitor is a random id in a first-party cookie: enough to tell one
+person reading five pages from five people reading one, which is the whole
+question, and nothing beyond it. No IP, no user agent, no query string, and no
+path outside the allowlist in the route. A profile is recorded as `/nannies/:id`
+because how many people read a profile is useful and which profile a particular
+visitor read is not ours to keep. `admin_traffic` checks `is_admin()` itself:
+the record of everywhere people went is not something a stolen key returns.
+
 **Individual nanny profiles are readable but never indexed.**
 Noindex in the page metadata, disallowed in robots.txt, absent from the
 sitemap. A family should see who is available before signing up; that is not

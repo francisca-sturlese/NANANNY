@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { PageView } from "@/components/site/page-view";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3100";
 
@@ -66,7 +67,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        {children}
+        {/* One line, in the root layout, so a page cannot be added without
+            being counted. The alternative is a list of pages to remember, and
+            the page somebody forgets is the one worth knowing about. */}
+        <PageView />
+      </body>
     </html>
   );
 }

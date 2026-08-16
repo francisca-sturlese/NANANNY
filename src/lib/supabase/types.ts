@@ -2095,6 +2095,8 @@ export type Database = {
         Args: { p_document_id: string; p_reviewed?: boolean }
         Returns: Json
       }
+      admin_traffic: { Args: { p_days?: number }; Returns: Json }
+      admin_traffic_sources: { Args: { p_days?: number }; Returns: Json }
       admin_metrics: { Args: never; Returns: Json }
       admin_resolve_report: {
         Args: {
@@ -2294,6 +2296,25 @@ export type Database = {
       }
       phone_already_registered: { Args: { p_phone: string }; Returns: boolean }
       promo_active: { Args: never; Returns: boolean }
+      prune_visits: { Args: { p_keep_days?: number }; Returns: number }
+      record_event: {
+        Args: {
+          p_event: string
+          p_properties?: Json
+          p_user_id?: string
+          p_visitor?: string
+        }
+        Returns: undefined
+      }
+      record_visit: {
+        Args: {
+          p_path: string
+          p_source: string
+          p_visitor: string
+          p_user_id?: string
+        }
+        Returns: undefined
+      }
       promo_window: { Args: never; Returns: Json }
       publish_job_from_requirements: {
         Args: { p_family_id: string }
