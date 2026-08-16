@@ -214,6 +214,15 @@ everything that arrives afterwards, the copy is an aggregate read at send time:
 a subject naming one nanny stops being true the moment the second applies. See
 `20260816020000_application_email.sql`.
 
+**Skipped is not failed, and in production it is not skipped either.** A
+machine with no mail key composes the email and has nowhere to hand it, which
+is every development machine. A worker serving nananny.com with no key is a
+product that has silently stopped telling anybody anything: `EMAIL_FROM` was
+missing from the worker vars for a day, two real applications were composed and
+never sent, and the row said exactly that in a colour that reads as fine. So
+`sendEmail` returns a failure, named, when the site URL is https and the
+configuration is absent.
+
 **Skipped is not failed.** A machine with no mail key composes the email and
 has nowhere to hand it. That is every development machine, and recording it as
 `failed` put a red row next to every message this product has ever composed.
