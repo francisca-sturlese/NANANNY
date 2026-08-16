@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 175 SQL checks across seventeen suites
+npm run test:db        # 180 SQL checks across eighteen suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -106,6 +106,18 @@ needs EXECUTE for the role the policy is evaluated as, or the policy raises and
 the query returns nothing at all, which looks like missing rows rather than a
 permission error. Losing `is_conversation_participant` made every message in
 every thread invisible to the two people in it.
+
+**A backend script gets the same trail, through `ops_set_nanny_status()`.**
+`admin_set_nanny_status()` checks `is_admin()`, which the service role can never
+satisfy: it has no `auth.uid()`. That left a one-off with two bad options, write
+the row directly and leave no trace, or write the audit row by hand and hope
+somebody remembers. Four nanny profiles were published by hand in an afternoon
+for a real reason that lived in a chat message. The function adds no power
+anybody holding the key did not have; it makes the audited way the easy way,
+which is the only form in which this rule survives a hurry. The reason is
+required, and `actor_id` stays null rather than borrowing an administrator's:
+recording a person who pressed nothing sends whoever investigates to the wrong
+desk.
 
 **Administrative actions go through a database function, never a direct write.**
 The column grants deliberately stop even an admin from setting `users.status` or
