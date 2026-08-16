@@ -131,6 +131,51 @@ check("no dash in the copy", !/[—–]/.test(text));
  * database hands over "there" as a stand in, and "Hello there" to somebody who
  * joined two days ago and left is the sentence that says we are a script.
  */
+/**
+ * A nanny is told the one thing she is missing, not that she is "not finished".
+ *
+ * Of the six who signed up in the first week, none could be found and one was
+ * at eighty eight per cent missing a single photograph. "Your profile is not
+ * finished" is true and useless to her. The name of the field is a task.
+ */
+const { data: her } = await db
+  .from("users")
+  .select("id")
+  .eq("email", "nanny3@nananny.example.test")
+  .maybeSingle();
+
+if (her) {
+  await db.from("nanny_profiles").update({ photo_url: null, status: "draft" }).eq("user_id", her.id);
+  await db
+    .from("users")
+    .update({ created_at: new Date(Date.now() - 7 * 864e5).toISOString() })
+    .eq("id", her.id);
+  await db.from("email_events").delete().eq("email_type", "reminder_nudge_nanny");
+  await db.from("reminder_config").update({ audience: "everyone" }).eq("id", true);
+
+  await run(AUTH);
+
+  const { data: hers } = await db
+    .from("email_events")
+    .select("metadata")
+    .eq("user_id", her.id)
+    .eq("email_type", "reminder_nudge_nanny")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const body = hers?.metadata?.text ?? "";
+  check(
+    "a nanny is told which field is missing, by name",
+    /profile photo/i.test(body),
+    body.split("\n").find((l) => /job offers/i.test(l))?.slice(0, 110) ?? "no email",
+  );
+  check(
+    "and not merely that it is unfinished",
+    !/your profile is not finished/i.test(body),
+  );
+}
+
 check(
   "the unsubscribe link does not promise less than the click does",
   !/stop these reminder emails/i.test(text),

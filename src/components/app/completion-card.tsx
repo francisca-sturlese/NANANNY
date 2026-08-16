@@ -3,8 +3,16 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 /**
- * Profile completeness: the percentage, what is actually missing, and one
- * obvious next step. A bare percentage with no list is a nag, not help.
+ * Profile completeness: the percentage, what is actually missing, the reason it
+ * matters, and one obvious next step. A bare percentage with no list is a nag,
+ * not help, and a list with no consequence is only slightly better.
+ *
+ * The consequence is the part that was absent, and it cost real people. Six
+ * nannies signed up in the first week and none of them could be found: five
+ * were missing several required fields, and one was missing a single photo at
+ * eighty eight per cent. Every one of them saw a peach coloured pill saying
+ * "Profile photo" and nothing telling them that until it was there, no family
+ * could see them at all. A label is not an explanation.
  */
 export function CompletionCard({
   percent,
@@ -56,6 +64,14 @@ export function CompletionCard({
             <p className="text-sm font-medium">
               {requiredMissing.length > 0 ? "Still needed" : "Worth adding"}
             </p>
+            {requiredMissing.length > 0 && (
+              <p className="mt-1 text-sm leading-relaxed text-peach-deep">
+                {requiredMissing.length === 1
+                  ? `Families cannot find you until you add this one thing.`
+                  : `Families cannot find you until these ${requiredMissing.length} are filled in.`}{" "}
+                Everything else on the list is optional.
+              </p>
+            )}
             <ul className="mt-2 flex flex-wrap gap-2">
               {missing.slice(0, 8).map((item) => (
                 <li

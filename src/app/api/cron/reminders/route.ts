@@ -78,11 +78,23 @@ export async function POST(request: Request): Promise<Response> {
       continue;
     }
 
+    /**
+     * What she still needs, read at the moment of writing to her.
+     *
+     * Asked here rather than returned by `due_reminders`, so the list cannot be
+     * stale by the time the email is composed, and so the database's own idea
+     * of required stays the only one. Costs one read per nanny in a batch that
+     * is capped at a hundred, and only for the nudge that needs it.
+     */
+    const missing =
+      person.reason === "nudge_nanny" ? await missingFieldsFor(service, person.user_id) : [];
+
     const mail = reminderEmail({
       name: person.name,
       reason: person.reason,
       conversations: person.conversations,
       messages: person.messages,
+      missing,
       unsubscribeUrl: await unsubscribeUrl(person.user_id),
     });
 
@@ -123,6 +135,35 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   return Response.json({ due: due.length, sent, skipped, claimedElsewhere, failed });
+}
+
+/**
+ * The required fields a nanny still has to fill in.
+ *
+ * Empty when she has no profile row at all, which is the larger group: somebody
+ * who never opened the onboarding has nothing missing in the sense this means,
+ * she has not started. The generic sentence is right for her.
+ */
+async function missingFieldsFor(
+  service: ReturnType<typeof createServiceClient>,
+  userId: string,
+): Promise<string[]> {
+  try {
+    const { data: profile } = await service
+      .from("nanny_profiles")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!profile) return [];
+
+    const { data } = await service.rpc("nanny_profile_completion", { p_nanny_id: profile.id });
+    const completion = data as { required_missing?: string[] } | null;
+    return Array.isArray(completion?.required_missing) ? completion.required_missing : [];
+  } catch {
+    // A reminder without the list is still a reminder.
+    return [];
+  }
 }
 
 function safeEqual(a: string, b: string): boolean {

@@ -198,6 +198,29 @@ function escapeHeader(value: string): string {
  * refusal as the per message notification, for the same reason. What changes
  * here is only that somebody has been away a while.
  */
+/**
+ * What is actually between her and being found, said plainly.
+ *
+ * One thing left is a different message from six things left, and both are
+ * different from a vague "not finished". The list comes from the database's own
+ * idea of required, so it cannot drift from what the submit button checks.
+ */
+function nannyLine(missing?: string[]): string {
+  const items = (missing ?? []).filter(Boolean);
+
+  if (items.length === 0) {
+    return "There are new job offers from families on NaNanny, but your profile is not finished, so they cannot find you and you cannot apply. Finishing it takes a few minutes.";
+  }
+
+  if (items.length === 1) {
+    return `There are new job offers from families on NaNanny, and you are one thing away from being able to apply: your ${items[0].toLowerCase()}. Add it and families can find you straight away.`;
+  }
+
+  const list = items.map((i) => i.toLowerCase());
+  const readable = `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
+  return `There are new job offers from families on NaNanny, but they cannot see you yet. What is missing is your ${readable}. It takes a few minutes.`;
+}
+
 export function reminderEmail(params: {
   /**
    * Their first name, when we have one.
@@ -217,6 +240,15 @@ export function reminderEmail(params: {
   reason: "unread" | "nudge_family" | "nudge_nanny";
   conversations: number;
   messages: number;
+  /**
+   * For a nanny: the required fields still missing, in her own words.
+   *
+   * "Your profile is not finished" is true and useless. One of the six nannies
+   * who signed up in the first week was at eighty eight per cent and missing a
+   * single photograph, and nothing anywhere told her that was the one thing
+   * between her and being found. Naming it turns a chore into a task.
+   */
+  missing?: string[];
   /**
    * Per recipient. Reminder mail without a way out is a nuisance with a logo.
    *
@@ -259,8 +291,7 @@ export function reminderEmail(params: {
           }
         : {
             subject: "Families are hiring on NaNanny right now",
-            line:
-              "There are new job offers from families on NaNanny, but your profile is not finished, so they cannot find you and you cannot apply. Finishing it takes a few minutes. Do not miss them.",
+            line: nannyLine(params.missing),
             button: "Finish your profile",
           };
 
