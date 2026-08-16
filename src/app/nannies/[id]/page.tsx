@@ -206,16 +206,15 @@ export default async function NannyProfilePage({
           </div>
         </header>
 
-        {/* Said before the badges, because it changes how to read them: none
-            present can mean "we checked and found nothing" or "we have not
-            looked yet", and those are very different things to a family. */}
+        {/* Founder's call: the earlier version ("nobody has looked at this
+            profile") read as a warning and pushed families away from exactly
+            the people who just arrived. One neutral line keeps the honesty —
+            no badge is claimed that was not earned — without the deterrent. */}
         {!isVerified(nanny.status) && (
           <div className="mt-5 rounded-md border border-border bg-surface px-4 py-3">
-            <p className="text-sm font-medium">Not reviewed yet</p>
-            <p className="mt-1 text-sm leading-relaxed text-muted">
-              Nobody on our team has looked at this profile. Everything on it is what
-              she wrote about herself. You can still message her, and we will review it
-              shortly.
+            <p className="text-sm leading-relaxed text-muted">
+              Verification in progress. Verified badges appear here as our team
+              completes its checks.
             </p>
           </div>
         )}

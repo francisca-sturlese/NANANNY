@@ -71,8 +71,8 @@ export function VerificationBadge({ badge: key }: { badge: VerificationBadgeKey 
  */
 export function UnverifiedBadge() {
   return (
-    <Badge variant="neutral" size="sm" title="Nobody on our team has reviewed this profile yet">
-      Not reviewed yet
+    <Badge variant="neutral" size="sm" title="Our team is completing this profile's checks">
+      Verification in progress
     </Badge>
   );
 }
