@@ -23,8 +23,22 @@
     "enabled": true
   },
 
+  // Deploy-side additions (account-level values, kept out of the repo's copy):
+  "account_id": "6d1771913bc7450ae7c5f8c149a1b8ef",
+  // sendEmail refuses to run without a sender: with the key present and this
+  // absent, every application email and reminder composes and silently skips.
+  // Found live on the 16th, two real application emails skipped before it was.
+  "vars": {
+    "EMAIL_FROM": "NaNanny UAE <hello@nananny.com>",
+    "EMAIL_REPLY_TO_BILLING": "billing@nananny.com"
+  },
+  "routes": [
+    { "pattern": "nananny.com", "custom_domain": true },
+    { "pattern": "www.nananny.com", "custom_domain": true }
+  ],
+
   // Secrets are never here. NEXT_PUBLIC_* values are inlined into the client
   // bundle at build time, so they are set in the build environment, not as
   // worker vars. SUPABASE_SERVICE_ROLE_KEY is set with `wrangler secret put`.
-  "vars": {}
+  // (The runtime vars live in the deploy-side block above.)
 }

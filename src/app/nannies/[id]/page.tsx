@@ -449,6 +449,14 @@ export default async function NannyProfilePage({
                 source="profile"
               />
             </div>
+          ) : user?.role === "nanny" ? (
+            // A nanny on a colleague's profile: conversations start from
+            // families, so her door is the job board, not a dead sentence.
+            <Link href="/jobs" className="min-w-0 flex-1">
+              <Button size="lg" block>
+                See open jobs
+              </Button>
+            </Link>
           ) : user ? (
             <p className="flex-1 text-center text-sm text-muted">
               Only families can start a conversation.

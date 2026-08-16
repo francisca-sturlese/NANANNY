@@ -267,24 +267,45 @@ export default async function AdminOverviewPage() {
                 <Metric label="Email never confirmed" value={stalled.unverified_emails} />
               </div>
 
-              <ul className="mt-5 divide-y divide-border border-t border-border">
-                {stalled.stalled.map((person) => (
-                  <li
-                    key={person.id}
-                    className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5"
-                  >
-                    <span className="text-sm font-medium">
-                      {[person.first_name, person.last_name].filter(Boolean).join(" ") ||
-                        person.email}
-                    </span>
-                    <Badge variant="neutral" size="sm">
-                      {person.role}
-                    </Badge>
-                    <span className="text-sm text-muted">{person.stage}</span>
-                    <span className="ml-auto text-xs text-subtle">{person.email}</span>
-                  </li>
-                ))}
-              </ul>
+              {/* The names stay behind a click: this list grows with every
+                  signup that stalls, and an overview page that scrolls forever
+                  stops being an overview. Closed by default, most recent first,
+                  and never more than a screenful even when open. */}
+              <details className="mt-5 border-t border-border pt-4">
+                <summary className="tap-target cursor-pointer text-sm font-medium underline underline-offset-4">
+                  Show who they are
+                </summary>
+                <ul className="mt-2 divide-y divide-border">
+                  {stalled.stalled.slice(0, 12).map((person) => (
+                    <li
+                      key={person.id}
+                      className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5"
+                    >
+                      <Link
+                        href={`/admin/users/${person.id}`}
+                        className="text-sm font-medium underline-offset-4 hover:underline"
+                      >
+                        {[person.first_name, person.last_name].filter(Boolean).join(" ") ||
+                          person.email}
+                      </Link>
+                      <Badge variant="neutral" size="sm">
+                        {person.role}
+                      </Badge>
+                      <span className="text-sm text-muted">{person.stage}</span>
+                      <span className="ml-auto text-xs text-subtle">{person.email}</span>
+                    </li>
+                  ))}
+                </ul>
+                {stalled.stalled.length > 12 && (
+                  <p className="mt-2 text-sm text-muted">
+                    …and {stalled.stalled.length - 12} more. The{" "}
+                    <Link href="/admin/users" className="underline underline-offset-4">
+                      Users page
+                    </Link>{" "}
+                    has all of them, searchable.
+                  </p>
+                )}
+              </details>
 
               <p className="mt-4 text-xs leading-relaxed text-subtle">
                 None of these appear in any other number on this page, because those
