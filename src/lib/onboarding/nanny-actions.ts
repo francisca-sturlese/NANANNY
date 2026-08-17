@@ -66,7 +66,25 @@ const aboutSchema = z.object({
 });
 
 const experienceSchema = z.object({
-  yearsExperience: z.coerce.number().int().min(0, "Enter your years of experience").max(60),
+  /**
+   * At least one, not at least zero.
+   *
+   * The completeness rule the review step reads asks for `years_experience > 0`,
+   * and this asked for >= 0, so a nanny could type a zero, be waved through, and
+   * be told three screens later that a field she had filled in was missing. One
+   * did: she went back, found the box with her own zero sitting in it,
+   * understood nothing, and left after twenty seconds.
+   *
+   * The two rules now agree. The message says what to do rather than only what
+   * is wrong, because somebody typing zero is usually saying "I have never been
+   * paid to do this", which is a different thing from having never looked after
+   * a child.
+   */
+  yearsExperience: z.coerce
+    .number()
+    .int()
+    .min(1, "Enter at least 1. Looking after children in your own family counts.")
+    .max(60),
   uaeExperience: z.coerce.number().int().min(0).max(60),
   ageGroups: z.array(z.enum(["newborn", "toddler", "school_age", "special_needs"])),
   previousExperience: z.preprocess(emptyToNull, z.string().trim().max(4000).nullable()),
