@@ -32,7 +32,10 @@ export default function PrivacyPage() {
           expectation, skills, identity and visa documents, and an optional video
           introduction. Families add the area and emirate, the number and ages of their
           children, a schedule and a budget. Messages sent through NaNanny are stored so
-          both sides can read their own conversations. We also keep the technical logs any
+          both sides can read their own conversations. Authorised NaNanny
+          administrators can also read conversations, for safety, fraud
+          prevention and dispute resolution only; every such access is
+          recorded in an internal log. We also keep the technical logs any
           website keeps, such as when a request happened and whether it failed.
         </p>
         <p>

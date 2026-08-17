@@ -146,6 +146,14 @@ export function ContactSheet({
                     Send message
                   </SubmitButton>
 
+                  {/* Said before the first message, not buried in a policy:
+                      the same promise of a record that protects her protects
+                      the platform's right to look when something is wrong. */}
+                  <p className="text-center text-[0.7rem] leading-relaxed text-subtle">
+                    Conversations can be reviewed by the NaNanny team for safety
+                    and dispute resolution. Every review is logged.
+                  </p>
+
                   {promoActive ? (
                     <p className="text-center text-xs text-muted">
                       Free while we are launching. This does not use any of your{" "}

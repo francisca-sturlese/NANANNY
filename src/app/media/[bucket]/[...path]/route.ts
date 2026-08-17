@@ -74,8 +74,9 @@ export async function GET(
   }
 
   const isPublicish = bucket === "nanny-photos";
+  const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
   const headers = new Headers({
-    "Content-Type": upstream.headers.get("content-type") ?? "application/octet-stream",
+    "Content-Type": contentType,
     // Telling the browser ranges are welcome is what makes Safari try at all.
     "Accept-Ranges": "bytes",
     // A profile photo rarely changes and is shown on every card, so it is
@@ -84,8 +85,15 @@ export async function GET(
       ? "private, max-age=3600, stale-while-revalidate=86400"
       : "private, no-store",
     "X-Content-Type-Options": "nosniff",
-    // Never let a stored file be rendered as a page in its own right.
-    "Content-Disposition": bucket === "nanny-documents" ? "attachment" : "inline",
+    // Documents preview in the browser when the type is safe to render
+    // (founder's ask: reviewing a CV should not fill a Downloads folder).
+    // Anything else still downloads: an HTML or SVG upload rendered inline
+    // would run in our origin, which is the attack the old blanket
+    // "attachment" existed to stop. The allowlist keeps that protection.
+    "Content-Disposition":
+      bucket === "nanny-documents" && !PREVIEWABLE.has(contentType)
+        ? "attachment"
+        : "inline",
   });
   for (const name of ["content-length", "content-range"]) {
     const value = upstream.headers.get(name);
@@ -110,6 +118,14 @@ export async function GET(
  * able to recover from that. The line is drawn by kind, in one place, and an
  * unknown kind falls on the private side of it.
  */
+/** Types a browser can render without executing anything. */
+const PREVIEWABLE = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
+
 const FAMILY_VISIBLE_DOCUMENT_KINDS = ["cv", "certificate", "first_aid", "reference"];
 
 async function mayRead(bucket: Bucket, ownerId: string, objectPath: string): Promise<boolean> {

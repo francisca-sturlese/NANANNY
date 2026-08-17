@@ -24,6 +24,16 @@ const WIDTHS = [420, 640, 960, 1440];
 
 const PHOTOS = [
   {
+    slug: "family-golden-hour",
+    file: "pexels-luisbecerrafotografo-16949221.jpg",
+    alt: "A mother and father in the evening sun, each holding a baby, with their daughter in a yellow dress in front",
+  },
+  {
+    slug: "family-lakeside",
+    file: "pexels-danikprihodko-19510843.jpg",
+    alt: "A family of five by a lake at golden hour, the youngest riding on her father's shoulders",
+  },
+  {
     slug: "family-sunset",
     file: "pexels-danikprihodko-19510859.jpg",
     alt: "A mother and father laughing with their young daughter on his shoulders at sunset",

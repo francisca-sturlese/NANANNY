@@ -183,6 +183,8 @@ export default async function JobApplicationsPage({
                         <a
                           key={d.id}
                           href={`/media/nanny-documents/${d.storage_path}`}
+                          target="_blank"
+                          rel="noreferrer"
                           className="tap-target inline-flex items-center gap-1 rounded-pill border border-border px-3 py-1.5 text-xs hover:border-foreground"
                         >
                           {d.label || DOC_LABEL[d.kind] || d.kind}

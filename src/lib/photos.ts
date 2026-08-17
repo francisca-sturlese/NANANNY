@@ -15,6 +15,30 @@ export type Photo = {
 
 export const PHOTOS = [
   {
+    "slug": "family-golden-hour",
+    "alt": "A mother and father in the evening sun, each holding a baby, with their daughter in a yellow dress in front",
+    "aspect": 0.6667,
+    "widths": [
+      420,
+      640,
+      960,
+      1440
+    ],
+    "blurDataURL": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAACQBgCdASoYACQAPw1urVAsJiQitVgIAYAhiUAV4YLD3LHF1A3T0ufS0XwkZMFrghc/+MBWlHVlJv4LmeIAAP5SzdOWy2fwdD6wCfbp6nK/J4qEOOlqQ9zIJfJzxq/sDRE1F+6CEFCNGH47nUdzJ8C2KKE1T2wM0BSximkgVsUjBl0sr5pmaD8QG36AAA=="
+  },
+  {
+    "slug": "family-lakeside",
+    "alt": "A family of five by a lake at golden hour, the youngest riding on her father's shoulders",
+    "aspect": 0.6666,
+    "widths": [
+      420,
+      640,
+      960,
+      1440
+    ],
+    "blurDataURL": "data:image/webp;base64,UklGRpoAAABXRUJQVlA4II4AAABwBgCdASoYACQAPw1yr1AsJyQitVgIAYAhiWMAvkhFbN7AcKOhkKRkVwZ0N+6Rdpfp5GCuq8/SZzfLUgAA/u/IrCVnu09Viz9eVsTncymaGTgzrreDXajUxd9mT10rjisjXK9zESGx4+xMtbiHlxYyQ8hxCHoR/CEeOmjJAFsxXZYPh+tQwsyQaoOgPYgA"
+  },
+  {
     "slug": "family-sunset",
     "alt": "A mother and father laughing with their young daughter on his shoulders at sunset",
     "aspect": 0.6667,
