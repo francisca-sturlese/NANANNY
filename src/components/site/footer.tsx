@@ -72,6 +72,15 @@ export function SiteFooter() {
           </p>
           <p className="mt-6 text-xs text-subtle">
             © {new Date().getFullYear()} NaNanny UAE. All rights reserved.
+            {" · "}
+            <a
+              href="https://www.linkedin.com/company/nananny"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              LinkedIn
+            </a>
           </p>
         </div>
       </div>
