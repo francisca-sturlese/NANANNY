@@ -594,4 +594,43 @@ begin
   end if;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- And nothing else in the schema is readable by a stranger
+-- ---------------------------------------------------------------------------
+-- Whole schema rather than one table, because the drift that matters is on the
+-- table nobody thought about. In production an anonymous session could reach
+-- users.email, users.phone and messages.body at the grant level. Nothing was
+-- exposed, row level security held on all of them, and that is the point: the
+-- design is two locks and one of them had quietly stopped being there.
+do $$
+declare result text;
+begin
+  result := public.assert_anon_reads();
+
+  if result = 'ok' then
+    raise notice 'PASS  a stranger reads the two public tables and nothing else';
+  else
+    raise notice 'FAIL  %', result;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- And closing the read side did not close the way in
+-- ---------------------------------------------------------------------------
+-- "No friction in registering a profile" is a standing instruction, and a
+-- revoke is exactly the kind of change that can break signing up without
+-- anybody noticing until somebody cannot. The write side is checked here, next
+-- to the read side, so the two are never verified apart.
+do $$
+declare result text;
+begin
+  result := public.assert_editable_columns();
+
+  if result = 'ok' then
+    raise notice 'PASS  nothing a person fills in on the way in became unwritable';
+  else
+    raise notice 'FAIL  %', result;
+  end if;
+end $$;
+
 rollback;

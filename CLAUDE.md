@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 181 SQL checks across eighteen suites
+npm run test:db        # 183 SQL checks across eighteen suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -71,6 +71,24 @@ optimistic cookie check.
 
 **Server Actions are public endpoints.** Every one validates its own input and
 re-checks the caller's role. The route guard is not a substitute.
+
+**No friction in registering a profile.** Federico's standing instruction, and
+it is why zero years of experience is valid, why a profile publishes at half
+complete, why documents are optional and why a missing photo gets the brand mark
+rather than a gap. New required fields and new steps need his say-so; in doubt
+the answer is optional, and the constraint lives downstream in review, badges
+and ordering rather than upstream in the form. A revoke can break signing up
+without anybody noticing, so `privacy_rls.sql` checks the write side next to the
+read side.
+
+**A stranger reads two tables, by column, and nothing else.** `jobs` and
+`nanny_profiles`, listed in `anon_readable()`, which sets the grants and checks
+them. Production had drifted to where an anonymous session could reach
+`users.email`, `users.phone` and `messages.body` at the grant level. Nothing was
+exposed, because RLS held on all of them, which is exactly the point: the design
+is two locks and one had quietly stopped being there. `assert_anon_reads()`
+compares the whole schema in both directions, because a missing grant empties a
+page and gets noticed in hours, while an extra one shows nothing at all.
 
 **A column added to `nanny_profiles` is two changes, and the second one fails
 somewhere else.** A missing UPDATE grant threw away a nanny's entire first
