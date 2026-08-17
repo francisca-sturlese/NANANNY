@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 203 SQL checks across twenty suites
+npm run test:db        # 206 SQL checks across twenty one suites
 npm run test:e2e       # 39 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -192,6 +192,14 @@ The browser suites run against a production build on http://127.0.0.1, where
 NODE_ENV is "production" and https does not exist. Emitting the directive there
 rewrote every script URL to https and the app stopped loading its own
 JavaScript.
+
+**Cold sales mail is filed, never refused.** The contact form gets it forever,
+and the only thing that can change is whether it sits under "Needs a reply"
+beside a family who cannot sign in. `looksLikeSalesPitch` is a word list, no
+model, and it may only move a request into its own tab. Refusing it at the form
+would teach the senders which words to avoid; and the failure that matters is
+not letting one through, it is hiding a real person, which is only noticeable if
+her message still exists somewhere.
 
 **Rate limits are in the database, applied by triggers.**
 Not in the app: the deployment target keeps nothing between requests, and these

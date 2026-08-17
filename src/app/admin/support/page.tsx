@@ -21,6 +21,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   safety: "Safety",
   technical: "Technical",
   other: "Other",
+  sales: "Sales pitch",
 };
 
 export default async function AdminSupportPage({
@@ -41,21 +42,41 @@ export default async function AdminSupportPage({
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (status === "all") {
-    // no filter
+  /**
+   * Cold sales pitches are kept out of every view but their own.
+   *
+   * They arrive forever and there is no version of this product where they
+   * stop. What can change is whether they sit under "Needs a reply" with a
+   * badge on the navigation, next to a family who cannot sign in.
+   *
+   * Filed, never deleted: a wrong guess here is a real person whose message was
+   * hidden, and the only way that gets noticed is if it is still somewhere to
+   * be found.
+   */
+  if (status === "sales") {
+    query = query.eq("category", "sales");
+  } else if (status === "all") {
+    query = query.neq("category", "sales");
   } else if (chosen) {
-    query = query.eq("status", chosen);
+    query = query.eq("status", chosen).neq("category", "sales");
   } else {
-    query = query.in("status", ["open", "in_progress"]);
+    query = query.in("status", ["open", "in_progress"]).neq("category", "sales");
   }
 
   const { data: requests } = await query;
   const rows = requests ?? [];
 
-  const { count: openCount } = await supabase
-    .from("support_requests")
-    .select("*", { count: "exact", head: true })
-    .in("status", ["open", "in_progress"]);
+  const [{ count: openCount }, { count: salesCount }] = await Promise.all([
+    supabase
+      .from("support_requests")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["open", "in_progress"])
+      .neq("category", "sales"),
+    supabase
+      .from("support_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("category", "sales"),
+  ]);
 
   return (
     <AdminShell
@@ -66,6 +87,9 @@ export default async function AdminSupportPage({
       <h1 className="text-2xl font-semibold sm:text-3xl">Support</h1>
       <p className="mt-1 text-sm text-muted">
         Messages from the contact form. Anyone can send one, signed in or not.
+        Cold sales pitches are filed under their own tab rather than refused: a
+        wrong guess is a real person whose message was hidden, and refusing them
+        at the form would only teach the senders which words to avoid.
       </p>
 
       <nav className="mt-5 flex flex-wrap gap-2">
@@ -74,6 +98,11 @@ export default async function AdminSupportPage({
           { value: "answered", label: "Answered" },
           { value: "closed", label: "Closed" },
           { value: "all", label: "All" },
+          // Last, and only when there are any. A tab for an empty bucket is a
+          // tab somebody presses once and never again.
+          ...(salesCount && salesCount > 0
+            ? [{ value: "sales", label: `Sales pitches (${salesCount})` }]
+            : []),
         ].map((tab) => {
           const current = (status ?? "") === tab.value;
           return (

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { looksLikeSalesPitch } from "@/lib/safety/sales-pitch";
 import { getSession } from "@/lib/auth/dal";
 
 /**
@@ -136,12 +137,23 @@ export async function submitSupportRequestAction(
 
   // Written with the service client so a signed-out visitor can reach support
   // at all; the row records who they said they are, not who they claim to be.
+  /**
+   * A cold pitch is filed rather than refused.
+   *
+   * Refusing it at the form would tell whoever sends these exactly which words
+   * to avoid, which turns a permanent nuisance into an arms race. This way it
+   * arrives, it is stored, and it simply does not appear among the messages
+   * from people who need something. The sender gets the same thank you as
+   * everybody else, which is the point.
+   */
+  const isPitch = looksLikeSalesPitch(parsed.data.subject, parsed.data.message);
+
   const supabase = createServiceClient();
   const { error } = await supabase.from("support_requests").insert({
     user_id: user?.id ?? null,
     contact_email: parsed.data.email,
     contact_name: parsed.data.name ?? [user?.firstName, user?.lastName].filter(Boolean).join(" ") ?? null,
-    category: parsed.data.category,
+    category: isPitch ? "sales" : parsed.data.category,
     subject: parsed.data.subject,
     message: parsed.data.message,
   });
