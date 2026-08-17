@@ -241,36 +241,38 @@ export default async function HomePage() {
             <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {featured.map((nanny) => (
                 <li key={nanny.id} className="h-full">
+                  {/* Vertical on purpose: side-by-side text next to a photo
+                      wraps long names into ragged card heights on a phone.
+                      Photo on top, one line of name, one line of facts, all
+                      truncated, every card the same shape. */}
                   <Link
                     href={`/nannies/${nanny.id}`}
-                    className="block h-full rounded-lg border border-border bg-surface-raised p-3.5 transition-shadow hover:shadow-card sm:p-4"
+                    className="block h-full overflow-hidden rounded-lg border border-border bg-surface-raised transition-shadow hover:shadow-card"
                   >
-                    <div className="flex items-center gap-3">
-                      {nanny.photoUrl ? (
-                        /* eslint-disable-next-line @next/next/no-img-element --
-                           short-lived signed URL, next/image cannot cache it */
-                        <img
-                          src={nanny.photoUrl}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          width={56}
-                          height={56}
-                          className="size-14 shrink-0 rounded-md object-cover"
-                        />
-                      ) : (
-                        <NannyPhotoFallback className="size-14 rounded-md" />
-                      )}
-                      <div className="min-w-0">
-                        <h3 className="truncate font-semibold">
-                          {nanny.firstName ?? "Nanny"}
-                        </h3>
-                        <p className="truncate text-xs text-muted">
-                          {[nanny.emirate, experienceShort(nanny.yearsExperience)]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      </div>
+                    {nanny.photoUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element --
+                         short-lived signed URL, next/image cannot cache it */
+                      <img
+                        src={nanny.photoUrl}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width={320}
+                        height={240}
+                        className="aspect-[4/3] w-full object-cover"
+                      />
+                    ) : (
+                      <NannyPhotoFallback className="aspect-[4/3] w-full rounded-none" />
+                    )}
+                    <div className="min-w-0 p-3">
+                      <h3 className="truncate text-sm font-semibold">
+                        {nanny.firstName ?? "Nanny"}
+                      </h3>
+                      <p className="truncate text-xs text-muted">
+                        {[nanny.emirate, experienceShort(nanny.yearsExperience)]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
                     </div>
                   </Link>
                 </li>
