@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 192 SQL checks across nineteen suites
+npm run test:db        # 199 SQL checks across twenty suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -314,6 +314,15 @@ pays. If it meant "only write to people who pay", an unread message reminder
 could never reach the side of the marketplace that most needs it, and the person
 losing by that would be the family who paid to send it. Both directions are
 pinned in `supabase/tests/reminders.sql`.
+
+**Contact details never survive free text.** A nanny published her mobile and
+her email at the bottom of her own profile, doing what every other board asks
+for. `description` is readable by an anonymous session, so it was in the API and
+not only on the page, and a woman looking for work abroad with her number in
+public is the one who gets the calls nobody wants. `redact_contact_details()`
+runs in a trigger, where the text is stored rather than where it is shown:
+hiding it at render leaves it in every API response. Nine digits, not seven, so
+"08.00 to 17.00" and a date survive. The forms say so before somebody types.
 
 **An email never carries text another user typed.** The new message email says
 a message arrived and links to it, and counts rather than names, because it is

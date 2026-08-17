@@ -184,7 +184,15 @@ console.log("\n--- JOB POSTING (family) ---\n");
 await fam.page.goto("/family/jobs/new");
 await fam.page.waitForLoadState("networkidle");
 
-const jobTitle = `E2E live-out nanny ${Date.now()}`;
+/**
+ * Base 36, not a raw timestamp.
+ *
+ * A job title is redacted like any other free text, and a thirteen digit
+ * millisecond stamp is indistinguishable from a phone number written without
+ * spaces. The rule is right and the fixture was wrong: a real title with
+ * thirteen digits in it does not exist.
+ */
+const jobTitle = `E2E live-out nanny ${Date.now().toString(36)}`;
 await fam.page.getByLabel("Job title").fill(jobTitle);
 await fam.page.getByLabel("Emirate").selectOption("Dubai");
 await fam.page

@@ -281,7 +281,7 @@ export function JobForm({
         label="What the role involves"
         htmlFor="responsibilities"
         required
-        hint="School runs, meals, play, bedtime. The day as it actually is."
+        hint="School runs, meals, play, bedtime. The day as it actually is. Leave out your phone number and email: they are removed automatically, and nannies reply to you through NaNanny."
         error={err.responsibilities}
       >
         <Textarea

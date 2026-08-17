@@ -529,7 +529,10 @@ export function NannyStepForm({
             label="Tell families about yourself"
             htmlFor="description"
             required
-            hint="This is the part families read most closely. Write as you'd speak."
+            /* The reason is given before the removal happens, so it reads as
+               looking after her rather than as censorship. She is not doing
+               anything wrong: she is doing what every other board asks for. */
+            hint="This is the part families read most closely. Write as you'd speak. Leave out your phone number and email: they are removed automatically, and families message you through NaNanny so you keep a record and can stop anyone at any time."
             error={err.description}
           >
             <Textarea
