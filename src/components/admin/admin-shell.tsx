@@ -12,7 +12,6 @@ const SECTIONS = [
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/support", label: "Support" },
   { href: "/admin/jobs", label: "Jobs" },
-  { href: "/admin/conversations", label: "Chats" },
   { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/reminders", label: "Reminders" },
   { href: "/admin/insights", label: "Traffic" },
