@@ -51,19 +51,11 @@ export async function POST(request: Request): Promise<Response> {
     .maybeSingle();
   if (!notification) return Response.json({ sent: 0, reason: "notification not found" });
 
-  // The generated types have not met push_subscriptions yet (they regrow
-  // from the local stack); an untyped handle bridges until they do.
-  type SubRow = { id: string; endpoint: string; p256dh: string; auth: string };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // deliberate: the generated types regrow from the local stack and have not
-  // met this table yet; the SubRow cast above keeps the reads honest.
-  const pushSubs = (): any => (service as any).from("push_subscriptions");
-
-  const { data: rawSubscriptions } = await pushSubs()
-    .select("id, endpoint, p256dh, auth")
+  const { data: rawSubscriptions } = await service
+    .from("push_subscriptions")
     .select("id, endpoint, p256dh, auth")
     .eq("user_id", notification.user_id);
-  const subscriptions = (rawSubscriptions ?? []) as unknown as SubRow[];
+  const subscriptions = rawSubscriptions ?? [];
   if (subscriptions.length === 0) {
     return Response.json({ sent: 0, reason: "no subscriptions" });
   }
@@ -94,18 +86,22 @@ export async function POST(request: Request): Promise<Response> {
 
       if (res.ok || res.status === 201) {
         sent += 1;
-        await pushSubs()
+        await service
+          .from("push_subscriptions")
           .update({ last_success_at: new Date().toISOString(), failed_count: 0 })
           .eq("id", sub.id);
       } else if (res.status === 404 || res.status === 410) {
         dead += 1;
-        await pushSubs().delete().eq("id", sub.id);
+        await service.from("push_subscriptions").delete().eq("id", sub.id);
       } else {
         failed += 1;
         console.error("[push] endpoint refused:", res.status, await res.text());
         // A flag, not a counter: "has been failing lately" is all the row
         // needs to say for a cleanup pass to find it.
-        await pushSubs().update({ failed_count: 1 }).eq("id", sub.id);
+        await service
+          .from("push_subscriptions")
+          .update({ failed_count: 1 })
+          .eq("id", sub.id);
       }
     } catch (error) {
       failed += 1;

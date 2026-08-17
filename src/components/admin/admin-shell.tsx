@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LogoMark, Logo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { PushPrompt } from "@/components/notifications/push-prompt";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
@@ -128,7 +129,8 @@ export async function AdminShell({
         </nav>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8"><PushPrompt />
+        {children}</main>
     </div>
   );
 }
