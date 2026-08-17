@@ -56,7 +56,7 @@ export default async function AdminJobsPage({
     jobIds.length
       ? supabase
           .from("job_applications")
-          .select("id, job_id, status, created_at, nanny_profiles(first_name)")
+          .select("id, job_id, nanny_id, status, created_at, nanny_profiles(first_name)")
           .in("job_id", jobIds)
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] as never[] }),
@@ -71,16 +71,26 @@ export default async function AdminJobsPage({
     familyIds.length
       ? supabase.from("family_children").select("family_id, age_years").in("family_id", familyIds)
       : Promise.resolve({ data: [] as never[] }),
-    jobIds.length
-      ? service.from("conversations").select("id, job_id").in("job_id", jobIds)
+    familyIds.length
+      ? service
+          .from("conversations")
+          .select("id, job_id, family_id, nanny_id")
+          .in("family_id", familyIds)
       : Promise.resolve({ data: [] as never[] }),
   ]);
 
+  /**
+   * A chat "belongs" to a job in the founder's sense, not the foreign key's:
+   * either it was started from the post, or it is between the post's family
+   * and a nanny who applied to it. The four real conversations so far all
+   * started from profiles, and a strict job_id match showed nothing.
+   */
   const conversationsByJob = new Map<string, number>();
-  for (const row of (convRows ?? []) as { id: string; job_id: string | null }[]) {
-    if (row.job_id) {
-      conversationsByJob.set(row.job_id, (conversationsByJob.get(row.job_id) ?? 0) + 1);
-    }
+  for (const job of jobs ?? []) {
+    const n = ((convRows ?? []) as { family_id: string }[]).filter(
+      (row) => row.family_id === job.family_id,
+    ).length;
+    if (n > 0) conversationsByJob.set(job.id, n);
   }
 
   type FamilyRow = {

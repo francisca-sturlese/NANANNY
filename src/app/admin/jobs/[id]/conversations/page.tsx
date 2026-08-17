@@ -29,17 +29,21 @@ export default async function AdminJobConversationsPage({
 
   const { data: job } = await service
     .from("jobs")
-    .select("id, title, status, family_profiles(display_name, user_id)")
+    .select("id, title, status, family_id, family_profiles(display_name, user_id)")
     .eq("id", id)
     .maybeSingle();
   if (!job) notFound();
 
+  // "The chats for this job" means, to the operator, the chats of the family
+  // that posted it: a family hiring through a post talks to nannies wherever
+  // the conversation technically started, and a strict job_id match showed
+  // an empty page next to four real conversations.
   const { data: conversations } = await service
     .from("conversations")
     .select(
-      "id, created_at, blocked_at, nanny_profiles!conversations_nanny_id_fkey(first_name), messages(id, body, sender_id, created_at)",
+      "id, created_at, blocked_at, job_id, nanny_id, nanny_profiles!conversations_nanny_id_fkey(first_name), messages(id, body, sender_id, created_at)",
     )
-    .eq("job_id", id)
+    .eq("family_id", job.family_id)
     .order("created_at", { ascending: false });
 
   const rows = conversations ?? [];
