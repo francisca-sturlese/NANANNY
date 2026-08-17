@@ -479,6 +479,43 @@ export async function replySupportRequestAction(
   return { message: `Reply sent to ${request.contact_email}.` };
 }
 
+/**
+ * Mark a support request as spam.
+ *
+ * "Disappear" here means: out of Needs a reply, out of the badge, out of every
+ * view except the Sales archive, which exists for exactly one reason — the
+ * failure that matters is not letting a pitch through, it is hiding a real
+ * person, and that is only discoverable while the message still exists
+ * somewhere. Nothing is deleted; it is filed where nobody has to look.
+ */
+export async function markSupportSpamAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const requestId = z.string().uuid().safeParse(formData.get("requestId"));
+  if (!requestId.success) return { error: "Invalid request." };
+
+  const service = createServiceClient();
+  const { error: categoryError } = await service
+    .from("support_requests")
+    .update({ category: "sales" })
+    .eq("id", requestId.data);
+  if (categoryError) return { error: cleanMessage(categoryError.message) };
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.rpc("admin_update_support_request", {
+    p_request_id: requestId.data,
+    p_status: "closed",
+    p_internal_note: "Marked as spam from the panel.",
+  });
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/support");
+  return { message: "Filed as spam." };
+}
+
 // ---------------------------------------------------------------------------
 // Reminders
 // ---------------------------------------------------------------------------

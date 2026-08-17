@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { updateSupportRequestAction, replySupportRequestAction } from "@/app/admin/actions";
+import { updateSupportRequestAction, replySupportRequestAction, markSupportSpamAction } from "@/app/admin/actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/field";
@@ -29,6 +29,10 @@ export function SupportRequestActions({
   );
   const [replyState, replyAction] = useActionState<ActionState, FormData>(
     replySupportRequestAction,
+    {},
+  );
+  const [, spamAction] = useActionState<ActionState, FormData>(
+    markSupportSpamAction,
     {},
   );
   const [noting, setNoting] = useState(false);
@@ -64,6 +68,16 @@ export function SupportRequestActions({
             </SubmitButton>
           </form>
         )}
+        <form
+          action={spamAction}
+          // A pitch filed as spam vanishes from every working view; the row
+          // survives in the Sales archive so a mistake stays reversible.
+        >
+          <input type="hidden" name="requestId" value={requestId} />
+          <SubmitButton size="sm" variant="outline" pendingLabel="…">
+            Mark as spam
+          </SubmitButton>
+        </form>
         {contactEmail && status !== "closed" && (
           <Button size="sm" onClick={() => setReplying((v) => !v)}>
             {replying ? "Cancel reply" : "Reply"}
