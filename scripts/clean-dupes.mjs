@@ -23,7 +23,10 @@ import { join } from "node:path";
 
 // "bell 2.tsx", "copy 3.ts", "notification_events 2.sql".
 const COPY = /\s\d+\.[a-z]+$/i;
-const ROOTS = ["supabase", "src", "scripts"];
+// `public` is on the list because a copy of a service worker was staged
+// there and the sweep did not look: the roots were written before anything
+// lived outside src, supabase and scripts.
+const ROOTS = ["supabase", "src", "scripts", "public"];
 const SKIP = new Set(["node_modules", ".next", ".git"]);
 
 const removed = [];

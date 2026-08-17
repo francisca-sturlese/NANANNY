@@ -1603,6 +1603,100 @@ export type Database = {
           },
         ]
       }
+      publishing_config: {
+        Row: {
+          enabled: boolean
+          id: boolean
+          min_completion_percent: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          id?: boolean
+          min_completion_percent?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          id?: boolean
+          min_completion_percent?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publishing_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_dispatch_config: {
+        Row: {
+          id: boolean
+          secret: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          secret: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          secret?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          failed_count: number
+          id: string
+          last_success_at: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          failed_count?: number
+          id?: string
+          last_success_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          failed_count?: number
+          id?: string
+          last_success_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_hits: {
         Row: {
           action: string
@@ -2161,6 +2255,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_update_publishing: {
+        Args: { p_enabled: boolean; p_min_completion_percent: number }
+        Returns: Json
+      }
       admin_update_reminders: {
         Args: {
           p_audience: string
@@ -2177,6 +2275,13 @@ export type Database = {
           p_status: string
         }
         Returns: Json
+      }
+      anon_readable: {
+        Args: never
+        Returns: {
+          columns: string[]
+          table_name: string
+        }[]
       }
       apply_subscription_event: {
         Args: {
@@ -2195,8 +2300,10 @@ export type Database = {
         }
         Returns: Json
       }
+      assert_anon_reads: { Args: never; Returns: string }
       assert_editable_columns: { Args: never; Returns: string }
       assert_nanny_columns_updatable: { Args: never; Returns: string }
+      assert_public_nanny_columns: { Args: never; Returns: string }
       block_user: {
         Args: { p_blocked_id: string; p_reason?: string }
         Returns: Json
@@ -2309,9 +2416,14 @@ export type Database = {
       promo_active: { Args: never; Returns: boolean }
       promo_window: { Args: never; Returns: Json }
       prune_visits: { Args: { p_keep_days?: number }; Returns: number }
+      public_nanny_columns: { Args: never; Returns: string[] }
       publish_job_from_requirements: {
         Args: { p_family_id: string }
         Returns: string
+      }
+      record_conversation_read: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
       }
       record_email_result: {
         Args: {
@@ -2322,7 +2434,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      record_conversation_read: { Args: { p_conversation_id: string }; Returns: undefined }
       record_event: {
         Args: {
           p_event: string
@@ -2352,6 +2463,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      redact_contact_details: { Args: { p_text: string }; Returns: string }
       refresh_matches: { Args: { p_family_id?: string }; Returns: number }
       report_content: {
         Args: {
@@ -2382,7 +2494,12 @@ export type Database = {
         Returns: Json
       }
       submit_nanny_profile: { Args: never; Returns: Json }
+      tell_about_redaction: {
+        Args: { p_href: string; p_user_id: string }
+        Returns: undefined
+      }
       unblock_user: { Args: { p_blocked_id: string }; Returns: Json }
+      was_redacted: { Args: { p_text: string }; Returns: boolean }
     }
     Enums: {
       account_status: "active" | "suspended" | "deleted"

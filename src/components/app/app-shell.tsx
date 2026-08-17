@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { PromoBanner } from "@/components/promo/promo-banner";
 import { NotificationBell } from "@/components/notifications/bell";
 import { InstallHint } from "@/components/app/install-hint";
+import { PushPrompt } from "@/components/notifications/push-prompt";
 import { getNotifications } from "@/lib/notifications/read";
 import { getSession } from "@/lib/auth/dal";
 import {
@@ -117,6 +118,11 @@ export async function AppShell({
         {/* Signed in only. Somebody still deciding whether to sign up does not
             need to be asked to install anything. */}
         <InstallHint />
+        {/* Only one of these two ever renders. On iOS push does not exist until
+            the site is on the home screen, so there the hint speaks and this
+            stays quiet; once installed, the API appears and this asks. Two
+            requests stacked on one screen is how both get dismissed. */}
+        <PushPrompt />
         {children}
       </main>
 
