@@ -9,6 +9,7 @@ import type { ThreadDetail } from "@/lib/messaging/queries";
 import { Button } from "@/components/ui/button";
 import { ReportButton } from "@/components/safety/report-button";
 import { BlockButton } from "@/components/safety/block-button";
+import { PhrasePills } from "@/components/ui/phrase-pills";
 
 /**
  * A conversation, built like a phone chat rather than a page with a form.
@@ -22,9 +23,12 @@ import { BlockButton } from "@/components/safety/block-button";
 export function ThreadView({
   thread,
   backHref,
+  quickReplies,
 }: {
   thread: ThreadDetail;
   backHref: string;
+  /** Tap-to-draft questions above the composer; the family side passes them. */
+  quickReplies?: string[];
 }) {
   const [state, action] = useActionState<{ error?: string }, FormData>(sendMessageAction, {});
   const router = useRouter();
@@ -185,6 +189,16 @@ export function ThreadView({
             This conversation is blocked. Neither of you can send messages.
           </p>
         ) : (
+          <>
+          {quickReplies && quickReplies.length > 0 && (
+            <div className="px-3 pt-2.5">
+              <PhrasePills
+                targetId="thread-composer"
+                phrases={quickReplies}
+                mode="replace"
+              />
+            </div>
+          )}
           <form
             ref={formRef}
             action={(formData) => {
@@ -200,6 +214,7 @@ export function ThreadView({
           >
             <input type="hidden" name="conversationId" value={thread.id} />
             <textarea
+              id="thread-composer"
               name="body"
               rows={1}
               placeholder="Write a message"
@@ -222,6 +237,7 @@ export function ThreadView({
               <Send className="size-[1.15rem]" aria-hidden />
             </Button>
           </form>
+          </>
         )}
 
         {state.error && (

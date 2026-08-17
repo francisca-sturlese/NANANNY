@@ -18,5 +18,20 @@ export default async function FamilyThreadPage({
   const thread = await loadThread(user, id);
   if (!thread) notFound();
 
-  return <ThreadView thread={thread} backHref="/family/messages" />;
+  // The questions every first conversation asks anyway, one tap instead of
+  // typed from scratch. Founder-approved list; a tap drafts, never sends.
+  return (
+    <ThreadView
+      thread={thread}
+      backHref="/family/messages"
+      quickReplies={[
+        "Are you still available?",
+        "Where in the UAE do you live?",
+        "What is your visa status?",
+        "What salary are you expecting?",
+        "When can you start?",
+        "Could we do a quick video call?",
+      ]}
+    />
+  );
 }

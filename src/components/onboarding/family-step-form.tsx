@@ -17,6 +17,7 @@ import {
   LANGUAGES,
   WORKING_DAYS,
 } from "@/lib/uae";
+import { PhrasePills } from "@/components/ui/phrase-pills";
 
 type Profile = {
   display_name: string | null;
@@ -192,12 +193,29 @@ export function FamilyStepForm({
             hint="Optional now, but families who write a few lines get better replies."
             error={err.description}
           >
-            <Textarea
-              id="description"
-              name="description"
-              defaultValue={profile?.description ?? ""}
-              placeholder="We're a family of four in Dubai Hills. Both parents work weekdays and we're looking for someone warm and reliable to be part of our routine."
-            />
+            <div className="space-y-2.5">
+              {/* The blank box is where people stall; a few taps write a
+                  perfectly good first draft and every word stays editable. */}
+              <PhrasePills
+                targetId="description"
+                label="Tap to build it, edit anything:"
+                phrases={[
+                  "We're a warm and easygoing family",
+                  "Both parents work weekdays",
+                  "Our children love being outdoors",
+                  "We'd like help with school runs",
+                  "Light housekeeping would be appreciated",
+                  "We treat our nanny as part of the family",
+                  "We value punctuality and clear communication",
+                ]}
+              />
+              <Textarea
+                id="description"
+                name="description"
+                defaultValue={profile?.description ?? ""}
+                placeholder="We're a family of four in Dubai Hills. Both parents work weekdays and we're looking for someone warm and reliable to be part of our routine."
+              />
+            </div>
           </Field>
         </>
       )}
