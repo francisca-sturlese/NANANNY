@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 189 SQL checks across nineteen suites
+npm run test:db        # 192 SQL checks across nineteen suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -89,6 +89,13 @@ the answer is optional, and the constraint lives downstream in review, badges
 and ordering rather than upstream in the form. A revoke can break signing up
 without anybody noticing, so `privacy_rls.sql` checks the write side next to the
 read side.
+
+**A table created in `public` is born closed to `anon`.** PostgreSQL grants
+SELECT by default, which is how `publishing_config` was readable by strangers on
+the day it was created. An event trigger revokes it at creation, the same way
+`close_new_functions` handles functions: a one-time migration fixes one object,
+only changing the default fixes the category. A table meant to be public is
+opened deliberately, in `anon_readable()`.
 
 **A stranger reads two tables, by column, and nothing else.** `jobs` and
 `nanny_profiles`, listed in `anon_readable()`, which sets the grants and checks

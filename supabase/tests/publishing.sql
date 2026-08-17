@@ -167,4 +167,90 @@ begin
   end if;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- 7. A person acting on purpose beats the rule
+-- ---------------------------------------------------------------------------
+-- Putting a published profile back to draft stopped working the day the trigger
+-- landed: it saw a draft above the threshold and republished it inside the same
+-- statement. The automation is for people nobody is attending to, and somebody
+-- deliberately attending to a profile knows more than a threshold does.
+do $$
+declare v_id uuid; st text; result jsonb;
+begin
+  update public.publishing_config set enabled = true where id;
+
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                          email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+                          created_at, updated_at)
+  values ('6e444444-4444-4444-8444-44444444444e', '00000000-0000-0000-0000-000000000000',
+          'authenticated', 'authenticated', 'hide-me@real.example', '', now(),
+          '{}'::jsonb, '{"role":"nanny","first_name":"Hide"}'::jsonb, now(), now());
+
+  insert into public.nanny_profiles (user_id, status, first_name, emirate,
+                                     years_experience, languages, english_level,
+                                     photo_url, nationality, date_of_birth, description)
+  values ('6e444444-4444-4444-8444-44444444444e', 'draft', 'Hide', 'Dubai', 3,
+          array['English'], 'fluent', 'x/y.jpg', 'Kenyan', '1995-01-01',
+          'Complete enough to be published.')
+  returning id into v_id;
+
+  result := public.ops_set_nanny_status(v_id, 'draft', 'hidden at her request while she travels');
+  select status into st from public.nanny_profiles where id = v_id;
+
+  if st = 'draft' and (result ->> 'to') = 'draft' then
+    raise notice 'PASS 7  an operator can take a published profile down again';
+  else
+    raise notice 'FAIL 7  status % result %', st, result;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 8. And that hiding lasts until she next edits, which is a limitation
+-- ---------------------------------------------------------------------------
+-- Pinned rather than fixed, so nobody discovers it by relying on it. `draft`
+-- means "not finished, and she has not asked to be shown", and it is being
+-- borrowed here to mean "hidden on purpose". The borrowing works for an
+-- afternoon and stops working the moment she edits anything. If hiding somebody
+-- indefinitely is ever a real need, it wants a state of its own rather than a
+-- cleverer trigger.
+do $$
+declare v_id uuid; st text;
+begin
+  select id into v_id from public.nanny_profiles
+   where user_id = '6e444444-4444-4444-8444-44444444444e';
+
+  update public.nanny_profiles set description = 'she comes back and edits it'
+   where id = v_id;
+
+  select status into st from public.nanny_profiles where id = v_id;
+
+  if st = 'submitted' then
+    raise notice 'PASS 8  her next edit republishes her, which is the known limit of this';
+  else
+    raise notice 'FAIL 8  stayed %, so the limitation has changed and the note is stale', st;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 9. A table created from now on is closed to a stranger
+-- ---------------------------------------------------------------------------
+-- `publishing_config` was readable by anon on the day it was created, because
+-- PostgreSQL grants that by default and nobody had said otherwise. A one-time
+-- revoke fixes one table; only changing the default fixes the category.
+do $$
+declare cols int;
+begin
+  create table public.a_table_created_now (id int primary key, secret text);
+
+  select count(*) into cols from information_schema.column_privileges
+   where table_schema = 'public' and table_name = 'a_table_created_now'
+     and grantee = 'anon' and privilege_type = 'SELECT';
+
+  if not has_table_privilege('anon', 'public.a_table_created_now', 'SELECT') and cols = 0 then
+    raise notice 'PASS 9  a table created now is born closed to a stranger';
+  else
+    raise notice 'FAIL 9  readable, with % column grants', cols;
+  end if;
+end $$;
+
 rollback;
