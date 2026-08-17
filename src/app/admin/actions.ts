@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { sendEmail } from "@/lib/email/send";
+import { createServiceClient } from "@/lib/supabase/service";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/dal";
@@ -393,6 +395,88 @@ export async function updateSupportRequestAction(
 
   revalidatePath("/admin/support");
   return { message: "Updated." };
+}
+
+const supportReplySchema = z.object({
+  requestId: z.string().uuid(),
+  reply: z.string().trim().min(1, "Write the reply first.").max(5000),
+});
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/**
+ * Reply to a support request from the panel.
+ *
+ * The admin writes every word; nothing is composed for them. The mail goes to
+ * the address on the request, the send is recorded in email_events like every
+ * other mail this product sends, and the request moves to answered through the
+ * same audited function the buttons use.
+ */
+export async function replySupportRequestAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = supportReplySchema.safeParse({
+    requestId: formData.get("requestId"),
+    reply: formData.get("reply"),
+  });
+  if (!parsed.success) return { error: "Write the reply first." };
+
+  const service = createServiceClient();
+  const { data: request } = await service
+    .from("support_requests")
+    .select("id, user_id, contact_email, contact_name, subject")
+    .eq("id", parsed.data.requestId)
+    .maybeSingle();
+  if (!request) return { error: "Request not found." };
+
+  const subject = request.subject?.trim()
+    ? `Re: ${request.subject.trim()}`
+    : "Re: your message to NaNanny";
+  const bodyText = `${parsed.data.reply}\n\nNaNanny Support\nsupport@nananny.com`;
+  const bodyHtml = `<p>${escapeHtml(parsed.data.reply).replace(/\n/g, "<br>")}</p><p style="color:#666">NaNanny Support · support@nananny.com</p>`;
+
+  const result = await sendEmail({
+    to: request.contact_email,
+    subject,
+    html: bodyHtml,
+    text: bodyText,
+    replyTo: "support@nananny.com",
+  });
+
+  await service.from("email_events").insert({
+    user_id: request.user_id,
+    email_type: "support_reply",
+    recipient: request.contact_email,
+    subject,
+    status: result.ok ? "sent" : "failed",
+    provider: "resend",
+    provider_message_id: result.ok ? result.id : null,
+    error: result.ok ? null : ("error" in result ? String(result.error) : "skipped"),
+    idempotency_key: `support_reply:${request.id}:${Date.now()}`,
+    sent_at: result.ok ? new Date().toISOString() : null,
+    metadata: { request_id: request.id },
+  });
+
+  if (!result.ok) {
+    return { error: "The email could not be sent. Nothing was marked answered." };
+  }
+
+  const supabase = await createServerSupabase();
+  await supabase.rpc("admin_update_support_request", {
+    p_request_id: request.id,
+    p_status: "answered",
+  });
+
+  revalidatePath("/admin/support");
+  return { message: `Reply sent to ${request.contact_email}.` };
 }
 
 // ---------------------------------------------------------------------------

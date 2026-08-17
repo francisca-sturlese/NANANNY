@@ -137,7 +137,11 @@ export default async function AdminSupportPage({
                   )}
                 </div>
 
-                <SupportRequestActions requestId={request.id} status={request.status} />
+                <SupportRequestActions
+                  requestId={request.id}
+                  status={request.status}
+                  contactEmail={request.contact_email}
+                />
               </div>
             </li>
           ))}

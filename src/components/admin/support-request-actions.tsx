@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { updateSupportRequestAction } from "@/app/admin/actions";
+import { updateSupportRequestAction, replySupportRequestAction } from "@/app/admin/actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/field";
@@ -16,15 +16,23 @@ import { SubmitButton, FormError, FormMessage } from "@/components/auth/form-par
 export function SupportRequestActions({
   requestId,
   status,
+  contactEmail,
 }: {
   requestId: string;
   status: string;
+  /** Where the reply goes; shown so the admin knows before they write. */
+  contactEmail?: string;
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     updateSupportRequestAction,
     {},
   );
+  const [replyState, replyAction] = useActionState<ActionState, FormData>(
+    replySupportRequestAction,
+    {},
+  );
   const [noting, setNoting] = useState(false);
+  const [replying, setReplying] = useState(false);
 
   return (
     <div className="w-full max-w-xs space-y-2">
@@ -56,10 +64,32 @@ export function SupportRequestActions({
             </SubmitButton>
           </form>
         )}
+        {contactEmail && status !== "closed" && (
+          <Button size="sm" onClick={() => setReplying((v) => !v)}>
+            {replying ? "Cancel reply" : "Reply"}
+          </Button>
+        )}
         <Button size="sm" variant="ghost" onClick={() => setNoting((v) => !v)}>
           {noting ? "Cancel" : "Note"}
         </Button>
       </div>
+
+      {replying && contactEmail && (
+        <form action={replyAction} className="space-y-2">
+          <input type="hidden" name="requestId" value={requestId} />
+          <Textarea
+            name="reply"
+            required
+            className="min-h-24 text-sm"
+            placeholder={`Your reply. It is emailed to ${contactEmail} exactly as written.`}
+          />
+          <SubmitButton size="sm" pendingLabel="Sending…">
+            Send reply
+          </SubmitButton>
+          <FormError message={replyState.error} />
+          <FormMessage message={replyState.message} />
+        </form>
+      )}
 
       {noting && (
         <form action={action} className="space-y-2">
