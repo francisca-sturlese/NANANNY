@@ -190,7 +190,7 @@ export function FamilyStepForm({
           <Field
             label="A little about your family"
             htmlFor="description"
-            hint="Optional now, but families who write a few lines get better replies."
+            hint="Optional now, but families who write a few lines get better replies. Leave out phone numbers and emails: they are removed automatically, and nannies reply to you here on NaNanny."
             error={err.description}
           >
             <div className="space-y-2.5">
