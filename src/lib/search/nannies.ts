@@ -181,6 +181,12 @@ export async function searchNannies(filters: NannyFilters): Promise<{
     if (skillColumn[skill]) query = query.eq(skillColumn[skill], true);
   }
 
+  // A face outranks a placeholder in every sort, before the sort itself:
+  // with half-finished profiles published to fill the window, the top rows
+  // must not be a wall of brand marks. `has_photo` is generated in the
+  // database from photo_url.
+  query = query.order("has_photo", { ascending: false });
+
   switch (filters.sort) {
     case "experience":
       query = query.order("years_experience", { ascending: false });
