@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 183 SQL checks across eighteen suites
+npm run test:db        # 189 SQL checks across nineteen suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -71,6 +71,15 @@ optimistic cookie check.
 
 **Server Actions are public endpoints.** Every one validates its own input and
 re-checks the caller's role. The route guard is not a substitute.
+
+**A profile publishes itself when it is complete enough.** Federico's rule, at
+fifty per cent, in `publishing_config` so the number and the switch are changed
+from a screen rather than by a release. A BEFORE trigger on `nanny_profiles`,
+firing on the inner write where `profile_completion` is recomputed, so it
+publishes the moment she crosses the line instead of up to an hour later. Only
+ever draft to submitted: approved and rejected are decisions a person made and
+nothing automatic undoes one. See
+`20260817100000_publish_when_complete_enough.sql`.
 
 **No friction in registering a profile.** Federico's standing instruction, and
 it is why zero years of experience is valid, why a profile publishes at half
