@@ -11,6 +11,8 @@ import { PhotoInput } from "@/components/ui/photo-input";
 import { VISA_STATUSES } from "@/lib/nanny/visa";
 import { ChoiceCard, ChoiceGroup, PillCheckbox, PillGroup } from "@/components/ui/choice";
 import { FormError } from "@/components/auth/form-parts";
+import { PhrasePills } from "@/components/ui/phrase-pills";
+import { NANNY_ABOUT_PHRASES } from "@/lib/nanny/about-phrases";
 import {
   AREAS,
   EMIRATES,
@@ -525,6 +527,14 @@ export function NannyStepForm({
             />
           </Field>
 
+          {/* Pills first, and the box stays.
+              This field is where real people stopped: two nannies reached it
+              and left, and it is what keeps a profile off the search page for
+              days. Tapping four phrases produces something a family will read,
+              so nobody has to face a blank box in a second language. The box is
+              still there and still editable, because pills alone produce
+              fifteen profiles that read the same, and a profile that reads like
+              the last one is not a fast profile, it is one nobody opens. */}
           <Field
             label="Tell families about yourself"
             htmlFor="description"
@@ -532,16 +542,26 @@ export function NannyStepForm({
             /* The reason is given before the removal happens, so it reads as
                looking after her rather than as censorship. She is not doing
                anything wrong: she is doing what every other board asks for. */
-            hint="This is the part families read most closely. Write as you'd speak. Leave out your phone number and email: they are removed automatically, and families message you through NaNanny so you keep a record and can stop anyone at any time."
+            hint="Tap the ones that are true for you, then change the words if you want. Leave out your phone number and email: they are removed automatically, and families message you through NaNanny so you keep a record and can stop anyone at any time."
             error={err.description}
           >
+            <div className="mb-3 space-y-3">
+              {NANNY_ABOUT_PHRASES.map((group) => (
+                <PhrasePills
+                  key={group.label}
+                  targetId="description"
+                  label={group.label}
+                  phrases={group.phrases}
+                />
+              ))}
+            </div>
             <Textarea
               id="description"
               name="description"
               defaultValue={profile?.description ?? ""}
               className="min-h-44"
               required
-              placeholder="I've looked after children in Dubai for eight years, mostly toddlers and school-age. I love cooking with children and I'm calm about the messy parts. I'm looking for a family I can stay with long term."
+              placeholder="Tap a few above to start, or write it yourself."
             />
           </Field>
 

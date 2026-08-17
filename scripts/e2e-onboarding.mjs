@@ -327,6 +327,61 @@ if (nannyLink) {
    * a form with no action has neither. That is the difference between the bug
    * and a working step, with nothing in between.
    */
+  /**
+   * Four taps make a profile, without typing a word.
+   *
+   * The blank About box is where real people stopped: two nannies reached it
+   * and left, and it is what keeps a profile off the search page for days. What
+   * has to hold is that somebody with little English and no patience for a
+   * blank page can still produce something a family would read, and that the
+   * box stays hers to change.
+   */
+  await page.goto("/nanny/onboarding/story");
+  const about = page.locator('textarea[name="description"]');
+  await about.fill("");
+
+  const taps = [
+    "I am a nanny living in the UAE",
+    "I have looked after toddlers",
+    "I am calm when things get busy",
+    "I am looking for a family I can stay with for a long time",
+  ];
+  for (const phrase of taps) {
+    await page.getByRole("button", { name: phrase, exact: true }).click();
+    await page.waitForTimeout(120);
+  }
+
+  const composed = await about.inputValue();
+  check(
+    "four taps compose a profile without typing",
+    taps.every((t) => composed.includes(t)) && composed.split(". ").length >= 4,
+    composed.slice(0, 80),
+  );
+  check(
+    "a phrase already used stops being offered",
+    (await page.getByRole("button", { name: taps[1], exact: true }).count()) === 0,
+  );
+  check(
+    "and the box is still hers to change",
+    !(await about.isDisabled()) && !(await about.getAttribute("readonly")),
+  );
+
+  /**
+   * No digits anywhere in the phrases.
+   *
+   * Contact details are stripped from this field by a trigger, and a run of
+   * nine or more digits is read as a phone number. A phrase carrying one would
+   * be mangled between being tapped and being saved, which is the kind of fault
+   * nobody would think to look for.
+   */
+  const pillTexts = await page.locator("form button[type='button']").allInnerTexts();
+  const withDigits = pillTexts.filter((t) => /[0-9]/.test(t));
+  check(
+    "no phrase carries a number the redaction would eat",
+    withDigits.length === 0,
+    withDigits.join(" | "),
+  );
+
   for (const slug of ["about", "experience", "skills", "availability", "story", "documents"]) {
     await page.goto(`/nanny/onboarding/${slug}`);
 

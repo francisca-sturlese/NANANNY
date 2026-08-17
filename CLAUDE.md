@@ -21,7 +21,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 
 ```bash
 npm run test:db        # 201 SQL checks across twenty suites
-npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
+npm run test:e2e       # 39 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
                        # and the free contact claim on every page that makes it
@@ -80,6 +80,16 @@ publishes the moment she crosses the line instead of up to an hour later. Only
 ever draft to submitted: approved and rejected are decisions a person made and
 nothing automatic undoes one. See
 `20260817100000_publish_when_complete_enough.sql`.
+
+**The About box is pills first, and the box stays.** It is where real people
+stopped: two nannies reached the blank field and left, and it is what keeps a
+profile off the search page for days. Four taps compose something a family will
+read, so nobody faces an empty box in a second language. Removing the box
+entirely was the first proposal and would have produced fifteen profiles that
+read the same, which is not a fast profile but one nobody opens. Phrases live in
+`lib/nanny/about-phrases.ts`, grouped so that one tap from each group in order
+makes a whole introduction, and none of them contains a digit because the
+redaction trigger would eat it.
 
 **No friction in registering a profile.** Federico's standing instruction, and
 it is why zero years of experience is valid, why a profile publishes at half
