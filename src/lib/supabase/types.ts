@@ -1227,6 +1227,7 @@ export type Database = {
           first_name: string | null
           gender: string | null
           has_driving_licence: boolean
+          has_photo: boolean | null
           headline: string | null
           hourly_rate_min_aed: number | null
           id: string
@@ -1282,6 +1283,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           has_driving_licence?: boolean
+          has_photo?: boolean | null
           headline?: string | null
           hourly_rate_min_aed?: number | null
           id?: string
@@ -1337,6 +1339,7 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           has_driving_licence?: boolean
+          has_photo?: boolean | null
           headline?: string | null
           hourly_rate_min_aed?: number | null
           id?: string
@@ -2095,8 +2098,6 @@ export type Database = {
         Args: { p_document_id: string; p_reviewed?: boolean }
         Returns: Json
       }
-      admin_traffic: { Args: { p_days?: number }; Returns: Json }
-      admin_traffic_sources: { Args: { p_days?: number }; Returns: Json }
       admin_metrics: { Args: never; Returns: Json }
       admin_resolve_report: {
         Args: {
@@ -2147,6 +2148,8 @@ export type Database = {
         Returns: Json
       }
       admin_stalled_signups: { Args: never; Returns: Json }
+      admin_traffic: { Args: { p_days?: number }; Returns: Json }
+      admin_traffic_sources: { Args: { p_days?: number }; Returns: Json }
       admin_update_pricing: {
         Args: {
           p_free_contacts: number
@@ -2294,28 +2297,18 @@ export type Database = {
         Args: { p_conversation_id: string; p_sender_id: string }
         Returns: Json
       }
+      ops_set_nanny_status: {
+        Args: {
+          p_nanny_id: string
+          p_reason: string
+          p_status: Database["public"]["Enums"]["nanny_profile_status"]
+        }
+        Returns: Json
+      }
       phone_already_registered: { Args: { p_phone: string }; Returns: boolean }
       promo_active: { Args: never; Returns: boolean }
-      prune_visits: { Args: { p_keep_days?: number }; Returns: number }
-      record_event: {
-        Args: {
-          p_event: string
-          p_properties?: Json
-          p_user_id?: string
-          p_visitor?: string
-        }
-        Returns: undefined
-      }
-      record_visit: {
-        Args: {
-          p_path: string
-          p_source: string
-          p_visitor: string
-          p_user_id?: string
-        }
-        Returns: undefined
-      }
       promo_window: { Args: never; Returns: Json }
+      prune_visits: { Args: { p_keep_days?: number }; Returns: number }
       publish_job_from_requirements: {
         Args: { p_family_id: string }
         Returns: string
@@ -2329,6 +2322,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      record_event: {
+        Args: {
+          p_event: string
+          p_properties?: Json
+          p_user_id?: string
+          p_visitor?: string
+        }
+        Returns: undefined
+      }
       record_payment: {
         Args: {
           p_amount_aed: number
@@ -2339,6 +2341,15 @@ export type Database = {
           p_status: Database["public"]["Enums"]["payment_status"]
         }
         Returns: Json
+      }
+      record_visit: {
+        Args: {
+          p_path: string
+          p_source: string
+          p_user_id?: string
+          p_visitor: string
+        }
+        Returns: undefined
       }
       refresh_matches: { Args: { p_family_id?: string }; Returns: number }
       report_content: {
