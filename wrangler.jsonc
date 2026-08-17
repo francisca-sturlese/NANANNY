@@ -30,7 +30,8 @@
   // Found live on the 16th, two real application emails skipped before it was.
   "vars": {
     "EMAIL_FROM": "NaNanny UAE <hello@nananny.com>",
-    "EMAIL_REPLY_TO_BILLING": "billing@nananny.com"
+    "EMAIL_REPLY_TO_BILLING": "billing@nananny.com",
+    "VAPID_SUBJECT": "mailto:hello@nananny.com"
   },
   "routes": [
     { "pattern": "nananny.com", "custom_domain": true },
