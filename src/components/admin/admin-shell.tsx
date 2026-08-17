@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogoMark, Logo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
@@ -25,12 +26,12 @@ const SECTIONS = [
  * mostly at a desk, but it still has to work on a phone: a report does not wait
  * for someone to get back to their laptop.
  */
-export function AdminShell({
+export async function AdminShell({
   active,
   name,
-  pendingReview = 0,
-  openReports = 0,
-  openSupport = 0,
+  pendingReview,
+  openReports,
+  openSupport,
   children,
 }: {
   active: string;
@@ -40,10 +41,34 @@ export function AdminShell({
   openSupport?: number;
   children: React.ReactNode;
 }) {
+  /**
+   * The badges are fetched here, not passed in. When only the Support page
+   * passed its count, the "1" appeared only after you had already clicked
+   * Support, which is a notification that arrives after you no longer need
+   * it. Three head-only counts per admin page view is the price of a rail
+   * that tells the truth everywhere; a page that already computed a fresher
+   * number can still pass it and win.
+   */
+  const supabase = await createServerSupabase();
+  const [reviewRes, reportsRes, supportRes] = await Promise.all([
+    supabase
+      .from("nanny_profiles")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["submitted", "under_review"]),
+    supabase
+      .from("reports")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "open"),
+    supabase
+      .from("support_requests")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["open", "in_progress"]),
+  ]);
+
   const counts: Record<string, number> = {
-    "/admin/review": pendingReview,
-    "/admin/reports": openReports,
-    "/admin/support": openSupport,
+    "/admin/review": pendingReview ?? reviewRes.count ?? 0,
+    "/admin/reports": openReports ?? reportsRes.count ?? 0,
+    "/admin/support": openSupport ?? supportRes.count ?? 0,
   };
 
   return (
