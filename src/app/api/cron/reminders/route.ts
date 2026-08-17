@@ -50,7 +50,7 @@ export async function POST(request: Request): Promise<Response> {
     user_id: string;
     email: string;
     name: string;
-    reason: "unread" | "nudge_family" | "nudge_nanny";
+    reason: "unread" | "nudge_family" | "nudge_nanny" | "waiting_apps";
     conversations: number;
     messages: number;
     dedupe_key: string;

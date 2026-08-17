@@ -291,7 +291,7 @@ export function reminderEmail(params: {
    * with a placeholder in it.
    */
   name?: string | null;
-  reason: "unread" | "nudge_family" | "nudge_nanny";
+  reason: "unread" | "nudge_family" | "nudge_nanny" | "waiting_apps";
   conversations: number;
   messages: number;
   /**
@@ -327,13 +327,28 @@ export function reminderEmail(params: {
    */
   unsubscribeUrl?: string | null;
 }): { subject: string; html: string; text: string } {
-  const link = absoluteUrl("/account");
+  // A family with applications waiting lands where they are listed, not on
+  // account settings.
+  const link =
+    params.reason === "waiting_apps" ? absoluteUrl("/family") : absoluteUrl("/account");
 
   const named = params.name?.trim();
   const greeting = named && named.toLowerCase() !== "there" ? `Hello ${named},` : null;
 
   const copy =
-    params.reason === "unread"
+    params.reason === "waiting_apps"
+      ? {
+          subject:
+            params.messages === 1
+              ? "A nanny is still waiting to hear from you"
+              : `${params.messages} nannies are still waiting to hear from you`,
+          line:
+            params.messages === 1
+              ? "You have an application waiting on your job post. A nanny who waits too long usually takes another job, and a quick yes or no keeps the good ones interested."
+              : `You have ${params.messages} applications waiting${params.conversations === 1 ? " on your job post" : ` across ${params.conversations} job posts`}. A nanny who waits too long usually takes another job, and a quick yes or no keeps the good ones interested.`,
+          button: "Review applications",
+        }
+      : params.reason === "unread"
       ? {
           subject:
             params.messages === 1
