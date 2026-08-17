@@ -47,8 +47,38 @@ export default async function NannyProfilePage() {
   const step = (slug: string) => `/nanny/onboarding/${slug}`;
   const live = profile.status === "approved";
 
+  /**
+   * Whether we edited her words, and therefore owe her an explanation.
+   *
+   * The form warns before somebody types, which covers everybody arriving from
+   * today. It does nothing for the nanny whose advert was cleaned this morning:
+   * from where she is standing, her text changed and nobody said why. Finding
+   * "[number removed]" in your own profile with no explanation reads as being
+   * told off by a machine.
+   */
+  const wasRedacted = [profile.description, profile.headline].some(
+    (text) =>
+      typeof text === "string" &&
+      (text.includes("[number removed]") || text.includes("[email removed]")),
+  );
+
   return (
     <AppShell nav={NANNY_NAV} active="/nanny/profile" name="Profile">
+      {wasRedacted && (
+        <div className="mb-5 rounded-md border border-sage bg-sage-wash px-4 py-3.5">
+          <h2 className="text-sm font-semibold text-sage-deep">
+            We took your phone number out of your profile
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-sage-deep/90">
+            Not because you did anything wrong. Your profile can be read by
+            anyone, including people who are not looking to hire, and a phone
+            number on a public page is how the wrong calls start. Families message
+            you here instead, you keep a record of who wrote to you, and you can
+            stop anyone at any time. Nothing else about your profile changed.
+          </p>
+        </div>
+      )}
+
       <div className="flex items-start gap-4">
         {photoUrl ? (
           <img

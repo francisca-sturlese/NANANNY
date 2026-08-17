@@ -176,4 +176,46 @@ begin
   end if;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- 8. A family's own free text, which was left out for no reason
+-- ---------------------------------------------------------------------------
+-- Smaller than a nanny publishing hers, and the same problem: a home phone on a
+-- public page, and no record of who contacted whom.
+do $$
+declare stored text; v_user uuid;
+begin
+  select user_id into v_user from public.family_profiles limit 1;
+
+  update public.family_profiles
+     set description = 'We are lovely. Ring us on 0555816563 or family@example.com'
+   where user_id = v_user;
+
+  select description into stored from public.family_profiles where user_id = v_user;
+
+  if stored not like '%0555816563%' and stored not like '%@example.com%' then
+    raise notice 'PASS 8  a family cannot leave its number in its own description';
+  else
+    raise notice 'FAIL 8  %', stored;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 9. And we can tell whose text we edited, so we can say so
+-- ---------------------------------------------------------------------------
+-- The form warns before somebody types, which covers everybody arriving from
+-- today and nobody whose advert was cleaned this morning. Finding "[number
+-- removed]" in your own profile with no explanation reads as being told off by
+-- a machine.
+do $$
+begin
+  if public.was_redacted('call me on [number removed]')
+     and public.was_redacted('write to [email removed]')
+     and not public.was_redacted('a perfectly ordinary sentence about children')
+  then
+    raise notice 'PASS 9  the person whose text was edited can be told why';
+  else
+    raise notice 'FAIL 9  was_redacted does not distinguish';
+  end if;
+end $$;
+
 rollback;

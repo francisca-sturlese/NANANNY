@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 199 SQL checks across twenty suites
+npm run test:db        # 201 SQL checks across twenty suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -322,7 +322,10 @@ not only on the page, and a woman looking for work abroad with her number in
 public is the one who gets the calls nobody wants. `redact_contact_details()`
 runs in a trigger, where the text is stored rather than where it is shown:
 hiding it at render leaves it in every API response. Nine digits, not seven, so
-"08.00 to 17.00" and a date survive. The forms say so before somebody types.
+"08.00 to 17.00" and a date survive. The forms say so before somebody types, and
+the person whose text was already edited is told on her own profile: finding
+"[number removed]" in your own words with no explanation reads as being told off
+by a machine.
 
 **An email never carries text another user typed.** The new message email says
 a message arrived and links to it, and counts rather than names, because it is
