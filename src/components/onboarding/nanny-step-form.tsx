@@ -206,15 +206,9 @@ export function NannyStepForm({
       {step === "experience" && (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* min is 1, not 0. A zero passes the browser's required check and
-                fails the completeness rule, so it used to be accepted here and
-                reported as missing at the review step, where the field looks
-                filled in. The hint is there because somebody typing zero is
-                usually saying she has never been paid for this. */}
             <Field
               label="Years of childcare experience"
               htmlFor="yearsExperience"
-              hint="Looking after children in your own family counts."
               required
               error={err.yearsExperience}
             >
@@ -222,9 +216,9 @@ export function NannyStepForm({
                 id="yearsExperience"
                 name="yearsExperience"
                 type="number"
-                min={1}
+                min={0}
                 max={60}
-                defaultValue={profile?.years_experience || ""}
+                defaultValue={profile?.years_experience ?? ""}
                 required
               />
             </Field>

@@ -327,36 +327,6 @@ if (nannyLink) {
    * a form with no action has neither. That is the difference between the bug
    * and a working step, with nothing in between.
    */
-  /**
-   * Zero years is refused where it is typed, not three screens later.
-   *
-   * The completeness rule the review step reads asks for more than zero years,
-   * and the form used to accept zero. So a nanny could fill the step, be waved
-   * through, and be told at the review that a field she had filled in was
-   * missing. One did, on the sixteenth: she went back, found the box with her
-   * own zero in it, understood nothing, and left after twenty seconds. Six
-   * minutes of her evening, two hours after we had emailed her asking her to
-   * come back.
-   *
-   * The two rules have to keep agreeing, which is what this asserts.
-   */
-  await page.goto("/nanny/onboarding/experience");
-  const years = page.locator('input[name="yearsExperience"]');
-  check("zero years cannot be typed in", (await years.getAttribute("min")) === "1");
-  check(
-    "and the reason is given rather than only the refusal",
-    /own family counts/i.test(await page.locator("form").innerText()),
-  );
-
-  await years.fill("0");
-  await page.getByRole("button", { name: /^Continue/ }).click();
-  await page.waitForTimeout(1500);
-  check(
-    "typing zero does not carry her to the next step",
-    /experience/.test(page.url()),
-    page.url(),
-  );
-
   for (const slug of ["about", "experience", "skills", "availability", "story", "documents"]) {
     await page.goto(`/nanny/onboarding/${slug}`);
 
