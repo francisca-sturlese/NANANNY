@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LogoMark, Logo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { TabRail } from "@/components/admin/tab-rail";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { PushPrompt } from "@/components/notifications/push-prompt";
 import { cn } from "@/lib/utils";
 
@@ -94,40 +94,14 @@ export async function AdminShell({
           </div>
         </div>
 
-        <TabRail
-          label="Admin sections"
-          className="mx-auto flex max-w-6xl snap-x gap-1 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-4"
-        >
-          {SECTIONS.map((section) => {
-            const current = active === section.href;
-            const count = counts[section.href] ?? 0;
-            return (
-              <Link
-                key={section.href}
-                href={section.href}
-                aria-current={current ? "page" : undefined}
-                className={cn(
-                  "inline-flex min-h-11 shrink-0 snap-start items-center gap-1.5 rounded-pill px-3.5 text-sm font-medium transition-colors",
-                  current
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:bg-surface hover:text-foreground",
-                )}
-              >
-                {section.label}
-                {count > 0 && (
-                  <span
-                    className={cn(
-                      "grid size-5 place-items-center rounded-pill text-[0.625rem] font-semibold",
-                      current ? "bg-background/25" : "bg-peach text-peach-deep",
-                    )}
-                  >
-                    {count}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </TabRail>
+        <AdminNav
+          active={active}
+          sections={SECTIONS.map((section) => ({
+            href: section.href,
+            label: section.label,
+            count: counts[section.href] ?? 0,
+          }))}
+        />
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8"><PushPrompt />
