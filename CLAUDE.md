@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 201 SQL checks across twenty suites
+npm run test:db        # 203 SQL checks across twenty suites
 npm run test:e2e       # 39 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -333,9 +333,11 @@ public is the one who gets the calls nobody wants. `redact_contact_details()`
 runs in a trigger, where the text is stored rather than where it is shown:
 hiding it at render leaves it in every API response. Nine digits, not seven, so
 "08.00 to 17.00" and a date survive. The forms say so before somebody types, and
-the person whose text was already edited is told on her own profile: finding
-"[number removed]" in your own words with no explanation reads as being told off
-by a machine.
+the person is told by the redaction itself, in the same statement, so it cannot
+be forgotten: finding "[number removed]" in your own words with no explanation
+reads as being told off by a machine. Once per unread notification, so four
+edits in an afternoon are not four tellings, and again once she has read it,
+because never telling her twice would make the second time silent.
 
 **An email never carries text another user typed.** The new message email says
 a message arrived and links to it, and counts rather than names, because it is

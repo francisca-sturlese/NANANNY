@@ -218,4 +218,72 @@ begin
   end if;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- 10. The redaction tells her itself
+-- ---------------------------------------------------------------------------
+-- The first three people were told by rows inserted by hand, which worked
+-- because somebody was watching that morning. The fourth, next Tuesday, would
+-- have found "[number removed]" in her own words with no explanation.
+do $$
+declare v_user uuid; told int;
+begin
+  select user_id into v_user from public.nanny_profiles
+   where user_id = '6a999999-9999-4999-8999-99999999999a';
+
+  delete from public.notifications where user_id = v_user;
+
+  update public.nanny_profiles set description = 'I am calm and patient with children.'
+   where user_id = v_user;
+
+  select count(*) into told from public.notifications
+   where user_id = v_user and kind = 'contact_details_removed';
+
+  if told <> 0 then
+    raise notice 'FAIL 10  an ordinary edit told her something';
+    return;
+  end if;
+
+  update public.nanny_profiles set description = 'Ring me on 0555816563'
+   where user_id = v_user;
+  update public.nanny_profiles set description = 'Or WhatsApp +971 55 581 6563'
+   where user_id = v_user;
+
+  select count(*) into told from public.notifications
+   where user_id = v_user and kind = 'contact_details_removed';
+
+  if told = 1 then
+    raise notice 'PASS 10  she is told when it happens, and once for the same habit';
+  else
+    raise notice 'FAIL 10  % notifications', told;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 11. And again, once she has seen the first one
+-- ---------------------------------------------------------------------------
+-- Not telling her twice about the same edit is politeness. Never telling her
+-- again would mean the second time is silent, which is the failure the whole
+-- thing exists to stop.
+do $$
+declare v_user uuid; told int;
+begin
+  select user_id into v_user from public.nanny_profiles
+   where user_id = '6a999999-9999-4999-8999-99999999999a';
+
+  update public.notifications set read_at = now()
+   where user_id = v_user and kind = 'contact_details_removed';
+
+  update public.nanny_profiles set description = 'Really, call 0555816563'
+   where user_id = v_user;
+
+  select count(*) into told from public.notifications
+   where user_id = v_user and kind = 'contact_details_removed';
+
+  if told = 2 then
+    raise notice 'PASS 11  doing it again after reading the first tells her again';
+  else
+    raise notice 'FAIL 11  % notifications', told;
+  end if;
+end $$;
+
 rollback;
