@@ -101,7 +101,7 @@ export default async function AdminJobConversationsPage({
           No conversations started from this job yet.
         </p>
       ) : (
-        <ul className="mt-6 space-y-4">
+        <ul className="mt-6 divide-y divide-border rounded-lg border border-border bg-background">
           {rows.map((conversation) => {
             const nannyName =
               (conversation.nanny_profiles as { first_name?: string | null } | null)
@@ -110,33 +110,28 @@ export default async function AdminJobConversationsPage({
               a.created_at.localeCompare(b.created_at),
             );
             return (
-              <li
-                key={conversation.id}
-                className="rounded-lg border border-border bg-background p-4 sm:p-5"
-              >
-                {/* Closed by default: with many applicants this page holds
-                    many threads, and a wall of open transcripts stops being
-                    read. The header carries enough to decide which to open. */}
-                <details className="group">
-                  <summary className="tap-target flex cursor-pointer list-none flex-wrap items-center gap-2 [&::-webkit-details-marker]:hidden">
-                    <h2 className="font-semibold underline-offset-4 group-open:no-underline hover:underline">
-                      {familyName} ↔ {nannyName}
-                    </h2>
-                    <span className="text-xs text-muted">
-                      {messages.length} {messages.length === 1 ? "message" : "messages"}
+              <li key={conversation.id} className="px-4">
+                {/* One line per thread, closed: the page is an index first
+                    and a reader second. Density is what keeps fifty threads
+                    scannable. */}
+                <details className="group py-2.5">
+                  <summary className="tap-target flex cursor-pointer list-none items-baseline gap-2.5 [&::-webkit-details-marker]:hidden">
+                    <span className="truncate text-sm font-medium underline-offset-4 hover:underline group-open:no-underline">
+                      {nannyName}
                     </span>
-                    {messages.length > 0 && (
-                      <span className="text-xs text-subtle">
-                        last {new Date(messages[messages.length - 1].created_at).toLocaleString("en-GB")}
-                      </span>
-                    )}
+                    <span className="shrink-0 text-xs text-muted">
+                      {messages.length} msg
+                    </span>
                     {conversation.blocked_at && (
                       <Badge variant="peach" size="sm">
                         blocked
                       </Badge>
                     )}
-                    <span className="ml-auto text-xs text-muted group-open:hidden">open</span>
-                    <span className="ml-auto hidden text-xs text-muted group-open:inline">close</span>
+                    {messages.length > 0 && (
+                      <span className="ml-auto shrink-0 text-xs text-subtle">
+                        {new Date(messages[messages.length - 1].created_at).toLocaleDateString("en-GB")}
+                      </span>
+                    )}
                   </summary>
 
                 <ul className="mt-3 space-y-2">
