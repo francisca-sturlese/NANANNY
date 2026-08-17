@@ -11,6 +11,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge, VerificationBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
+import { ShareProfile } from "@/components/nanny/share-profile";
 
 export const metadata: Metadata = { title: "Your dashboard" };
 
@@ -130,6 +131,16 @@ export default async function NannyDashboard({
               .filter(Boolean)
               .join(" · ") || "Let's finish your profile"}
           </p>
+          {/* Only once families can actually open the link: sharing a hidden
+              profile hands out a dead end with her name on it. */}
+          {(DISCOVERABLE_STATUSES as readonly string[]).includes(profile.status) && (
+            <div className="mt-3">
+              <ShareProfile
+                url={`https://nananny.com/nannies/${profile.id}`}
+                name={profile.first_name}
+              />
+            </div>
+          )}
         </div>
       </div>
 
