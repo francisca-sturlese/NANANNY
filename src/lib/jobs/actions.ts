@@ -7,6 +7,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/dal";
 import type { ActionState } from "@/lib/auth/actions";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
+import { suggestJobTitle } from "@/lib/jobs/title";
 import { notifyApplicationReceived } from "@/lib/jobs/notify";
 
 /**
@@ -21,7 +22,14 @@ import { notifyApplicationReceived } from "@/lib/jobs/notify";
 const emptyToNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 
 const jobSchema = z.object({
-  title: z.string().trim().min(4, "Give the job a title").max(140),
+  /**
+   * Optional, and written from the answers when it is left empty.
+   *
+   * Asking for a title is asking somebody to name a thing they have not
+   * finished describing, in the first box on the page. Everything it needs is
+   * chosen from lists further down.
+   */
+  title: z.string().trim().max(140).optional(),
   emirate: z.string().trim().min(1, "Choose an emirate"),
   area: z.preprocess(emptyToNull, z.string().trim().max(120).nullable()),
   arrangement: z.enum(["live_in", "live_out", "either"]),
@@ -37,11 +45,16 @@ const jobSchema = z.object({
   salaryMin: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(100000).nullable()),
   salaryMax: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(100000).nullable()),
   childrenCount: z.coerce.number().int().min(0).max(12),
-  responsibilities: z
-    .string()
-    .trim()
-    .min(30, "Describe the day to day, at least a couple of sentences")
-    .max(4000),
+  /**
+   * Optional, against the instinct to require it.
+   *
+   * A post with nothing in this box is a worse post, and a family that stopped
+   * at it has posted nothing at all, which on the demand side of a marketplace
+   * with no demand is the more expensive of the two. The phrases in the form
+   * make three taps enough, and the standing instruction is that in doubt the
+   * answer is optional and the constraint lives downstream.
+   */
+  responsibilities: z.string().trim().max(4000).optional(),
   requiredExperience: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(40).nullable()),
   requiredLanguages: z.array(z.string()),
   skills: z.array(z.enum(["driving", "cooking", "housekeeping"])),
@@ -111,7 +124,22 @@ export async function saveJobAction(
 
   const row = {
     family_id: family.id,
-    title: d.title,
+    /**
+     * Composed here when the box was left empty, from the same function the
+     * form uses to show it. Two implementations would eventually disagree, and
+     * a title that differs between what somebody saw and what got saved is the
+     * kind of small wrongness nobody can explain afterwards.
+     */
+    title:
+      d.title && d.title.length > 0
+        ? d.title
+        : suggestJobTitle({
+            arrangement: d.arrangement,
+            employmentType: d.employmentType,
+            childrenCount: d.childrenCount,
+            emirate: d.emirate,
+            area: d.area,
+          }),
     emirate: d.emirate,
     area: d.area,
     arrangement: d.arrangement,

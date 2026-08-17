@@ -21,7 +21,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 
 ```bash
 npm run test:db        # 209 SQL checks across twenty two suites
-npm run test:e2e       # 39 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
+npm run test:e2e       # 39 + 30 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
                        # and the free contact claim on every page that makes it
@@ -80,6 +80,14 @@ publishes the moment she crosses the line instead of up to an hour later. Only
 ever draft to submitted: approved and rejected are decisions a person made and
 nothing automatic undoes one. See
 `20260817100000_publish_when_complete_enough.sql`.
+
+**A job post needs no writing at all.** The title is composed from the answers
+by `suggestJobTitle()`, shared between the form and the action so the two cannot
+disagree, and the description is tappable and optional. Both used to be required
+free text and both sat where people stop: the title is the first box and asks
+somebody to name a thing they have not finished describing, the description is
+the last one after a long form. A family that stops has posted nothing, which on
+the demand side of a marketplace with no demand is the expensive kind.
 
 **The About box is pills first, and the box stays.** It is where real people
 stopped: two nannies reached the blank field and left, and it is what keeps a

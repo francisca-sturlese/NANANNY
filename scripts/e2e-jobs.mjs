@@ -225,6 +225,68 @@ check("the published job is visible on the public jobs page", publicJobs.include
 
 await fam.context.close();
 
+/**
+ * A family posts without writing a title or a description.
+ *
+ * Both used to be required free text, and both sat where people stop: the title
+ * is the first box on the page and asks somebody to name a thing they have not
+ * finished describing, and the description is the last one, after a long form.
+ * A family that stops has posted nothing, and on the demand side of a
+ * marketplace with no demand that is the expensive kind of nothing.
+ */
+{
+  const quick = await session();
+  await login(quick.page, "family2@nananny.example.test");
+  await quick.page.goto("/family/jobs/new");
+  await quick.page.waitForLoadState("networkidle");
+
+  await quick.page.locator('select[name="emirate"]').selectOption("Dubai");
+  await quick.page.locator('input[name="area"]').fill("Dubai Hills");
+  await quick.page.locator('input[name="childrenCount"]').fill("2");
+
+  for (const phrase of ["School pick up", "Bath and bedtime"]) {
+    await quick.page.getByRole("button", { name: phrase, exact: true }).click();
+    await quick.page.waitForTimeout(120);
+  }
+
+  const description = await quick.page.locator('textarea[name="responsibilities"]').inputValue();
+  check(
+    "two taps describe the day without typing",
+    description.includes("School pick up") && description.includes("Bath and bedtime"),
+    description.slice(0, 70),
+  );
+  check(
+    "and the title box was never touched",
+    (await quick.page.locator('input[name="title"]').inputValue()) === "",
+  );
+
+  await quick.page.getByRole("button", { name: /Publish/i }).first().click();
+  await quick.page.waitForTimeout(3000);
+
+  const { data: written } = await db
+    .from("jobs")
+    .select("title, status")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  check(
+    "the post is published with a title written from the answers",
+    written?.status === "active" && /nanny for two children in Dubai Hills/i.test(written?.title ?? ""),
+    written?.title ?? "no job",
+  );
+
+  // The same rule as everywhere else: a phrase carrying a long number would be
+  // mangled by the redaction trigger between being tapped and being saved.
+  const pills = await quick.page.locator("form button[type='button']").allInnerTexts();
+  check(
+    "no phrase carries a number the redaction would eat",
+    pills.filter((t) => /[0-9]/.test(t)).length === 0,
+  );
+
+  await quick.context.close();
+}
+
 // ---------------------------------------------------------------- apply
 console.log("\n--- APPLYING (nanny) ---\n");
 

@@ -8,6 +8,9 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ChoiceCard, ChoiceGroup, PillCheckbox, PillGroup } from "@/components/ui/choice";
 import { FormError, SubmitButton } from "@/components/auth/form-parts";
 import { Button } from "@/components/ui/button";
+import { PhrasePills } from "@/components/ui/phrase-pills";
+import { JOB_RESPONSIBILITY_PHRASES } from "@/lib/jobs/responsibility-phrases";
+import { suggestJobTitle } from "@/lib/jobs/title";
 import {
   ARRANGEMENTS,
   EMIRATES,
@@ -75,13 +78,21 @@ export function JobForm({
     <form action={action} className="space-y-7">
       {d.id && <input type="hidden" name="jobId" value={d.id} />}
 
-      <Field label="Job title" htmlFor="title" required error={err.title}>
+      {/* Optional, and last in the reading order even though it is first on
+          the page. Asking for a title is asking somebody to name a thing they
+          have not finished describing. Everything it needs is chosen from lists
+          further down, so it writes itself as they go and stays editable. */}
+      <Field
+        label="Job title"
+        htmlFor="title"
+        hint="Left alone, we write one from your answers below."
+        error={err.title}
+      >
         <Input
           id="title"
           name="title"
           defaultValue={d.title ?? ""}
-          placeholder="Live-out nanny for two children in Dubai Hills"
-          required
+          placeholder={suggestJobTitle({})}
           maxLength={140}
         />
       </Field>
@@ -277,19 +288,30 @@ export function JobForm({
         </Field>
       </div>
 
+      {/* Optional, and tappable. Free text at the end of a long form is where
+          people stop, and a family that stops has posted nothing. A few taps
+          describe a day; the box is still there for anybody with more to say. */}
       <Field
         label="What the role involves"
         htmlFor="responsibilities"
-        required
-        hint="School runs, meals, play, bedtime. The day as it actually is. Leave out your phone number and email: they are removed automatically, and nannies reply to you through NaNanny."
+        hint="Tap what fits your day, then change the words if you want. Leave out your phone number and email: they are removed automatically, and nannies reply to you through NaNanny."
         error={err.responsibilities}
       >
+        <div className="mb-3 space-y-3">
+          {JOB_RESPONSIBILITY_PHRASES.map((group) => (
+            <PhrasePills
+              key={group.label}
+              targetId="responsibilities"
+              label={group.label}
+              phrases={group.phrases}
+            />
+          ))}
+        </div>
         <Textarea
           id="responsibilities"
           name="responsibilities"
           defaultValue={d.responsibilities ?? ""}
           className="min-h-32"
-          required
         />
       </Field>
 
