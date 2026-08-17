@@ -28,6 +28,7 @@ import { loadContactState } from "@/lib/messaging/actions";
 import { ReportButton } from "@/components/safety/report-button";
 import { getPricingConfig } from "@/lib/pricing";
 import { visaLabel, visaNote } from "@/lib/nanny/visa";
+import { experienceLong, experienceClause } from "@/lib/nanny/experience";
 import { isVerified } from "@/lib/nanny/discoverable";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
@@ -52,7 +53,12 @@ export async function generateMetadata({
     title: `${data.first_name ?? "Nanny"}, nanny in ${data.emirate ?? "the UAE"}`,
     description:
       data.headline ??
-      `${data.first_name ?? "A nanny"} has ${data.years_experience} years of childcare experience in the UAE.`,
+      [
+        data.first_name ?? "A nanny",
+        experienceClause(data.years_experience)
+          ? `has ${experienceClause(data.years_experience)} in the UAE.`
+          : "is looking for her first family in the UAE.",
+      ].join(" "),
     /**
      * Readable without an account, but never indexed.
      *
@@ -198,7 +204,7 @@ export default async function NannyProfilePage({
               {[
                 nanny.emirate,
                 nanny.nationality,
-                `${nanny.years_experience} years' experience`,
+                experienceLong(nanny.years_experience),
               ]
                 .filter(Boolean)
                 .join(" · ")}
@@ -299,7 +305,9 @@ export default async function NannyProfilePage({
           <ul className="space-y-2 text-sm">
             <li className="flex justify-between gap-4 border-b border-border pb-2">
               <span className="text-muted">Total experience</span>
-              <span className="font-medium">{nanny.years_experience} years</span>
+              <span className="font-medium">
+                {nanny.years_experience > 0 ? `${nanny.years_experience} years` : "First role"}
+              </span>
             </li>
             <li className="flex justify-between gap-4 border-b border-border pb-2">
               <span className="text-muted">In the UAE</span>

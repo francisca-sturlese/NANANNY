@@ -6,6 +6,7 @@ import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from 
 import { SaveButton } from "@/components/nanny/save-button";
 import { visaLabel } from "@/lib/nanny/visa";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
+import { experienceShort } from "@/lib/nanny/experience";
 
 /**
  * The search result card, designed for a thumb scrolling a phone.
@@ -80,7 +81,7 @@ export function NannyCard({
                 {nanny.firstName ?? "Nanny"}
               </h3>
               <span className="shrink-0 text-sm text-muted">
-                {nanny.yearsExperience} yr{nanny.yearsExperience === 1 ? "" : "s"}
+                {experienceShort(nanny.yearsExperience)}
               </span>
             </div>
 

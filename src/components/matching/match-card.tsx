@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { SaveButton } from "@/components/nanny/save-button";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
+import { experienceShort } from "@/lib/nanny/experience";
 
 /**
  * A scored nanny.
@@ -77,7 +78,7 @@ export function MatchCard({
                 this line onto a second row on a phone. */}
             <p className="mt-1 text-sm leading-snug text-muted">
               {[
-                `${nanny.yearsExperience} yr${nanny.yearsExperience === 1 ? "" : "s"}`,
+                experienceShort(nanny.yearsExperience),
                 nanny.salaryMin != null
                   ? `from AED ${nanny.salaryMin.toLocaleString("en-AE")}`
                   : null,

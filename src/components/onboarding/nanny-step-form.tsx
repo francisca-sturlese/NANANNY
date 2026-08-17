@@ -206,9 +206,15 @@ export function NannyStepForm({
       {step === "experience" && (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
+            {/* Zero is a real answer, and the hint says so before somebody
+                talks herself out of signing up. The rule used to refuse it,
+                which turned a nanny who had never been paid for this into
+                somebody the product would not show at all. A family reading a
+                profile is better placed to judge than a threshold is. */}
             <Field
               label="Years of childcare experience"
               htmlFor="yearsExperience"
+              hint="Zero is fine. Families decide for themselves, and looking after children in your own family counts."
               required
               error={err.yearsExperience}
             >

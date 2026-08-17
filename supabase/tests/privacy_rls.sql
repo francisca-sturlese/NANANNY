@@ -573,4 +573,25 @@ begin
   raise notice 'PASS F3 — a family has no direct storage access to nanny documents or videos';
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- A signed out visitor can read every column the search page asks for
+-- ---------------------------------------------------------------------------
+-- The mirror of the editable-columns guard, and the failure is worse in one
+-- way: a missing UPDATE grant throws away one form, a missing SELECT grant
+-- empties the page a family lands on before signing up. PostgREST refuses the
+-- whole query, including an ORDER BY, so ordering by a column nobody granted
+-- returns "No nannies yet" while the table is full. It still works for anybody
+-- signed in, which is who checks.
+do $$
+declare result text;
+begin
+  result := public.assert_public_nanny_columns();
+
+  if result = 'ok' then
+    raise notice 'PASS  every column a visitor needs is readable by a visitor';
+  else
+    raise notice 'FAIL  %', result;
+  end if;
+end $$;
+
 rollback;

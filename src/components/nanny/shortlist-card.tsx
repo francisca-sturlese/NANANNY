@@ -8,6 +8,7 @@ import { SaveButton } from "@/components/nanny/save-button";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/field";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
+import { experienceShort } from "@/lib/nanny/experience";
 
 const STAGES = [
   { value: "interested", label: "Interested" },
@@ -91,7 +92,7 @@ export function ShortlistCard({
             <p className="mt-1 text-xs text-muted">
               {[
                 emirate,
-                `${yearsExperience} yrs`,
+                experienceShort(yearsExperience),
                 salaryMin ? `from AED ${salaryMin.toLocaleString("en-AE")}` : null,
               ]
                 .filter(Boolean)

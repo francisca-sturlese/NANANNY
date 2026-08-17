@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 180 SQL checks across eighteen suites
+npm run test:db        # 181 SQL checks across eighteen suites
 npm run test:e2e       # 35 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 20 end-to-end checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -71,6 +71,15 @@ optimistic cookie check.
 
 **Server Actions are public endpoints.** Every one validates its own input and
 re-checks the caller's role. The route guard is not a substitute.
+
+**A column added to `nanny_profiles` is two changes, and the second one fails
+somewhere else.** A missing UPDATE grant threw away a nanny's entire first
+onboarding step; a missing SELECT grant on `has_photo` emptied the search page
+for signed-out visitors, because PostgREST refuses the whole query including an
+ORDER BY, while it kept working for anybody signed in, who is who checks.
+`assert_editable_columns()` and `assert_public_nanny_columns()` are the two
+halves of the same guard, and both list what is deliberately withheld so that a
+new column belonging to neither list is a failure rather than a silence.
 
 **RLS decides rows; GRANT decides columns.** Both matter. A user owns their
 profile row but not every field on it: `users.role` and `nanny_profiles.status`
