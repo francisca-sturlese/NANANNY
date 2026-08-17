@@ -114,19 +114,30 @@ export default async function AdminJobConversationsPage({
                 key={conversation.id}
                 className="rounded-lg border border-border bg-background p-4 sm:p-5"
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-semibold">
-                    {familyName} ↔ {nannyName}
-                  </h2>
-                  <span className="text-xs text-muted">
-                    {messages.length} {messages.length === 1 ? "message" : "messages"}
-                  </span>
-                  {conversation.blocked_at && (
-                    <Badge variant="peach" size="sm">
-                      blocked
-                    </Badge>
-                  )}
-                </div>
+                {/* Closed by default: with many applicants this page holds
+                    many threads, and a wall of open transcripts stops being
+                    read. The header carries enough to decide which to open. */}
+                <details className="group">
+                  <summary className="tap-target flex cursor-pointer list-none flex-wrap items-center gap-2 [&::-webkit-details-marker]:hidden">
+                    <h2 className="font-semibold underline-offset-4 group-open:no-underline hover:underline">
+                      {familyName} ↔ {nannyName}
+                    </h2>
+                    <span className="text-xs text-muted">
+                      {messages.length} {messages.length === 1 ? "message" : "messages"}
+                    </span>
+                    {messages.length > 0 && (
+                      <span className="text-xs text-subtle">
+                        last {new Date(messages[messages.length - 1].created_at).toLocaleString("en-GB")}
+                      </span>
+                    )}
+                    {conversation.blocked_at && (
+                      <Badge variant="peach" size="sm">
+                        blocked
+                      </Badge>
+                    )}
+                    <span className="ml-auto text-xs text-muted group-open:hidden">open</span>
+                    <span className="ml-auto hidden text-xs text-muted group-open:inline">close</span>
+                  </summary>
 
                 <ul className="mt-3 space-y-2">
                   {messages.map((message) => {
@@ -150,6 +161,7 @@ export default async function AdminJobConversationsPage({
                     );
                   })}
                 </ul>
+                </details>
               </li>
             );
           })}
