@@ -1,0 +1,132 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { requireAdmin } from "@/lib/auth/dal";
+import { createServiceClient } from "@/lib/supabase/service";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { Badge } from "@/components/ui/badge";
+
+export const metadata: Metadata = { title: "Job conversations" };
+
+/**
+ * The conversations a job post started, readable by an admin.
+ *
+ * Read-only on purpose: the operator's job here is moderation and support,
+ * never speaking as either side. These are private messages between real
+ * people; the page exists because the person running the marketplace answers
+ * for what happens on it, and it says so out loud at the top rather than
+ * pretending the reading is not happening.
+ */
+export default async function AdminJobConversationsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const admin = await requireAdmin(`/admin/jobs/${id}/conversations`);
+  const service = createServiceClient();
+
+  const { data: job } = await service
+    .from("jobs")
+    .select("id, title, status, family_profiles(display_name, user_id)")
+    .eq("id", id)
+    .maybeSingle();
+  if (!job) notFound();
+
+  const { data: conversations } = await service
+    .from("conversations")
+    .select(
+      "id, created_at, blocked_at, nanny_profiles!conversations_nanny_id_fkey(first_name), messages(id, body, sender_id, created_at)",
+    )
+    .eq("job_id", id)
+    .order("created_at", { ascending: false });
+
+  const rows = conversations ?? [];
+  const family = job.family_profiles as { display_name?: string; user_id?: string } | null;
+  const familyName = family?.display_name ?? "The family";
+  const familyUserId = family?.user_id ?? null;
+
+  return (
+    <AdminShell active="/admin/jobs" name={admin.firstName ?? "Admin"}>
+      <Link
+        href="/admin/jobs"
+        className="tap-target text-sm text-muted underline underline-offset-4"
+      >
+        ← All jobs
+      </Link>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <h1 className="text-2xl font-semibold sm:text-3xl">{job.title}</h1>
+        <Badge variant={job.status === "active" ? "sage" : "neutral"} size="sm">
+          {job.status}
+        </Badge>
+      </div>
+
+      <p className="mt-3 max-w-2xl rounded-md border border-border bg-surface px-4 py-3 text-sm text-muted">
+        Private messages between {familyName} and the nannies on this post, shown
+        read-only for moderation and support. Neither side is told an admin read
+        them; treat them accordingly.
+      </p>
+
+      {rows.length === 0 ? (
+        <p className="mt-6 rounded-lg border border-dashed border-border-strong bg-surface p-8 text-center text-sm text-muted">
+          No conversations started from this job yet.
+        </p>
+      ) : (
+        <ul className="mt-6 space-y-4">
+          {rows.map((conversation) => {
+            const nannyName =
+              (conversation.nanny_profiles as { first_name?: string | null } | null)
+                ?.first_name ?? "Nanny";
+            const messages = [...(conversation.messages ?? [])].sort((a, b) =>
+              a.created_at.localeCompare(b.created_at),
+            );
+            return (
+              <li
+                key={conversation.id}
+                className="rounded-lg border border-border bg-background p-4 sm:p-5"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-semibold">
+                    {familyName} ↔ {nannyName}
+                  </h2>
+                  <span className="text-xs text-muted">
+                    {messages.length} {messages.length === 1 ? "message" : "messages"}
+                  </span>
+                  {conversation.blocked_at && (
+                    <Badge variant="peach" size="sm">
+                      blocked
+                    </Badge>
+                  )}
+                </div>
+
+                <ul className="mt-3 space-y-2">
+                  {messages.map((message) => {
+                    const fromFamily =
+                      familyUserId !== null && message.sender_id === familyUserId;
+                    return (
+                      <li
+                        key={message.id}
+                        className={`rounded-md px-3 py-2 ${
+                          fromFamily ? "bg-surface" : "bg-sage-wash"
+                        }`}
+                      >
+                        <p className="text-xs font-medium text-muted">
+                          {fromFamily ? familyName : nannyName}
+                        </p>
+                        <p className="mt-0.5 text-sm leading-relaxed">{message.body}</p>
+                        <p className="mt-1 text-[0.65rem] text-subtle">
+                          {new Date(message.created_at).toLocaleString("en-GB")}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </AdminShell>
+  );
+}

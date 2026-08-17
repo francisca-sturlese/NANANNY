@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,11 @@ export default async function AdminJobsPage({
   // working": how many applied, how far did they get, is anybody waiting.
   const jobIds = rows.map((j) => j.id);
   const familyIds = [...new Set(rows.map((j) => j.family_id))];
-  const [{ data: applications }, { data: families }, { data: children }] = await Promise.all([
+  // Conversations are private rows RLS keeps from everyone but the two
+  // people in them; the count for the rail comes through the service client,
+  // and the content lives behind its own page with the warning at the top.
+  const service = createServiceClient();
+  const [{ data: applications }, { data: families }, { data: children }, { data: convRows }] = await Promise.all([
     jobIds.length
       ? supabase
           .from("job_applications")
@@ -66,7 +71,17 @@ export default async function AdminJobsPage({
     familyIds.length
       ? supabase.from("family_children").select("family_id, age_years").in("family_id", familyIds)
       : Promise.resolve({ data: [] as never[] }),
+    jobIds.length
+      ? service.from("conversations").select("id, job_id").in("job_id", jobIds)
+      : Promise.resolve({ data: [] as never[] }),
   ]);
+
+  const conversationsByJob = new Map<string, number>();
+  for (const row of (convRows ?? []) as { id: string; job_id: string | null }[]) {
+    if (row.job_id) {
+      conversationsByJob.set(row.job_id, (conversationsByJob.get(row.job_id) ?? 0) + 1);
+    }
+  }
 
   type FamilyRow = {
     id: string;
@@ -161,6 +176,17 @@ export default async function AdminJobsPage({
                     >
                       View as the family sees it
                     </Link>
+                    {(conversationsByJob.get(job.id) ?? 0) > 0 && (
+                      <Link
+                        href={`/admin/jobs/${job.id}/conversations`}
+                        className="underline underline-offset-4"
+                      >
+                        {conversationsByJob.get(job.id)}{" "}
+                        {conversationsByJob.get(job.id) === 1
+                          ? "conversation"
+                          : "conversations"}
+                      </Link>
+                    )}
                   </p>
 
                   {(() => {
