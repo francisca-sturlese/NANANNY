@@ -2322,6 +2322,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      record_conversation_read: { Args: { p_conversation_id: string }; Returns: undefined }
       record_event: {
         Args: {
           p_event: string

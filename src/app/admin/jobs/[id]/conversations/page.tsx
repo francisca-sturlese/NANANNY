@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Job conversations" };
 
@@ -42,6 +43,29 @@ export default async function AdminJobConversationsPage({
     .order("created_at", { ascending: false });
 
   const rows = conversations ?? [];
+
+  /**
+   * Reading is recorded, like every other administrative act.
+   *
+   * We ask a nanny to keep her phone number out of her profile and to talk to
+   * families here instead, on the promise that she keeps a record and can stop
+   * anyone. A product that says that and then reads her messages with no record
+   * of its own is telling her something it does not apply to itself.
+   *
+   * It records rather than prevents: somebody resolving a report should read
+   * the thread. What has to exist afterwards is an answer to who read it and
+   * when, and it has to exist before anybody thinks to ask.
+   *
+   * Through the admin's own session, not the service client, so the row carries
+   * who did it. Deduped to one an hour inside the function, because a refresh
+   * is not a second reading.
+   */
+  const supabase = await createServerSupabase();
+  await Promise.all(
+    rows.map((conversation) =>
+      supabase.rpc("record_conversation_read", { p_conversation_id: conversation.id }),
+    ),
+  );
   const family = job.family_profiles as { display_name?: string; user_id?: string } | null;
   const familyName = family?.display_name ?? "The family";
   const familyUserId = family?.user_id ?? null;

@@ -20,7 +20,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 ## Tests — run these before calling anything done
 
 ```bash
-npm run test:db        # 206 SQL checks across twenty one suites
+npm run test:db        # 209 SQL checks across twenty two suites
 npm run test:e2e       # 39 + 26 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
@@ -171,6 +171,16 @@ which is the only form in which this rule survives a hurry. The reason is
 required, and `actor_id` stays null rather than borrowing an administrator's:
 recording a person who pressed nothing sends whoever investigates to the wrong
 desk.
+
+**Reading somebody's private messages is recorded too.** The back office can
+open the conversations a job post started, which is the right tool for
+moderation and the most invasive power anybody here has. We ask a nanny to keep
+her number out of her profile and talk to families here instead, on the promise
+that she keeps a record and can stop anyone; a product that says that and then
+reads her messages with no record of its own is telling her something it does not
+apply to itself. `record_conversation_read()` records rather than prevents, one
+row per admin per conversation per hour, because a refresh is not a second
+reading.
 
 **Administrative actions go through a database function, never a direct write.**
 The column grants deliberately stop even an admin from setting `users.status` or

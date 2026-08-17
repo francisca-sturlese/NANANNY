@@ -45,6 +45,10 @@ declare
     'is_conversation_participant',
     -- Checks is_admin() itself, like every other admin capability.
     'admin_update_reminders', 'admin_update_publishing',
+    -- Checks is_admin() itself. Called from the page an admin is already on,
+    -- so it has to be reachable from a session: it records the reading that is
+    -- happening rather than granting one.
+    'record_conversation_read',
     -- Stricter than is_admin(): both refuse anybody who is not a super_admin,
     -- and an invite is how the next administrator is appointed, so a plain
     -- admin reaching them would be the whole appointment rule undone.
