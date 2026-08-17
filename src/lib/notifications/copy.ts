@@ -91,6 +91,15 @@ export function describe(row: NotificationRow): NotificationText {
         href,
       };
 
+    // Founder's choice over an email: the explanation lives where the profile
+    // does. Written as protection, because it is: the removal is what stands
+    // between her number and every stranger on the internet.
+    case "contact_details_removed":
+      return {
+        text: "We removed a phone number or email from your profile text, for your safety. Families contact you here on NaNanny instead.",
+        href,
+      };
+
     default:
       // A kind added in the database and not here. Better a vague line that
       // still opens the right page than a gap in the list.
