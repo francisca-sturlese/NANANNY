@@ -269,7 +269,7 @@ export default async function HomePage() {
                         {nanny.firstName ?? "Nanny"}
                       </h3>
                       <p className="truncate text-xs text-muted">
-                        {[nanny.emirate, experienceShort(nanny.yearsExperience)]
+                        {[nanny.nationality, nanny.emirate, experienceShort(nanny.yearsExperience)]
                           .filter(Boolean)
                           .join(" · ")}
                       </p>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Clock, Home, Car, ChefHat, Sparkles, HeartPulse } from "lucide-react";
+import { MapPin, Clock, Home, Car, ChefHat, Sparkles, HeartPulse, Globe } from "lucide-react";
 import type { NannyCardData } from "@/lib/search/nannies";
 import { Badge } from "@/components/ui/badge";
 import { VERIFICATION_BADGES, UnverifiedBadge, type VerificationBadgeKey } from "@/components/ui/badge";
@@ -92,6 +92,15 @@ export function NannyCard({
             )}
 
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+              {/* First fact on the row: in this market it is the first
+                  question a family asks, and the competitor cards lead with
+                  it for the same reason. */}
+              {nanny.nationality && (
+                <li className="inline-flex items-center gap-1">
+                  <Globe className="size-3.5 shrink-0" aria-hidden />
+                  {nanny.nationality}
+                </li>
+              )}
               {nanny.emirate && (
                 <li className="inline-flex items-center gap-1">
                   <MapPin className="size-3.5 shrink-0" aria-hidden />
