@@ -87,7 +87,7 @@ export default async function NanniesPage({
                 never so narrow that a card stops being readable. */}
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {results.map((nanny) => (
-                <li key={nanny.id}>
+                <li key={nanny.id} className="h-full">
                   <NannyCard
                     nanny={nanny}
                     saved={savedIds.has(nanny.id)}

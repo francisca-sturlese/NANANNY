@@ -50,7 +50,7 @@ export function NannyCard({
   ].filter(Boolean) as string[];
 
   return (
-    <article className="relative rounded-lg border border-border bg-surface-raised transition-shadow hover:shadow-card">
+    <article className="relative h-full rounded-lg border border-border bg-surface-raised transition-shadow hover:shadow-card">
       {canSave && (
         <div className="absolute top-3 right-3 z-10">
           <SaveButton nannyId={nanny.id} saved={saved} />

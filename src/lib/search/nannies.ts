@@ -195,13 +195,13 @@ export async function searchNannies(filters: NannyFilters): Promise<{
       query = query.order("created_at", { ascending: false });
       break;
     default:
-      // "Relevance" without a match model yet: a face above a placeholder
-      // (founder's call — the first screen must not be a wall of brand
-      // marks), then the most experienced first. Only here: when the family
-      // picks an explicit sort, her choice wins over the photo boost.
+      // Founder's ordering for the default view: the newest faces first —
+      // profiles with a photo from most recent to oldest, then the photoless
+      // in the same order. Recency beats experience here because a fresh
+      // marketplace must look alive; an explicit sort still overrides all
+      // of this, photo or not.
       query = query
         .order("has_photo", { ascending: false })
-        .order("years_experience", { ascending: false })
         .order("created_at", { ascending: false });
   }
 
