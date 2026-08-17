@@ -122,24 +122,58 @@ export async function sendEmail(options: {
  * a nanny's comes from her profile, a family's from its display name, both of
  * which a human reviews.
  */
-export function newMessageEmail(params: { name: string; fromName: string }): {
-  subject: string;
-  html: string;
-  text: string;
-} {
+export function newMessageEmail(params: {
+  /** Their first name, when we have one. No greeting rather than a placeholder. */
+  name?: string | null;
+  /** Messages waiting on them, across every conversation. */
+  waiting: number;
+  /** How many conversations those are spread across. */
+  threads: number;
+  unsubscribeUrl?: string | null;
+}): { subject: string; html: string; text: string } {
   const link = absoluteUrl("/account");
-  const subject = `${escapeHeader(params.fromName)} sent you a message on NaNanny`;
+
+  const named = params.name?.trim();
+  const greeting = named && named.toLowerCase() !== "there" ? `Hello ${named},` : null;
+
+  const many = params.waiting > 1;
+
+  /**
+   * Counted, not named, for the same reason the application email counts.
+   *
+   * This is capped at one a day, so it covers everything that arrives for the
+   * rest of that day. "Grace sent you a message" is true of the message that
+   * triggered it and false by the time somebody else writes, and by then the
+   * email has already gone.
+   */
+  const subject = many
+    ? `You have ${params.waiting} messages waiting on NaNanny`
+    : "You have a message waiting on NaNanny";
+
+  const line = many
+    ? params.threads > 1
+      ? `You have ${params.waiting} messages waiting across ${params.threads} conversations.`
+      : `You have ${params.waiting} messages waiting in a conversation you have not opened.`
+    : "Somebody has written to you on NaNanny and you have not opened it yet.";
+
+  // Said once, because it is the reason this is worth opening today rather than
+  // whenever somebody next thinks of us.
+  const nudge =
+    "People arranging childcare talk to several others at the same time. Replying quickly is most of what decides how it goes.";
 
   const text = [
-    `Hello ${params.name},`,
+    ...(greeting ? [greeting, ""] : []),
+    line,
     "",
-    `${params.fromName} has sent you a message on NaNanny.`,
+    nudge,
     "",
     `Read it and reply here: ${link}`,
     "",
-    "We do not include the message itself in email. Open the site to read it.",
-    "",
     "NaNanny UAE",
+    "You get at most one of these a day, however many messages arrive.",
+    ...(params.unsubscribeUrl
+      ? ["", `Stop emails from NaNanny: ${params.unsubscribeUrl}`]
+      : []),
   ].join("\n");
 
   const html = `
@@ -149,28 +183,29 @@ export function newMessageEmail(params: { name: string; fromName: string }): {
     <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
       <tr>
         <td style="padding:28px">
-          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello ${escapeHtml(params.name)},</p>
-          <p style="margin:0 0 20px;font-size:16px;line-height:1.5">
-            <strong>${escapeHtml(params.fromName)}</strong> has sent you a message on NaNanny.
-          </p>
-          <p style="margin:0 0 24px">
+          ${greeting ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(greeting)}</p>` : ""}
+          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(line)}</p>
+          <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#555">${escapeHtml(nudge)}</p>
+          <p style="margin:0">
             <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">Read and reply</a>
-          </p>
-          <p style="margin:0;font-size:13px;line-height:1.6;color:#6b6b6b">
-            We never put the message itself in an email. Open the site to read it.
-            That way nothing anybody types can reach your inbox pretending to be from us.
           </p>
         </td>
       </tr>
     </table>
     <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE
+      NaNanny UAE<br />
+      You get at most one of these a day, however many messages arrive.${
+        params.unsubscribeUrl
+          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop emails from NaNanny</a>`
+          : ""
+      }
     </p>
   </body>
 </html>`.trim();
 
   return { subject, html, text };
 }
+
 
 /**
  * A name is not markup.

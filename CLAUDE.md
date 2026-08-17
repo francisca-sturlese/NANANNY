@@ -275,6 +275,14 @@ in `supabase/tests/notification_events.sql`, and the bell carries `data-live`
 so `scripts/e2e-notifications.mjs` can wait for the socket instead of sleeping
 and hoping. A test that sleeps here does not test realtime, it tests the sleep.
 
+**A message emails the recipient, once a day.** It was off, on the grounds that
+an email per message becomes a filter rule inside a week. That was right about
+the cadence and wrong about the case: only a family can open a conversation, so
+every message is either a family reaching a nanny who is looking for work or a
+nanny answering a question she was asked. A nanny replied at 13:24 and the
+family never found out, because the bell only rings for somebody already looking
+at it. The cap moved instead of the feature.
+
 **A family is emailed about applications once a day, whatever arrives.** It is
 the one event that genuinely warrants interrupting somebody, and it is also the
 one that turns into a filter rule if a busy afternoon sends four. The cap is a
@@ -308,7 +316,9 @@ losing by that would be the family who paid to send it. Both directions are
 pinned in `supabase/tests/reminders.sql`.
 
 **An email never carries text another user typed.** The new message email says
-a message arrived and links to it. Including the body would let any stranger
+a message arrived and links to it, and counts rather than names, because it is
+capped at one a day and a sender's name stops being true the moment somebody
+else writes. Including the body would let any stranger
 put arbitrary text into somebody's inbox inside an email that genuinely came
 from us and passes every authentication check a mail client makes, which is a
 better phishing envelope than an attacker could build on their own. The

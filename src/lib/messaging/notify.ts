@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendEmail, newMessageEmail } from "@/lib/email/send";
+import { unsubscribeUrl } from "@/lib/email/unsubscribe";
 
 /**
  * Telling the other person a message arrived.
@@ -27,14 +28,27 @@ import { sendEmail, newMessageEmail } from "@/lib/email/send";
  * the history they need. Only the immediate send is suppressed.
  */
 /**
- * Whether a message sends an email straight away.
+ * Whether a message sends an email straight away. It does, again.
  *
- * False, because the requirement changed after this shipped: an email per
- * message, even at one per fifteen minutes, is more than anybody wants. What
- * replaces it is a reminder after a long silence, which is a different feature
- * and is being built next.
+ * It was switched off because one email per message is more than anybody wants
+ * and becomes a filter rule inside a week. That was right about the cadence and
+ * wrong about the case.
+ *
+ * Only a family can open a conversation here, so every message is either a
+ * family reaching a nanny who is looking for work, or a nanny answering a
+ * question a family asked her. Neither is a stranger writing out of the blue,
+ * and both are the moment this product either works or does not.
+ *
+ * It happened: a nanny replied at 13:24 and the family never found out, because
+ * the bell only rings for somebody already looking at it and the silence
+ * reminder waits a day. Twenty four hours is the wrong wait for the answer to a
+ * question you asked yourself.
+ *
+ * The cap moved instead of the feature: one a day per person, whatever arrives,
+ * which is what `notify_new_message` now enforces and what the application
+ * email already does.
  */
-const IMMEDIATE_EMAIL = false;
+const IMMEDIATE_EMAIL = true;
 
 export async function notifyNewMessage(
   conversationId: string,
@@ -59,7 +73,9 @@ export async function notifyNewMessage(
       event_id?: string;
       to?: string;
       name?: string;
-      from_name?: string;
+      user_id?: string;
+      waiting?: number;
+      threads?: number;
     } | null;
 
     if (!decision?.send || !decision.event_id || !decision.to) return;
@@ -76,8 +92,10 @@ export async function notifyNewMessage(
     }
 
     const mail = newMessageEmail({
-      name: decision.name ?? "there",
-      fromName: decision.from_name ?? "Someone",
+      name: decision.name,
+      waiting: decision.waiting ?? 1,
+      threads: decision.threads ?? 1,
+      unsubscribeUrl: decision.user_id ? await unsubscribeUrl(decision.user_id) : null,
     });
 
     const result = await sendEmail({ to: decision.to, ...mail });
@@ -99,6 +117,22 @@ export async function notifyNewMessage(
           : undefined
         : result.error,
     });
+
+    // The composed text, kept on the row. It carries nothing anybody typed, by
+    // design, and it is the only way this copy is ever read on a machine that
+    // cannot send.
+    await service
+      .from("email_events")
+      .update({
+        metadata: {
+          waiting: decision.waiting ?? 1,
+          threads: decision.threads ?? 1,
+          subject: mail.subject,
+          text: mail.text,
+          ...(wasSkipped ? { skipped: (result as { skipped: string }).skipped } : {}),
+        },
+      })
+      .eq("id", decision.event_id);
 
     if (!result.ok) console.error("[notify] send failed:", result.error);
   } catch (error) {

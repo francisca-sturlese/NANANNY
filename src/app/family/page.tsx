@@ -30,13 +30,31 @@ export default async function FamilyDashboard({
 
   if (!profile) redirect("/family/onboarding");
 
-  const [{ data: completion }, { data: contactState }] = await Promise.all([
+  const [{ data: completion }, { data: contactState }, { data: waiting }] = await Promise.all([
     supabase.rpc("family_profile_completion", { p_family_id: profile.id }),
     supabase.rpc("my_contact_state"),
+    /**
+     * Nannies who applied and have had no answer.
+     *
+     * The dashboard said nothing about them, which is the wrong silence: a
+     * family that logs in has already made the effort, and the one thing worth
+     * telling them is that somebody is waiting. Seventeen applications sat in
+     * the database while the first screen a family sees showed a completeness
+     * bar and two buttons.
+     */
+    supabase
+      .from("job_applications")
+      .select("id, job_id, jobs!inner(id, title, family_id)")
+      .eq("status", "applied")
+      .eq("jobs.family_id", profile.id),
   ]);
 
   const done = completion as { percent: number; missing: string[]; can_match: boolean } | null;
   const contacts = Array.isArray(contactState) ? contactState[0] : contactState;
+
+  const applications = waiting ?? [];
+  const jobsWithApplications = new Set(applications.map((a) => a.job_id));
+  const onlyJob = jobsWithApplications.size === 1 ? applications[0] : null;
 
   return (
     <AppShell nav={FAMILY_NAV} active="/family" name={profile.display_name ?? user.firstName ?? "Family"}>
@@ -53,6 +71,33 @@ export default async function FamilyDashboard({
             className="mt-2 inline-block text-sm text-sage-deep underline underline-offset-4"
           >
             See your post
+          </Link>
+        </div>
+      )}
+
+      {/* Above everything, including the welcome. Somebody is waiting for an
+          answer, and that outranks a progress bar. */}
+      {applications.length > 0 && (
+        <div className="mb-6 rounded-lg border border-peach bg-peach-wash p-5">
+          <h2 className="text-lg font-semibold text-peach-deep">
+            {applications.length === 1
+              ? "A nanny applied to your job"
+              : `${applications.length} nannies are waiting to hear from you`}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-peach-deep/90">
+            {applications.length === 1
+              ? "She has not heard back yet. Her profile, experience and languages are on the application."
+              : `They have applied${
+                  jobsWithApplications.size > 1
+                    ? ` across ${jobsWithApplications.size} of your job posts`
+                    : ""
+                } and none of them have heard back yet. Nannies looking for work talk to several families at once, and the ones who reply first are the ones who hire.`}
+          </p>
+          <Link
+            href={onlyJob ? `/family/jobs/${onlyJob.job_id}/applications` : "/family/jobs"}
+            className="mt-4 inline-block"
+          >
+            <Button size="sm">Read the applications</Button>
           </Link>
         </div>
       )}
