@@ -141,79 +141,104 @@ export default async function JobsPage({
             </Link>
           </div>
         ) : (
-          <ul className="mt-4 grid gap-3">
-            {rows.map((job) => (
-              <li key={job.id}>
-                <Link
-                  href={`/jobs/${job.id}`}
-                  className="block rounded-lg border border-border bg-surface-raised p-4 transition-shadow hover:shadow-card sm:p-5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-base font-semibold sm:text-lg">{job.title}</h2>
-                    {job.published_at && (
-                      <span className="shrink-0 text-xs text-subtle">
-                        {timeAgo(job.published_at)}
-                      </span>
-                    )}
-                  </div>
-
-                  <ul className="mt-2 flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
-                    <li className="inline-flex items-center gap-1">
-                      <MapPin className="size-3.5 shrink-0" aria-hidden />
-                      {[job.area, job.emirate].filter(Boolean).join(", ")}
-                    </li>
-                    <li className="inline-flex items-center gap-1">
-                      <Home className="size-3.5 shrink-0" aria-hidden />
-                      {job.arrangement === "live_in"
-                        ? "Live in"
-                        : job.arrangement === "live_out"
-                          ? "Live out"
-                          : "Either"}
-                    </li>
-                    {job.children_count > 0 && (
-                      <li className="inline-flex items-center gap-1">
-                        <Baby className="size-3.5 shrink-0" aria-hidden />
-                        {job.children_count} {job.children_count === 1 ? "child" : "children"}
-                      </li>
-                    )}
-                    {job.start_date && (
-                      <li className="inline-flex items-center gap-1">
-                        <Clock className="size-3.5 shrink-0" aria-hidden />
-                        from{" "}
-                        {new Date(`${job.start_date}T00:00:00`).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </li>
-                    )}
-                  </ul>
-
-                  {job.salary_min_aed != null && (
-                    <p className="mt-2.5 text-sm font-medium">
-                      AED {job.salary_min_aed.toLocaleString("en-AE")}
-                      {job.salary_max_aed != null &&
-                        ` to ${job.salary_max_aed.toLocaleString("en-AE")}`}
-                      <span className="font-normal text-muted"> / month</span>
-                    </p>
-                  )}
-
-                  {job.required_languages.length > 0 && (
-                    <div className="mt-2.5 flex flex-wrap gap-1.5">
-                      {job.required_languages.slice(0, 3).map((l) => (
-                        <Badge key={l} variant="neutral" size="sm">
-                          {l}
+          /* Cards in a grid, founder's brief: salary first, because it is
+             the first thing a nanny scans for; uniform heights; and an
+             explicit way in at the bottom of every card. */
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+            {rows.map((job) => {
+              const isNew =
+                // eslint-disable-next-line react-hooks/purity -- server component rendered per request: "posted in the last 48h" needs the current time
+                job.published_at &&
+                Date.now() - new Date(job.published_at).getTime() < 48 * 3600 * 1000;
+              return (
+                <li key={job.id} className="h-full">
+                  <Link
+                    href={`/jobs/${job.id}`}
+                    className="flex h-full flex-col rounded-lg border border-border bg-surface-raised p-4 transition-shadow hover:shadow-card sm:p-5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge variant="sage" size="sm">
+                        {job.emirate}
+                      </Badge>
+                      {isNew ? (
+                        <Badge variant="butter" size="sm">
+                          New
                         </Badge>
-                      ))}
-                      {job.driving_required && (
-                        <Badge variant="sage" size="sm">
-                          Driving
-                        </Badge>
+                      ) : (
+                        job.published_at && (
+                          <span className="text-xs text-subtle">
+                            {timeAgo(job.published_at)}
+                          </span>
+                        )
                       )}
                     </div>
-                  )}
-                </Link>
-              </li>
-            ))}
+
+                    {job.salary_min_aed != null && (
+                      <p className="mt-2.5 text-lg font-semibold">
+                        AED {job.salary_min_aed.toLocaleString("en-AE")}
+                        {job.salary_max_aed != null &&
+                          ` to ${job.salary_max_aed.toLocaleString("en-AE")}`}
+                        <span className="text-sm font-normal text-muted"> / month</span>
+                      </p>
+                    )}
+
+                    <h2 className="mt-1 line-clamp-2 text-base font-semibold">
+                      {job.title}
+                    </h2>
+
+                    <ul className="mt-2 flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
+                      <li className="inline-flex items-center gap-1">
+                        <MapPin className="size-3.5 shrink-0" aria-hidden />
+                        {[job.area, job.emirate].filter(Boolean).join(", ")}
+                      </li>
+                      <li className="inline-flex items-center gap-1">
+                        <Home className="size-3.5 shrink-0" aria-hidden />
+                        {job.arrangement === "live_in"
+                          ? "Live in"
+                          : job.arrangement === "live_out"
+                            ? "Live out"
+                            : "Either"}
+                      </li>
+                      {job.children_count > 0 && (
+                        <li className="inline-flex items-center gap-1">
+                          <Baby className="size-3.5 shrink-0" aria-hidden />
+                          {job.children_count} {job.children_count === 1 ? "child" : "children"}
+                        </li>
+                      )}
+                      {job.start_date && (
+                        <li className="inline-flex items-center gap-1">
+                          <Clock className="size-3.5 shrink-0" aria-hidden />
+                          from{" "}
+                          {new Date(`${job.start_date}T00:00:00`).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </li>
+                      )}
+                    </ul>
+
+                    {(job.required_languages.length > 0 || job.driving_required) && (
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {job.required_languages.slice(0, 3).map((l) => (
+                          <Badge key={l} variant="neutral" size="sm">
+                            {l}
+                          </Badge>
+                        ))}
+                        {job.driving_required && (
+                          <Badge variant="sage" size="sm">
+                            Driving
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    <p className="mt-auto pt-3 text-sm font-medium underline-offset-4 group-hover:underline">
+                      View and apply
+                    </p>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>
