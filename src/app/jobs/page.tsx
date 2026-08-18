@@ -147,8 +147,8 @@ export default async function JobsPage({
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {rows.map((job) => {
               const isNew =
-                // eslint-disable-next-line react-hooks/purity -- server component rendered per request: "posted in the last 48h" needs the current time
                 job.published_at &&
+                // eslint-disable-next-line react-hooks/purity -- server component rendered per request: "posted in the last 48h" needs the current time
                 Date.now() - new Date(job.published_at).getTime() < 48 * 3600 * 1000;
               return (
                 <li key={job.id} className="h-full">
