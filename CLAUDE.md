@@ -21,7 +21,7 @@ Seed accounts (development only, all `@nananny.example.test`):
 
 ```bash
 npm run test:db        # 209 SQL checks across twenty two suites
-npm run test:e2e       # 39 + 30 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 10 + 16 checks
+npm run test:e2e       # 39 + 30 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 12 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
                        # and the free contact claim on every page that makes it

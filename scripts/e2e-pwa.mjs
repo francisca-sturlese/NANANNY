@@ -11,9 +11,47 @@
  * Run:  node scripts/e2e-pwa.mjs
  */
 
+import { readFileSync } from "node:fs";
 import { webkit, chromium, devices } from "playwright";
+import { createClient } from "@supabase/supabase-js";
 
 const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3100";
+
+const env = Object.fromEntries(
+  readFileSync(new URL("../.env.local", import.meta.url), "utf8")
+    .split("\n")
+    .filter((l) => l.includes("=") && !l.trim().startsWith("#"))
+    .map((l) => {
+      const i = l.indexOf("=");
+      return [l.slice(0, i).trim(), l.slice(i + 1).trim()];
+    }),
+);
+
+const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
+
+/**
+ * The hint waits until something has happened to the person.
+ *
+ * Its argument is "this is how we tell you about a message or an application",
+ * which is a promise about the future until the first one arrives. So the
+ * precondition is part of the design and has to be set up here rather than
+ * assumed: without it the test would be checking a state real people do not
+ * reach on their first visit either.
+ */
+const { data: tester } = await db
+  .from("users")
+  .select("id")
+  .eq("email", "family1@nananny.example.test")
+  .single();
+
+await db.from("notifications").insert({
+  user_id: tester.id,
+  kind: "new_message",
+  href: "/family/messages",
+  metadata: {},
+});
 const results = [];
 const check = (n, ok, d="") => { results.push({n,ok}); console.log(`  ${ok?"PASS":"FAIL"}  ${n}${d?` — ${d}`:""}`); };
 
@@ -43,8 +81,13 @@ await p.waitForURL(u => !/\/login/.test(u.pathname), { timeout: 20000 });
 await p.waitForTimeout(1500);
 
 const hint = p.getByText(/Keep NaNanny on your home screen/);
-check("shown to a signed in iPhone", (await hint.count()) === 1);
-check("it says which button to press", /share button/i.test(await p.locator("main").innerText()));
+check("shown to a signed in iPhone once something has happened", (await hint.count()) === 1);
+const iosText = await p.locator("main").innerText();
+check("it draws the two steps rather than describing them", /Add to Home Screen/.test(iosText));
+check(
+  "and does not offer a button iOS cannot honour",
+  !/Install the app/.test(iosText),
+);
 
 await p.getByRole("button", { name: "Hide this" }).click();
 await p.waitForTimeout(400);
@@ -64,8 +107,29 @@ await a.locator('input[name="password"]').fill("NaNannyDev2026!");
 await a.getByRole("button", { name: "Log in" }).click();
 await a.waitForURL(u => !/\/login/.test(u.pathname), { timeout: 20000 });
 await a.waitForTimeout(1200);
-check("not shown on Android, where the browser offers it",
+/**
+ * Android says nothing until the browser says it can be installed.
+ *
+ * `beforeinstallprompt` fires once, early, and only when Chrome decides the
+ * site qualifies, so it has to be caught and held rather than asked for. Until
+ * it arrives there is nothing honest to offer: a button that opens no dialog is
+ * worse than no button. After it arrives there is nothing to explain either,
+ * which is why Android gets one tap and iOS gets two drawn steps.
+ */
+check("nothing is offered on Android until the browser says it can be installed",
   (await a.getByText(/Keep NaNanny on your home screen/).count()) === 0);
+
+await a.evaluate(() => {
+  const event = new Event("beforeinstallprompt");
+  event.prompt = async () => {};
+  event.userChoice = Promise.resolve({ outcome: "accepted" });
+  window.dispatchEvent(event);
+});
+await a.waitForTimeout(600);
+
+const androidText = await a.locator("main").innerText();
+check("and then it is one button, not a set of instructions",
+  /Install the app/.test(androidText) && !/Add to Home Screen/.test(androidText));
 
 const m = await (await a.request.get(`${BASE}/manifest.webmanifest`)).json();
 check("manifest names the app in twelve characters or fewer",
@@ -74,6 +138,8 @@ check("it opens without browser chrome", m.display === "standalone");
 check("it has a maskable icon", m.icons.some(i => i.purpose === "maskable"));
 check("it starts somewhere useful", m.start_url === "/family", m.start_url);
 await cr.close();
+
+await db.from("notifications").delete().eq("user_id", tester.id);
 
 const bad = results.filter(r => !r.ok).length;
 console.log(`\n${results.length - bad}/${results.length} checks passed.`);

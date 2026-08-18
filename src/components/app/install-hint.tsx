@@ -1,45 +1,66 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Share, X } from "lucide-react";
+import { Share, SquarePlus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
- * How somebody puts this on their home screen, said once, on iPhone only.
+ * How somebody puts this on their home screen.
  *
- * Android does this itself: the browser offers the install, and notifications
- * work whether or not anybody accepts. iOS does neither. There is no prompt to
- * trigger, the only route is Share then Add to Home Screen, and until somebody
- * has walked it, web push does not work at all. So the people who would most
- * benefit from being told are exactly the ones nobody can tell automatically.
+ * The two platforms need opposite things, and that asymmetry is the whole
+ * component. Android offers the install itself and delivers push whether or not
+ * anybody accepts; iOS offers neither, and web push does not work at all until
+ * a page is on the home screen. So the people who most need telling are exactly
+ * the ones no browser will tell, and on the platform most Dubai families use.
  *
- * Which makes this a real trade rather than a nag: on the platform most Dubai
- * families use, a person who never finds this menu never gets notified that a
- * nanny applied, and finds out days later or not at all.
+ * On iOS the words were not enough. "Tap the share button, then Add to Home
+ * Screen" is accurate and asks somebody to find a small icon they have never
+ * looked for, in a bar they ignore, in a second language. Two drawn steps do
+ * what a sentence cannot.
  *
- * Signed-in areas only, and that placement has now been decided three times.
- * It shipped scoped, was opened to every visitor, and was scoped again within
- * the hour. Worth writing down why it settled here, so it is not reopened a
- * fourth time by reasoning from scratch.
+ * On Android the browser hands us `beforeinstallprompt`, so there is nothing to
+ * explain: one button, the native dialog, done. Catching that event is also the
+ * only way to keep it, because the browser fires it once and forgets it.
  *
- * The only honest argument for installing this on iOS is notifications: web
- * push does not work at all until a page is on the home screen, so a family
- * that skips it never hears that a nanny applied. That argument cannot be made
- * to somebody without an account, because it describes something they do not
- * have. Anything weaker is a product asking a stranger for a commitment before
- * it has given them a reason.
+ * Signed-in areas only, and that placement has been decided three times now.
+ * The only honest argument for installing this is notifications, and that
+ * argument cannot be made to somebody without an account: it describes
+ * something they do not have.
  *
- * Dismissed once, gone for good, and gone if it is already installed. The
- * answer to "no" is not to ask again next week.
+ * Dismissed once, gone for good, and gone once installed. The answer to "no" is
+ * not to ask again next week.
  */
 
 const DISMISSED = "nananny.install-hint.dismissed";
 
-export function InstallHint() {
-  const [show, setShow] = useState(false);
+/** What the browser hands over, which TypeScript does not know about yet. */
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
+export function InstallHint({
+  /**
+   * Whether anything has happened to this person yet.
+   *
+   * The argument for installing is "this is how we tell you about a message or
+   * an application", and it is a promise about the future when nothing has ever
+   * arrived. Shown to somebody two screens into signing up it is a product
+   * asking for a commitment before it has given a reason; shown the day her
+   * first application lands it is describing something she has just felt the
+   * absence of.
+   *
+   * Derived from the notifications the shell has already loaded, so it costs no
+   * query. One notification means something happened, which is the whole test.
+   */
+  afterSomethingHappened = true,
+}: {
+  afterSomethingHappened?: boolean;
+} = {}) {
+  const [platform, setPlatform] = useState<"none" | "ios" | "android">("none");
+  const [installEvent, setInstallEvent] = useState<InstallPromptEvent | null>(null);
 
   useEffect(() => {
-    // Rendered only when all of these hold, so it is decided here rather than
-    // in a media query: iOS, Safari, not already installed, not refused before.
     const ua = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
     const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
@@ -57,13 +78,35 @@ export function InstallHint() {
       // Private browsing refuses localStorage. Better to show it than to crash.
     }
 
-    setShow(isIOS && isSafari && !installed && !refused);
-  }, []);
+    if (installed || refused || !afterSomethingHappened) return;
 
-  if (!show) return null;
+    if (isIOS && isSafari) {
+      setPlatform("ios");
+      return;
+    }
+
+    /**
+     * Android tells us it is installable, once, and only if it feels like it.
+     *
+     * The event fires early and is not repeated, so it has to be caught and
+     * held rather than asked for later. Preventing the default is what stops
+     * Chrome showing its own bar at the bottom, which we replace with a button
+     * that appears where somebody is already looking.
+     */
+    const onPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallEvent(event as InstallPromptEvent);
+      setPlatform("android");
+    };
+
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
+  }, [afterSomethingHappened]);
+
+  if (platform === "none") return null;
 
   function dismiss() {
-    setShow(false);
+    setPlatform("none");
     try {
       localStorage.setItem(DISMISSED, "1");
     } catch {
@@ -71,17 +114,74 @@ export function InstallHint() {
     }
   }
 
+  async function install() {
+    if (!installEvent) return;
+    await installEvent.prompt();
+    const { outcome } = await installEvent.userChoice;
+    // A no here is the browser's own dialog, not ours. Asking again through our
+    // card afterwards would be arguing with an answer somebody just gave.
+    if (outcome === "dismissed") dismiss();
+    else setPlatform("none");
+  }
+
   return (
     <div className="mb-4 flex items-start gap-3 rounded-md border border-border bg-surface px-4 py-3">
       <Share className="mt-0.5 size-5 shrink-0 text-muted" aria-hidden />
+
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">Keep NaNanny on your home screen</p>
-        <p className="mt-1 text-sm leading-relaxed text-muted">
-          Tap the share button at the bottom of Safari, then Add to Home Screen. It
-          opens like an app, and it is how we can tell you about a new application
-          without you having to check.
-        </p>
+
+        {platform === "android" ? (
+          <>
+            <p className="mt-1 text-sm leading-relaxed text-muted">
+              It opens like an app, and it is how we tell you about a message or an
+              application without you having to check.
+            </p>
+            <Button size="sm" className="mt-3" onClick={install}>
+              Install the app
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="mt-1 text-sm leading-relaxed text-muted">
+              It opens like an app, and it is how we tell you about a message or an
+              application without you having to check. Two steps:
+            </p>
+
+            {/* Drawn, not described. The share icon is the thing people cannot
+                find: it is small, it is in a bar they ignore, and its name is
+                not written next to it. Showing it is the difference between an
+                instruction somebody follows and one they abandon. */}
+            <ol className="mt-3 space-y-2.5">
+              <li className="flex items-center gap-2.5 text-sm">
+                <span className="grid size-6 shrink-0 place-items-center rounded-pill bg-foreground text-xs font-semibold text-background">
+                  1
+                </span>
+                <span className="flex items-center gap-1.5">
+                  Tap
+                  <span className="grid size-7 place-items-center rounded-md border border-border bg-background">
+                    <Share className="size-4" aria-hidden />
+                  </span>
+                  at the bottom of the screen
+                </span>
+              </li>
+              <li className="flex items-center gap-2.5 text-sm">
+                <span className="grid size-6 shrink-0 place-items-center rounded-pill bg-foreground text-xs font-semibold text-background">
+                  2
+                </span>
+                <span className="flex items-center gap-1.5">
+                  Choose
+                  <span className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs">
+                    <SquarePlus className="size-3.5" aria-hidden />
+                    Add to Home Screen
+                  </span>
+                </span>
+              </li>
+            </ol>
+          </>
+        )}
       </div>
+
       <button
         type="button"
         onClick={dismiss}

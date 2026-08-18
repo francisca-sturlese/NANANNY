@@ -117,7 +117,10 @@ export async function AppShell({
       <main className="mx-auto max-w-5xl px-4 py-6 pb-nav sm:px-6 sm:py-10 md:pb-10">
         {/* Signed in only. Somebody still deciding whether to sign up does not
             need to be asked to install anything. */}
-        <InstallHint />
+        {/* Only once something has arrived. The reason to install is that we
+            can reach her without her checking, and that reason is a promise
+            about the future until the first message or application lands. */}
+        <InstallHint afterSomethingHappened={feed.items.length > 0} />
         {/* Only one of these two ever renders. On iOS push does not exist until
             the site is on the home screen, so there the hint speaks and this
             stays quiet; once installed, the API appears and this asks. Two
