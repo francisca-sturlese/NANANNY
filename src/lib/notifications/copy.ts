@@ -100,6 +100,21 @@ export function describe(row: NotificationRow): NotificationText {
         href,
       };
 
+    // For the operator's phone: both pass the bus test, because "she
+    // finished her profile" and "somebody wrote to us" are good news to the
+    // person running the shop.
+    case "admin_review_pending":
+      return {
+        text: `${text(meta.nanny_name, "A nanny")} finished her profile and is waiting for review.`,
+        href,
+      };
+
+    case "admin_support_request":
+      return {
+        text: `New support message: ${text(meta.subject, "no subject")}.`,
+        href,
+      };
+
     default:
       // A kind added in the database and not here. Better a vague line that
       // still opens the right page than a gap in the list.
