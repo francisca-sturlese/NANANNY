@@ -24,7 +24,7 @@ npm run test:db        # 209 SQL checks across twenty two suites
 npm run test:e2e       # 39 + 30 + 15 + 28 + 15 + 29 + 8 + 16 + 22 + 12 + 16 checks
 npm run test:security  # headers, noindex, secrets, action guards
 npm run test:seo       # robots, sitemap, canonicals, share preview, structured data,
-                       # and the free contact claim on every page that makes it
+                       # the free contact claim, and the filter landings
 npm run test:mobile    # 252 viewport/engine combinations
 npm run test:links     # every internal link as 4 audiences, plus no dashes in copy
 npm run test:overlays  # sheets and menus actually cover the viewport
@@ -241,6 +241,16 @@ and billing answer questions nobody is asking. A profile is recorded as
 because how many people read a profile is useful and which profile a particular
 visitor read is not ours to keep. `admin_traffic` checks `is_admin()` itself:
 the record of everywhere people went is not something a stolen key returns.
+
+**A landing page exists only while enough profiles sit behind it.** The filter
+pages under `/nanny-in/<emirate>/<filter>` are built from `searchNannies`, and
+they 404 below three profiles rather than showing an empty promise: a near empty
+page loses the visitor in seconds and teaches a crawler the site is not worth
+returning to. The sitemap counts the same way, so the page and the sitemap
+cannot disagree, and the emirate pages link only to the ones that currently
+exist. Vocabulary in `lib/seo/landings.ts`, where the slug follows what families
+type and the filter follows what the data stores, which is why "filipina" maps
+to "Filipino".
 
 **Individual nanny profiles are readable but never indexed.**
 Noindex in the page metadata, disallowed in robots.txt, absent from the

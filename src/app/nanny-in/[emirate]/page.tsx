@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { canonical } from "@/lib/seo/site";
 import { EMIRATES, AREAS } from "@/lib/uae";
 import { MarketingPage, Section } from "@/components/site/marketing-page";
+import { availableLandings } from "@/lib/seo/landings";
 
 /**
  * One local landing page per emirate, for the searches families actually type:
@@ -34,9 +35,16 @@ const LOCAL_LINE: Record<string, string> = {
     "The quietest market in the UAE, where posting a job usually works better than waiting for the right profile to appear.",
 };
 
-export function generateStaticParams() {
-  return Object.keys(SLUGS).map((emirate) => ({ emirate }));
-}
+/**
+ * Rendered per request now that it links to the narrower pages.
+ *
+ * Those exist only while enough profiles sit behind them, so a prerendered list
+ * of links freezes at the moment of the last deploy and starts pointing at
+ * pages that have since stopped existing. An internal link to a 404 is worse
+ * than no link: it is the site telling a crawler it does not know its own
+ * shape. The copy above is still evergreen; only the links are not.
+ */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -63,6 +71,16 @@ export default async function NannyInEmiratePage({
   if (!name) notFound();
 
   const areas = AREAS[name] ?? [];
+
+  /**
+   * The narrower pages that currently exist for this emirate.
+   *
+   * Linked from here rather than listed by hand, so a page that thins out below
+   * the threshold stops being linked the same day it stops existing. An
+   * internal link to a 404 is worse than no link: it is the site telling a
+   * crawler that it does not know its own shape.
+   */
+  const landings = await availableLandings(name);
   const searchHref = `/nannies?emirate=${encodeURIComponent(name)}`;
 
   return (
@@ -106,6 +124,22 @@ export default async function NannyInEmiratePage({
           sides.
         </p>
       </Section>
+
+      {landings.length > 0 && (
+        <Section title={`Searches families make in ${name}`}>
+          <p className="not-prose flex flex-wrap gap-2">
+            {landings.map((landing) => (
+              <Link
+                key={landing.filter.slug}
+                href={`/nanny-in/${emirate}/${landing.filter.slug}`}
+                className="rounded-pill border border-border bg-surface px-3 py-1.5 text-sm hover:border-border-strong"
+              >
+                {landing.filter.plural} in {name}
+              </Link>
+            ))}
+          </p>
+        </Section>
+      )}
 
       {areas.length > 0 && (
         <Section title={`Areas families search in ${name}`}>

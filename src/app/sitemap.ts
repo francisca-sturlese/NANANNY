@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createServiceClient } from "@/lib/supabase/service";
 import { absoluteUrl } from "@/lib/seo/site";
+import { availableLandings, emirateSlug } from "@/lib/seo/landings";
 
 /**
  * The sitemap.
@@ -58,12 +59,32 @@ const STATIC_PAGES: { path: string; priority: number; changeFrequency: MetadataR
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  /**
+   * The filter landings, counted rather than listed.
+   *
+   * Each one only exists while enough profiles sit behind it, and the page
+   * itself returns 404 below that line. Listing them by hand would mean the
+   * sitemap advertising a page that has thinned out, which is the specific way
+   * a crawler learns to stop trusting a sitemap. Counting here keeps the two
+   * answers the same answer.
+   */
+  const landings = await availableLandings();
+
   const pages: MetadataRoute.Sitemap = STATIC_PAGES.map((page) => ({
     url: absoluteUrl(page.path),
     lastModified: new Date(),
     changeFrequency: page.changeFrequency,
     priority: page.priority,
   }));
+
+  for (const landing of landings) {
+    pages.push({
+      url: absoluteUrl(`/nanny-in/${emirateSlug(landing.emirate)}/${landing.filter.slug}`),
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    });
+  }
 
   try {
     const supabase = createServiceClient();

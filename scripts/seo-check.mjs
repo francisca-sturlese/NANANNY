@@ -332,6 +332,40 @@ for (const path of MARKETING_PAGES) {
   );
 }
 
+// -------------------------------------------------- the filter landings
+console.log("\n--- LANDINGS BUILT FROM REAL PROFILES ---\n");
+
+/**
+ * A landing page exists only while enough profiles sit behind it.
+ *
+ * The failure this guards against is the one that makes these pages worth
+ * nothing: a page promising Filipina nannies in Fujairah and showing none loses
+ * the visitor in three seconds and teaches a crawler that the site is not worth
+ * returning to. So the page and the sitemap have to give the same answer, and
+ * the answer has to come from the data rather than from a list somebody wrote.
+ */
+const listed = [...sitemap.matchAll(/<loc>[^<]*\/nanny-in\/([a-z-]+)\/([a-z-]+)<\/loc>/g)].map(
+  (m) => `/nanny-in/${m[1]}/${m[2]}`,
+);
+
+check("the sitemap offers at least one filter landing", listed.length > 0, `${listed.length} listed`);
+
+for (const path of listed.slice(0, 8)) {
+  const response = await fetch(`${BASE}${path}`);
+  const html = await response.text();
+  const profiles = (html.match(/href="\/nannies\/[0-9a-f-]{36}"/g) ?? []).length;
+
+  check(`${path} answers and shows real profiles`, response.ok && profiles >= 3, `${response.status}, ${profiles} profiles`);
+  check(`${path} declares its own canonical`, html.includes(`<link rel="canonical" href="${siteOrigin}${path}"`));
+}
+
+// A combination nobody has enough of must not be a page at all.
+const thin = await fetch(`${BASE}/nanny-in/umm-al-quwain/sri-lankan`, { redirect: "manual" });
+check("a combination with nothing behind it is not a page", thin.status === 404, String(thin.status));
+
+const madeUp = await fetch(`${BASE}/nanny-in/dubai/astronauts`, { redirect: "manual" });
+check("and a filter we never defined is not either", madeUp.status === 404, String(madeUp.status));
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed.`);
 process.exit(failed.length === 0 ? 0 : 1);
