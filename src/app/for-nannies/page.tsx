@@ -14,7 +14,7 @@ export default function ForNanniesPage() {
     <MarketingPage
       eyebrow="For nannies"
       title="Free for you. Always."
-      intro="You never pay to create a profile, appear in search, receive matches, apply to jobs or reply to a family. Nothing is taken from your salary."
+      intro="You never pay to create a profile, appear in search, be discovered by families, apply to jobs or reply to a family. Nothing is taken from your salary."
       cta={{
         href: "/signup?role=nanny",
         label: "Create your free profile",

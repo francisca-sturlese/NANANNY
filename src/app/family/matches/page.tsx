@@ -9,7 +9,7 @@ import { AppShell, FAMILY_NAV } from "@/components/app/app-shell";
 import { MatchCard } from "@/components/matching/match-card";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = { title: "Matches" };
+export const metadata: Metadata = { title: "Best fits" };
 
 // The score is recomputed on every visit, so nothing here should be cached.
 export const dynamic = "force-dynamic";
@@ -35,9 +35,9 @@ export default async function FamilyMatchesPage() {
   const strong = matches.filter((m) => m.score >= 80).length;
 
   return (
-    <AppShell nav={FAMILY_NAV} active="/family/matches" name="Matches">
+    <AppShell nav={FAMILY_NAV} active="/family/matches" name="Best fits">
       <div className="px-4 pt-4 pb-2 sm:px-6">
-        <h1 className="text-xl font-semibold sm:text-2xl">Your matches</h1>
+        <h1 className="text-xl font-semibold sm:text-2xl">Your best fits</h1>
         <p className="mt-1 text-sm leading-relaxed text-muted">
           {matches.length === 0
             ? "Nothing scored yet."

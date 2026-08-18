@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   alternates: canonical("/how-it-works"),
   title: "How it works",
   description:
-    "How NaNanny connects families and nannies directly across the UAE. Search, match, message and hire, with no agency in between.",
+    "How NaNanny connects families and nannies directly across the UAE. Search, compare, message and hire, with no agency in between.",
 };
 
 export default async function HowItWorksPage() {
@@ -21,7 +21,7 @@ export default async function HowItWorksPage() {
   return (
     <MarketingPage
       eyebrow="How it works"
-      title="Discover. Match. Connect. Choose."
+      title="Discover. Compare. Connect. Choose."
       intro="NaNanny is a place for families and nannies to find each other directly. No agency in the middle, no commission on her salary."
       cta={{
         href: "/signup",
@@ -38,7 +38,7 @@ export default async function HowItWorksPage() {
             },
             {
               title: "See who fits",
-              body: "Search every approved nanny in the UAE, or let us score candidates against what you asked for and show you why each one matched.",
+              body: "Search every approved nanny in the UAE, and sort profiles by how well they fit what you asked for, with every reason shown. You compare, you decide.",
             },
             {
               title: "Message the ones you like",

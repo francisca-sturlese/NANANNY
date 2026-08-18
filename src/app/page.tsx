@@ -186,8 +186,8 @@ export default async function HomePage() {
                 tint: "var(--sage-wash)",
               },
               {
-                step: "Match",
-                copy: "Tell us what you need. We score candidates and show you why.",
+                step: "Compare",
+                copy: "Filter by what matters to you, shortlist your favourites, and decide yourself.",
                 tint: "var(--peach-wash)",
               },
               {
@@ -488,7 +488,7 @@ export default async function HomePage() {
                   Nannies use NaNanny for free.
                 </h2>
                 <p className="mt-2 leading-relaxed text-muted">
-                  No fee to create a profile, appear in search, receive matches, apply to
+                  No fee to create a profile, appear in search, be discovered by families, apply to
                   jobs or reply to families. Families pay. Nannies never do.
                 </p>
                 <Link href="/signup?role=nanny" className="mt-5 inline-block w-full sm:w-auto">

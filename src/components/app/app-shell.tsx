@@ -25,7 +25,7 @@ export type NavItem = { href: string; label: string; icon: LucideIcon };
 export const FAMILY_NAV: NavItem[] = [
   { href: "/family", label: "Home", icon: Home },
   { href: "/nannies", label: "Find Nanny", icon: Search },
-  { href: "/family/matches", label: "Matches", icon: Sparkles },
+  { href: "/family/matches", label: "Best fits", icon: Sparkles },
   { href: "/family/messages", label: "Messages", icon: MessageCircle },
   { href: "/family/profile", label: "Profile", icon: User },
 ];
