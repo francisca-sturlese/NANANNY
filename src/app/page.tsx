@@ -78,7 +78,7 @@ export default async function HomePage() {
     // ordering already puts faces first, newest first.
     searchNannies({ page: 1 }),
   ]);
-  const featured = search.results.slice(0, 6);
+  const featured = search.results.slice(0, 3);
   const FAQ = buildFaq(pricing, promo.active);
   const hero = photo("family-sunset");
   const nannyPhoto = photo("nanny-reading");
@@ -238,7 +238,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+            <ul className="mt-6 grid grid-cols-3 gap-3 sm:gap-4">
               {featured.map((nanny) => (
                 <li key={nanny.id} className="h-full">
                   {/* Vertical on purpose: side-by-side text next to a photo

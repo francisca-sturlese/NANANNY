@@ -106,9 +106,11 @@ function newVisitor(): string {
 
 export async function POST(request: Request): Promise<Response> {
   let path = "";
+  let standalone = false;
   try {
-    const body = (await request.json()) as { path?: unknown };
+    const body = (await request.json()) as { path?: unknown; standalone?: unknown };
     path = typeof body.path === "string" ? body.path : "";
+    standalone = body.standalone === true;
   } catch {
     return new Response(null, { status: 204 });
   }
@@ -133,6 +135,7 @@ export async function POST(request: Request): Promise<Response> {
       p_source: source(request.headers.get("referer"), new URL(request.url).host),
       p_visitor: visitor,
       p_user_id: user?.id ?? undefined,
+      p_standalone: standalone,
     });
   } catch (error) {
     // Never worth a visible failure. A missing row is a missing row.

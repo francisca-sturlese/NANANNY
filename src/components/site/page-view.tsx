@@ -26,7 +26,11 @@ export function PageView() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const body = JSON.stringify({ path: pathname });
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      ("standalone" in navigator &&
+        (navigator as { standalone?: boolean }).standalone === true);
+    const body = JSON.stringify({ path: pathname, standalone });
 
     try {
       if (navigator.sendBeacon) {

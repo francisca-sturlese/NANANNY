@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, CardBody } from "@/components/ui/card";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export const metadata: Metadata = { title: "Traffic" };
 export const dynamic = "force-dynamic";
@@ -26,9 +27,20 @@ export default async function AdminInsightsPage() {
   const admin = await requireAdmin("/admin/insights");
   const supabase = await createServerSupabase();
 
-  const [{ data: traffic }, { data: breakdown }] = await Promise.all([
+  const [{ data: traffic }, { data: breakdown }, subsRes, standaloneRes] = await Promise.all([
     supabase.rpc("admin_traffic", { p_days: 14 }),
     supabase.rpc("admin_traffic_sources", { p_days: 14 }),
+    // The app metrics: private rows, so the service client, the same pattern
+    // as every admin read of things a session cannot see.
+    createServiceClient()
+      .from("push_subscriptions")
+      .select("user_id", { count: "exact", head: false }),
+    createServiceClient()
+      .from("analytics_events")
+      .select("session_id, created_at, properties")
+      .eq("event", "page_view")
+      .gte("created_at", new Date(Date.now() - 14 * 864e5).toISOString())
+      .filter("properties->>standalone", "eq", "true"),
   ]);
 
   const days = (Array.isArray(traffic) ? traffic : []) as Day[];
@@ -57,6 +69,42 @@ export default async function AdminInsightsPage() {
         look the same as one person reading five, and only the first of those
         means anything is working. The last fourteen days, in Dubai time.
       </p>
+
+      {/* ---- The installed app: is anybody living in it? ---- */}
+      {(() => {
+        const subs = subsRes.data ?? [];
+        const devices = subs.length;
+        const people = new Set(subs.map((r) => r.user_id)).size;
+        const rows = (standaloneRes.data ?? []) as { session_id: string | null; created_at: string; properties: unknown }[];
+        const appVisitors14 = new Set(rows.map((r) => r.session_id).filter(Boolean)).size;
+        const dayAgo = Date.now() - 864e5;
+        const appVisitorsToday = new Set(
+          rows.filter((r) => new Date(r.created_at).getTime() > dayAgo).map((r) => r.session_id).filter(Boolean),
+        ).size;
+        return (
+          <section className="mt-6">
+            <h2 className="eyebrow">The installed app</h2>
+            <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[
+                { label: "People with notifications on", value: people },
+                { label: "Devices subscribed", value: devices },
+                { label: "App visitors, 14 days", value: appVisitors14 },
+                { label: "App visitors, today", value: appVisitorsToday },
+              ].map((m) => (
+                <div key={m.label} className="rounded-lg border border-border bg-background p-4">
+                  <p className="text-2xl font-semibold tabular-nums">{m.value}</p>
+                  <p className="mt-1 text-xs leading-snug text-muted">{m.label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-subtle">
+              An app visitor is somebody who opened NaNanny from their home
+              screen. On iPhone that is the only install signal that exists, and
+              it is the one that matters: installed and used, not merely added.
+            </p>
+          </section>
+        );
+      })()}
 
       {totalVisitors === 0 && (
         <div className="mt-6 max-w-2xl rounded-md border border-butter bg-butter-wash px-4 py-3">

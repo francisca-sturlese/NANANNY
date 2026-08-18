@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { JobStatusControl } from "@/components/jobs/job-status-control";
 import { TakeDownJob } from "@/components/jobs/take-down-job";
+import { ShareLink } from "@/components/ui/share-link";
 
 export const metadata: Metadata = { title: "Your jobs" };
 
@@ -140,6 +141,15 @@ export default async function FamilyJobsPage({
                       dropdown, which is where the Post a job button used to be
                       too. A thing somebody needs to do in a hurry, because they
                       have hired somebody, should be a button. */}
+                  {job.status === "active" && (
+                    /* The founder's growth loop: a family that shares its own
+                       post recruits applicants we never had to find. */
+                    <ShareLink
+                      url={`https://nananny.com/jobs/${job.id}`}
+                      text="We're looking for a nanny. The full post, and how to apply, is here:"
+                      label="Share this job"
+                    />
+                  )}
                   {(job.status === "active" || job.status === "paused") && (
                     <TakeDownJob jobId={job.id} />
                   )}
