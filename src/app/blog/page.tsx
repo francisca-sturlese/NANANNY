@@ -20,9 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BlogPage() {
   // Posts written from the back office join the ones that live as code.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // generated types have not met blog_posts yet.
-  const service = createServiceClient() as any;
+  const service = createServiceClient();
   const [{ data: dbPosts }, { data: hiddenRows }] = await Promise.all([
     service
       .from("blog_posts")
@@ -30,12 +28,8 @@ export default async function BlogPage() {
       .eq("published", true),
     service.from("blog_code_posts").select("slug, hidden").eq("hidden", true),
   ]);
-  const hidden = new Set(
-    ((hiddenRows ?? []) as { slug: string }[]).map((r) => r.slug),
-  );
-  const fromDb: BlogPost[] = ((dbPosts ?? []) as {
-    slug: string; title: string; description: string; published_at: string | null;
-  }[]).map((p) => ({
+  const hidden = new Set((hiddenRows ?? []).map((r) => r.slug));
+  const fromDb: BlogPost[] = (dbPosts ?? []).map((p) => ({
     slug: p.slug,
     href: `/blog/${p.slug}`,
     title: p.title,

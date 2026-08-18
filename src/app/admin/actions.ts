@@ -550,10 +550,10 @@ export async function saveBlogPostAction(
   }
 
   const supabase = await createServerSupabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // generated types have not met admin_save_blog_post yet.
-  const { error } = await (supabase as any).rpc("admin_save_blog_post", {
-    p_id: parsed.data.postId ?? null,
+  const { error } = await supabase.rpc("admin_save_blog_post", {
+    // Absent rather than null when the post is new: the function's default is
+    // what decides between an insert and an update.
+    p_id: parsed.data.postId ?? undefined,
     p_slug: parsed.data.slug,
     p_title: parsed.data.title,
     p_description: parsed.data.description,
@@ -584,9 +584,7 @@ export async function toggleCodePostAction(
   if (!parsed.success) return { error: "Invalid request." };
 
   const supabase = await createServerSupabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // generated types have not met admin_set_code_post_hidden yet.
-  const { error } = await (supabase as any).rpc("admin_set_code_post_hidden", {
+  const { error } = await supabase.rpc("admin_set_code_post_hidden", {
     p_slug: parsed.data.slug,
     p_hidden: parsed.data.hidden === "true",
   });
@@ -609,9 +607,7 @@ export async function deleteBlogPostAction(
   if (!postId.success) return { error: "Invalid request." };
 
   const supabase = await createServerSupabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // generated types have not met admin_delete_blog_post yet.
-  const { error } = await (supabase as any).rpc("admin_delete_blog_post", {
+  const { error } = await supabase.rpc("admin_delete_blog_post", {
     p_id: postId.data,
   });
   if (error) return { error: cleanMessage(error.message) };

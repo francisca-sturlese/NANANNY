@@ -265,6 +265,71 @@ export type Database = {
           },
         ]
       }
+      blog_code_posts: {
+        Row: {
+          hidden: boolean
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          hidden?: boolean
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          hidden?: boolean
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          description: string
+          id: string
+          published: boolean
+          published_at: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          description?: string
+          id?: string
+          published?: boolean
+          published_at?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          description?: string
+          id?: string
+          published?: boolean
+          published_at?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           blocked_at: string | null
@@ -410,21 +475,24 @@ export type Database = {
       email_optouts: {
         Row: {
           created_at: string
+          scope: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          scope?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          scope?: string
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "email_optouts_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -2174,6 +2242,7 @@ export type Database = {
     }
     Functions: {
       admin_contact_funnel: { Args: never; Returns: Json }
+      admin_delete_blog_post: { Args: { p_id: string }; Returns: undefined }
       admin_duplicate_phones: { Args: never; Returns: Json }
       admin_grant_badge: {
         Args: { p_badge: string; p_nanny_id: string; p_note?: string }
@@ -2204,6 +2273,21 @@ export type Database = {
       admin_revoke_badge: {
         Args: { p_badge: string; p_nanny_id: string }
         Returns: Json
+      }
+      admin_save_blog_post: {
+        Args: {
+          p_body: string
+          p_description: string
+          p_id?: string
+          p_published: boolean
+          p_slug: string
+          p_title: string
+        }
+        Returns: string
+      }
+      admin_set_code_post_hidden: {
+        Args: { p_hidden: boolean; p_slug: string }
+        Returns: undefined
       }
       admin_set_job_status: {
         Args: {
@@ -2458,6 +2542,7 @@ export type Database = {
         Args: {
           p_path: string
           p_source: string
+          p_standalone?: boolean
           p_user_id?: string
           p_visitor: string
         }

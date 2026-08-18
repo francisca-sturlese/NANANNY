@@ -37,9 +37,7 @@ export default async function AdminBlogPage({
   const { edit, new: isNew } = await searchParams;
   const admin = await requireAdmin("/admin/blog");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // generated types have not met blog_posts yet.
-  const service = createServiceClient() as any;
+  const service = createServiceClient();
   const [{ data }, { data: codeVisibility }] = await Promise.all([
     service
       .from("blog_posts")
@@ -49,7 +47,7 @@ export default async function AdminBlogPage({
   ]);
   const posts = (data ?? []) as AdminPostRow[];
   const hiddenBySlug = new Map(
-    ((codeVisibility ?? []) as { slug: string; hidden: boolean }[]).map((r) => [r.slug, r.hidden]),
+    (codeVisibility ?? []).map((r) => [r.slug, r.hidden] as const),
   );
   const editing = edit ? posts.find((p) => p.id === edit) : undefined;
 

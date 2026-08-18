@@ -56,10 +56,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const service = createServiceClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // deliberate: the generated types regrow from the local stack and have not
-  // met the scope column yet.
-  const { error } = await (service as any)
+  const { error } = await service
     .from("email_optouts")
     .upsert({ user_id: userId, scope }, { onConflict: "user_id,scope", ignoreDuplicates: true });
 

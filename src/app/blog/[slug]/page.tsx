@@ -26,10 +26,7 @@ type PostRow = {
 };
 
 async function loadPost(slug: string): Promise<PostRow | null> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
-  // generated types have not met blog_posts yet.
-  const service = createServiceClient() as any;
-  const { data } = await service
+  const { data } = await createServiceClient()
     .from("blog_posts")
     .select("slug, title, description, body, published, published_at")
     .eq("slug", slug)

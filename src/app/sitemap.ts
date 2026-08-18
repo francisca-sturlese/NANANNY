@@ -90,6 +90,68 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
+  /**
+   * The posts written from the back office.
+   *
+   * The salary guide lives in `STATIC_PAGES` because it lives in code. Anything
+   * Federico writes in the admin editor exists only as a row, and a post that
+   * is not in the sitemap is a post a crawler finds weeks late or not at all,
+   * which defeats the reason for writing it.
+   *
+   * `lastModified` is the row's own timestamp rather than now. Every entry
+   * claiming it changed this minute is how a sitemap stops being believed, and
+   * here there is a real date to give.
+   *
+   * Deduplicated by URL at the end, because a row whose slug matches a coded
+   * post resolves to the same page: Next serves the static route and the
+   * dynamic one never runs, so listing both would advertise one page twice.
+   */
+  try {
+    const service = createServiceClient();
+    const [{ data: posts }, { data: hiddenRows }] = await Promise.all([
+      service
+        .from("blog_posts")
+        .select("slug, updated_at, published_at")
+        .eq("published", true)
+        .order("published_at", { ascending: false })
+        .limit(500),
+      service.from("blog_code_posts").select("slug").eq("hidden", true),
+    ]);
+
+    /**
+     * A post the founder has hidden is not advertised either.
+     *
+     * The two coded posts can be switched off from the back office without a
+     * deploy, and their routes keep answering because they are pages in the
+     * repo. Leaving them in the sitemap would mean a crawler kept sending
+     * people to an article somebody deliberately took off the blog, which is
+     * the same disagreement between page and sitemap the filter landings
+     * already avoid.
+     *
+     * If that read fails the posts stay listed. Hiding here is editorial
+     * rather than a privacy matter, and dropping three good articles every
+     * time the database blinks costs more than the rare day a hidden one is
+     * still advertised.
+     */
+    const hidden = new Set((hiddenRows ?? []).map((row) => `/blog/${row.slug}`));
+    if (hidden.size > 0) {
+      for (let i = pages.length - 1; i >= 0; i -= 1) {
+        if (hidden.has(new URL(pages[i].url).pathname)) pages.splice(i, 1);
+      }
+    }
+
+    for (const post of posts ?? []) {
+      pages.push({
+        url: absoluteUrl(`/blog/${post.slug}`),
+        lastModified: new Date(post.updated_at ?? post.published_at ?? Date.now()),
+        changeFrequency: "monthly",
+        priority: 0.7,
+      });
+    }
+  } catch (error) {
+    console.error("[sitemap] could not list blog posts:", error);
+  }
+
   try {
     const supabase = createServiceClient();
     const { data: jobs } = await supabase
@@ -113,5 +175,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[sitemap] could not list jobs:", error);
   }
 
-  return pages;
+  const seen = new Set<string>();
+  return pages.filter((page) => {
+    if (seen.has(page.url)) return false;
+    seen.add(page.url);
+    return true;
+  });
 }
