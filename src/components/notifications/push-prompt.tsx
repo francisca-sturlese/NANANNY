@@ -60,6 +60,7 @@ export function PushPrompt({
       // Private browsing refuses localStorage. Better to ask than to crash.
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- push support detection can only run client-side after mount; one synchronous set, verified on real phones
     setState("asking");
   }, [publicKey]);
 

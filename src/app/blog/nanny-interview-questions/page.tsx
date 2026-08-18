@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
 import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
+import { withCodePostVisibility } from "@/lib/blog-code-meta";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "12 questions that actually matter in a nanny interview",
   description:
     "Skip the rehearsed answers. The questions that reveal how somebody handles a tantrum, an emergency and a Tuesday, and the red flags on both sides of the table.",
   alternates: canonical("/blog/nanny-interview-questions"),
 };
+
+// Rendered per request so the admin hide switch can answer noindex.
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withCodePostVisibility("nanny-interview-questions", baseMetadata);
+}
 
 const QUESTIONS: { q: string; why: string }[] = [
   {

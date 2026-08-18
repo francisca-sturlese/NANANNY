@@ -23,3 +23,29 @@ if [ -n "$dupes" ]; then
   echo "A copy of a migration claims a version already in the ledger."
   exit 1
 fi
+
+# ---------------------------------------------------------------------------
+# Refuses a migration whose version is already taken.
+#
+# Two sessions mint timestamps by hand in the same folder, and the ledger
+# keys on version alone: the second file with the same number is silently
+# never recorded, and db:reset dies on the duplicate key. This happened for
+# real on 2026-08-18. The parity note below is the convention that prevents
+# it, printed so the hook teaches instead of only blocking.
+# ---------------------------------------------------------------------------
+
+staged_migs=$(git diff --cached --name-only --diff-filter=A | grep -E '^supabase/migrations/[0-9]{14}_' || true)
+
+for f in $staged_migs; do
+  v=$(basename "$f" | cut -c1-14)
+  existing=$(ls supabase/migrations/ 2>/dev/null | grep -c "^${v}_" || true)
+  if [ "$existing" -gt 1 ]; then
+    echo "Refusing to commit: migration version $v is already taken:"
+    ls supabase/migrations/ | grep "^${v}_" | sed 's/^/  /'
+    echo
+    echo "Rename yours to a free slot. Convention between the two sessions:"
+    echo "  EVEN hour digits (00,02,04,...) -> cisca-50's session"
+    echo "  ODD  hour digits (01,03,05,...) -> the ops session"
+    exit 1
+  fi
+done

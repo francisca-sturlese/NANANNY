@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { canonical } from "@/lib/seo/site";
 import { MarketingPage, Section } from "@/components/site/marketing-page";
+import { withCodePostVisibility } from "@/lib/blog-code-meta";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "Hire a nanny in Dubai without an agency",
   description:
     "How to find, interview and legally hire a nanny in Dubai directly: what agencies charge, what the law expects, what visa status means, and a practical checklist.",
   alternates: canonical("/guides/hire-a-nanny-in-dubai-without-an-agency"),
 };
+
+// Rendered per request so the admin hide switch can answer noindex.
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withCodePostVisibility("hire-a-nanny-in-dubai-without-an-agency", baseMetadata);
+}
 
 /**
  * The one guide that matches the site's whole reason to exist. Evergreen, no

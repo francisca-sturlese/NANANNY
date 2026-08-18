@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
 import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
+import { withCodePostVisibility } from "@/lib/blog-code-meta";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "Nanny salaries in Dubai and the UAE, 2026: real numbers",
   description:
     "What nannies in the UAE actually ask for, from live marketplace profiles: a median of AED 3,500 per month, ranges by arrangement and experience, and what moves the number.",
   alternates: canonical("/blog/nanny-salary-dubai-2026"),
 };
+
+// Rendered per request so the admin hide switch can answer noindex.
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withCodePostVisibility("nanny-salary-dubai-2026", baseMetadata);
+}
 
 /**
  * The salary guide, written from our own shelves.

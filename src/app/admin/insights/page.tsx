@@ -39,6 +39,7 @@ export default async function AdminInsightsPage() {
       .from("analytics_events")
       .select("session_id, created_at, properties")
       .eq("event", "page_view")
+      // eslint-disable-next-line react-hooks/purity -- server component rendered per request: the current time is the input of the query, not a render impurity
       .gte("created_at", new Date(Date.now() - 14 * 864e5).toISOString())
       .filter("properties->>standalone", "eq", "true"),
   ]);
@@ -77,6 +78,7 @@ export default async function AdminInsightsPage() {
         const people = new Set(subs.map((r) => r.user_id)).size;
         const rows = (standaloneRes.data ?? []) as { session_id: string | null; created_at: string; properties: unknown }[];
         const appVisitors14 = new Set(rows.map((r) => r.session_id).filter(Boolean)).size;
+        // eslint-disable-next-line react-hooks/purity -- server component rendered per request: the current time is the input of the query, not a render impurity
         const dayAgo = Date.now() - 864e5;
         const appVisitorsToday = new Set(
           rows.filter((r) => new Date(r.created_at).getTime() > dayAgo).map((r) => r.session_id).filter(Boolean),

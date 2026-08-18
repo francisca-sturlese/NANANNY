@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
 import { absoluteUrl, canonical, jsonLd } from "@/lib/seo/site";
+import { withCodePostVisibility } from "@/lib/blog-code-meta";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "Live-in or live-out nanny in Dubai: how to choose",
   description:
     "Costs, space, privacy and the law: the honest trade-offs between a live-in and a live-out nanny in the UAE, with real salary expectations from live profiles.",
   alternates: canonical("/blog/live-in-vs-live-out-nanny-dubai"),
 };
+
+// Rendered per request so the admin hide switch can answer noindex.
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withCodePostVisibility("live-in-vs-live-out-nanny-dubai", baseMetadata);
+}
 
 export default function LiveInLiveOutPage() {
   return (

@@ -81,6 +81,7 @@ export function InstallHint({
     if (installed || refused || !afterSomethingHappened) return;
 
     if (isIOS && isSafari) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- browser detection can only run client-side after mount; one synchronous set renders the answer once, verified on real phones
       setPlatform("ios");
       return;
     }
