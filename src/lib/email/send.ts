@@ -172,7 +172,7 @@ export function newMessageEmail(params: {
     "NaNanny UAE",
     "You get at most one of these a day, however many messages arrive.",
     ...(params.unsubscribeUrl
-      ? ["", `Stop emails from NaNanny: ${params.unsubscribeUrl}`]
+      ? ["", `Stop activity emails like this one: ${params.unsubscribeUrl}`]
       : []),
   ].join("\n");
 
@@ -196,7 +196,7 @@ export function newMessageEmail(params: {
       NaNanny UAE<br />
       You get at most one of these a day, however many messages arrive.${
         params.unsubscribeUrl
-          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop emails from NaNanny</a>`
+          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop activity emails like this one</a>`
           : ""
       }
     </p>
@@ -315,15 +315,11 @@ export function reminderEmail(params: {
   /**
    * Per recipient. Reminder mail without a way out is a nuisance with a logo.
    *
-   * The wording is "stop emails from NaNanny" rather than "stop these
-   * reminders", because one click writes one row in `email_optouts` and that
-   * row silences every non-account email we send, including the one telling a
-   * family that somebody applied. A link that promises less than the click does
-   * is worse than no link: it takes away the most useful message we send, from
-   * somebody who was only trying to stop being nagged.
-   *
-   * The honest wording is the stopgap. The fix is an opt-out that knows what it
-   * is opting out of.
+   * The link now carries a scope, so the click does exactly what the words
+   * say: a reminder link stops reminders, an activity link stops activity
+   * mail, and the landing page offers the bigger switch to whoever wanted
+   * that. The old "stop everything" wording was the stopgap; this is the fix
+   * it promised.
    */
   unsubscribeUrl?: string | null;
 }): { subject: string; html: string; text: string } {
@@ -383,7 +379,7 @@ export function reminderEmail(params: {
     "",
     "NaNanny UAE",
     ...(params.unsubscribeUrl
-      ? ["", `Stop emails from NaNanny: ${params.unsubscribeUrl}`]
+      ? ["", `Stop these reminders: ${params.unsubscribeUrl}`]
       : []),
   ].join("\n");
 
@@ -403,7 +399,7 @@ export function reminderEmail(params: {
       </tr>
     </table>
     <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE${params.unsubscribeUrl ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop emails from NaNanny</a>` : ""}
+      NaNanny UAE${params.unsubscribeUrl ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop these reminders</a>` : ""}
     </p>
   </body>
 </html>`.trim();
@@ -481,7 +477,7 @@ export function applicationEmail(params: {
     "NaNanny UAE",
     "You get at most one of these a day, however many applications arrive.",
     ...(params.unsubscribeUrl
-      ? ["", `Stop emails from NaNanny: ${params.unsubscribeUrl}`]
+      ? ["", `Stop activity emails like this one: ${params.unsubscribeUrl}`]
       : []),
   ].join("\n");
 
@@ -505,7 +501,7 @@ export function applicationEmail(params: {
       NaNanny UAE<br />
       You get at most one of these a day, however many applications arrive.${
         params.unsubscribeUrl
-          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop emails from NaNanny</a>`
+          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop activity emails like this one</a>`
           : ""
       }
     </p>

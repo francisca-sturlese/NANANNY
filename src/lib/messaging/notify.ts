@@ -95,7 +95,7 @@ export async function notifyNewMessage(
       name: decision.name,
       waiting: decision.waiting ?? 1,
       threads: decision.threads ?? 1,
-      unsubscribeUrl: decision.user_id ? await unsubscribeUrl(decision.user_id) : null,
+      unsubscribeUrl: decision.user_id ? await unsubscribeUrl(decision.user_id, "applications") : null,
     });
 
     const result = await sendEmail({ to: decision.to, ...mail });

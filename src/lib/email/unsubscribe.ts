@@ -36,16 +36,31 @@ async function hmacHex(value: string): Promise<string | null> {
     .join("");
 }
 
-/** The full link to put at the bottom of a reminder email. Null when the secret is unset (local builds). */
-export async function unsubscribeUrl(userId: string): Promise<string | null> {
-  const token = await hmacHex(userId);
+export type OptoutScope = "all" | "reminders" | "applications";
+
+/**
+ * The scope travels inside the HMAC, not beside it: a link that stops the
+ * reminders must not be editable into one that stops everything. Links from
+ * before scopes existed carry a bare HMAC of the user id and keep meaning
+ * "all", so nothing already sitting in an inbox changes behaviour.
+ */
+export async function unsubscribeUrl(
+  userId: string,
+  scope: OptoutScope = "all",
+): Promise<string | null> {
+  const token = await hmacHex(scope === "all" ? userId : `${userId}:${scope}`);
   if (!token) return null;
-  return absoluteUrl(`/email/unsubscribe?u=${encodeURIComponent(userId)}&t=${token}`);
+  const scopeParam = scope === "all" ? "" : `&s=${scope}`;
+  return absoluteUrl(`/email/unsubscribe?u=${encodeURIComponent(userId)}&t=${token}${scopeParam}`);
 }
 
-/** Constant-time-ish check of a presented token. */
-export async function verifyUnsubscribeToken(userId: string, token: string): Promise<boolean> {
-  const expected = await hmacHex(userId);
+/** Constant-time-ish check of a presented token, scope included. */
+export async function verifyUnsubscribeToken(
+  userId: string,
+  token: string,
+  scope: OptoutScope = "all",
+): Promise<boolean> {
+  const expected = await hmacHex(scope === "all" ? userId : `${userId}:${scope}`);
   if (!expected || expected.length !== token.length) return false;
   let diff = 0;
   for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ token.charCodeAt(i);

@@ -99,7 +99,7 @@ export async function POST(request: Request): Promise<Response> {
       messages: person.messages,
       missing: state.missing,
       visible: state.visible,
-      unsubscribeUrl: await unsubscribeUrl(person.user_id),
+      unsubscribeUrl: await unsubscribeUrl(person.user_id, "reminders"),
     });
 
     const result = await sendEmail({ to: person.email, ...mail });

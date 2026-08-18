@@ -51,7 +51,7 @@ export async function notifyApplicationReceived(jobId: string): Promise<void> {
       name: decision.name ?? "there",
       waiting: decision.waiting ?? 1,
       jobs: decision.jobs ?? 1,
-      unsubscribeUrl: decision.user_id ? await unsubscribeUrl(decision.user_id) : null,
+      unsubscribeUrl: decision.user_id ? await unsubscribeUrl(decision.user_id, "applications") : null,
     });
 
     const result = await sendEmail({ to: decision.to, ...mail });
