@@ -516,6 +516,81 @@ export async function markSupportSpamAction(
   return { message: "Filed as spam." };
 }
 
+const blogPostSchema = z.object({
+  postId: z.string().uuid().optional(),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug: lowercase words joined by hyphens.")
+    .min(3)
+    .max(80),
+  title: z.string().trim().min(3).max(160),
+  description: z.string().trim().max(300),
+  body: z.string().max(50000),
+  published: z.coerce.boolean(),
+});
+
+export async function saveBlogPostAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = blogPostSchema.safeParse({
+    postId: formData.get("postId") || undefined,
+    slug: formData.get("slug"),
+    title: formData.get("title"),
+    description: formData.get("description") ?? "",
+    body: formData.get("body") ?? "",
+    published: formData.get("published") === "on",
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
+  }
+
+  const supabase = await createServerSupabase();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
+  // generated types have not met admin_save_blog_post yet.
+  const { error } = await (supabase as any).rpc("admin_save_blog_post", {
+    p_id: parsed.data.postId ?? null,
+    p_slug: parsed.data.slug,
+    p_title: parsed.data.title,
+    p_description: parsed.data.description,
+    p_body: parsed.data.body,
+    p_published: parsed.data.published,
+  });
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/blog");
+  revalidatePath("/blog");
+  return {
+    message: parsed.data.published ? "Published." : "Saved as a draft.",
+  };
+}
+
+export async function deleteBlogPostAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const postId = z.string().uuid().safeParse(formData.get("postId"));
+  if (!postId.success) return { error: "Invalid request." };
+
+  const supabase = await createServerSupabase();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
+  // generated types have not met admin_delete_blog_post yet.
+  const { error } = await (supabase as any).rpc("admin_delete_blog_post", {
+    p_id: postId.data,
+  });
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/blog");
+  revalidatePath("/blog");
+  return { message: "Deleted." };
+}
+
 // ---------------------------------------------------------------------------
 // Reminders
 // ---------------------------------------------------------------------------

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
-import { BLOG_POSTS } from "@/lib/blog";
+import { BLOG_POSTS, type BlogPost } from "@/lib/blog";
+import { createServiceClient } from "@/lib/supabase/service";
 import { canonical } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
@@ -15,8 +16,28 @@ export const metadata: Metadata = {
  * The blog index. Short on purpose: a young blog with three honest posts
  * reads better than one padded to look established.
  */
-export default function BlogPage() {
-  const posts = [...BLOG_POSTS].sort((a, b) => b.published.localeCompare(a.published));
+export const dynamic = "force-dynamic";
+
+export default async function BlogPage() {
+  // Posts written from the back office join the ones that live as code.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
+  // generated types have not met blog_posts yet.
+  const { data: dbPosts } = await (createServiceClient() as any)
+    .from("blog_posts")
+    .select("slug, title, description, published_at")
+    .eq("published", true);
+  const fromDb: BlogPost[] = ((dbPosts ?? []) as {
+    slug: string; title: string; description: string; published_at: string | null;
+  }[]).map((p) => ({
+    slug: p.slug,
+    href: `/blog/${p.slug}`,
+    title: p.title,
+    description: p.description,
+    published: (p.published_at ?? "").slice(0, 10),
+  }));
+  const posts = [...BLOG_POSTS, ...fromDb].sort((a, b) =>
+    b.published.localeCompare(a.published),
+  );
 
   return (
     <MarketingPage
