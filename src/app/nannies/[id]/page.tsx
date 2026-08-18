@@ -32,6 +32,7 @@ import { experienceLong, experienceClause } from "@/lib/nanny/experience";
 import { isVerified } from "@/lib/nanny/discoverable";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
+import { LightboxImage } from "@/components/ui/lightbox-image";
 
 export async function generateMetadata({
   params,
@@ -180,7 +181,7 @@ export default async function NannyProfilePage({
         {/* ---------------- Header ---------------- */}
         <header className="mt-4 flex gap-4 sm:gap-6">
           {photoUrl ? (
-            <img
+            <LightboxImage
               src={photoUrl}
               alt={`${nanny.first_name ?? "Nanny"}'s profile photo`}
               width={112}

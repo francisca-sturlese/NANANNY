@@ -569,6 +569,36 @@ export async function saveBlogPostAction(
   };
 }
 
+export async function toggleCodePostAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = z
+    .object({
+      slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+      hidden: z.enum(["true", "false"]),
+    })
+    .safeParse({ slug: formData.get("slug"), hidden: formData.get("hidden") });
+  if (!parsed.success) return { error: "Invalid request." };
+
+  const supabase = await createServerSupabase();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any --
+  // generated types have not met admin_set_code_post_hidden yet.
+  const { error } = await (supabase as any).rpc("admin_set_code_post_hidden", {
+    p_slug: parsed.data.slug,
+    p_hidden: parsed.data.hidden === "true",
+  });
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/blog");
+  revalidatePath("/blog");
+  return {
+    message: parsed.data.hidden === "true" ? "Hidden from the blog." : "Visible again.",
+  };
+}
+
 export async function deleteBlogPostAction(
   _prev: ActionState,
   formData: FormData,

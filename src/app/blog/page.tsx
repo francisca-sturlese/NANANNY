@@ -22,10 +22,17 @@ export default async function BlogPage() {
   // Posts written from the back office join the ones that live as code.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any --
   // generated types have not met blog_posts yet.
-  const { data: dbPosts } = await (createServiceClient() as any)
-    .from("blog_posts")
-    .select("slug, title, description, published_at")
-    .eq("published", true);
+  const service = createServiceClient() as any;
+  const [{ data: dbPosts }, { data: hiddenRows }] = await Promise.all([
+    service
+      .from("blog_posts")
+      .select("slug, title, description, published_at")
+      .eq("published", true),
+    service.from("blog_code_posts").select("slug, hidden").eq("hidden", true),
+  ]);
+  const hidden = new Set(
+    ((hiddenRows ?? []) as { slug: string }[]).map((r) => r.slug),
+  );
   const fromDb: BlogPost[] = ((dbPosts ?? []) as {
     slug: string; title: string; description: string; published_at: string | null;
   }[]).map((p) => ({
@@ -35,8 +42,8 @@ export default async function BlogPage() {
     description: p.description,
     published: (p.published_at ?? "").slice(0, 10),
   }));
-  const posts = [...BLOG_POSTS, ...fromDb].sort((a, b) =>
-    b.published.localeCompare(a.published),
+  const posts = [...BLOG_POSTS.filter((p) => !hidden.has(p.slug)), ...fromDb].sort(
+    (a, b) => b.published.localeCompare(a.published),
   );
 
   return (

@@ -6,6 +6,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BlogPostForm } from "@/components/admin/blog-post-form";
+import { CodePostToggle } from "@/components/admin/code-post-toggle";
+import { BLOG_POSTS } from "@/lib/blog";
 
 export const metadata: Metadata = { title: "Blog" };
 
@@ -38,11 +40,17 @@ export default async function AdminBlogPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any --
   // generated types have not met blog_posts yet.
   const service = createServiceClient() as any;
-  const { data } = await service
-    .from("blog_posts")
-    .select("id, slug, title, description, body, published, published_at, updated_at")
-    .order("updated_at", { ascending: false });
+  const [{ data }, { data: codeVisibility }] = await Promise.all([
+    service
+      .from("blog_posts")
+      .select("id, slug, title, description, body, published, published_at, updated_at")
+      .order("updated_at", { ascending: false }),
+    service.from("blog_code_posts").select("slug, hidden"),
+  ]);
   const posts = (data ?? []) as AdminPostRow[];
+  const hiddenBySlug = new Map(
+    ((codeVisibility ?? []) as { slug: string; hidden: boolean }[]).map((r) => [r.slug, r.hidden]),
+  );
   const editing = edit ? posts.find((p) => p.id === edit) : undefined;
 
   return (
@@ -61,36 +69,62 @@ export default async function AdminBlogPage({
         the moment you save them.
       </p>
 
-      {posts.length === 0 ? (
-        <p className="mt-6 rounded-lg border border-dashed border-border-strong bg-surface p-6 text-center text-sm text-muted">
-          No posts from the back office yet. The salary guide lives in the code;
-          everything you write here joins it on the blog.
-        </p>
-      ) : (
-        <ul className="mt-6 divide-y divide-border rounded-lg border border-border bg-background">
-          {posts.map((post) => (
-            <li key={post.id} className="flex flex-wrap items-center gap-2.5 px-4 py-3">
+      <ul className="mt-6 divide-y divide-border rounded-lg border border-border bg-background">
+        {posts.map((post) => (
+          <li key={post.id} className="flex flex-wrap items-center gap-2.5 px-4 py-3">
+            <Link
+              href={`/admin/blog?edit=${post.id}`}
+              className="min-w-0 flex-1 truncate text-sm font-medium underline-offset-4 hover:underline"
+            >
+              {post.title}
+            </Link>
+            <Badge variant={post.published ? "sage" : "neutral"} size="sm">
+              {post.published ? "published" : "draft"}
+            </Badge>
+            {post.published && (
               <Link
-                href={`/admin/blog?edit=${post.id}`}
-                className="min-w-0 flex-1 truncate text-sm font-medium underline-offset-4 hover:underline"
+                href={`/blog/${post.slug}`}
+                className="text-xs text-muted underline underline-offset-4"
               >
-                {post.title}
+                view
               </Link>
-              <Badge variant={post.published ? "sage" : "neutral"} size="sm">
-                {post.published ? "published" : "draft"}
+            )}
+          </li>
+        ))}
+        {/* The posts that live as code, with the one action that works
+            without a deploy. Editing those goes through the dictation
+            channel, and the row says so instead of hiding the fact. */}
+        {BLOG_POSTS.map((post) => {
+          const hidden = hiddenBySlug.get(post.slug) ?? false;
+          return (
+            <li key={post.slug} className="flex flex-wrap items-center gap-2.5 px-4 py-3">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                {post.title}
+              </span>
+              <Badge variant="butter" size="sm">
+                in code
               </Badge>
-              {post.published && (
+              <Badge variant={hidden ? "neutral" : "sage"} size="sm">
+                {hidden ? "hidden" : "published"}
+              </Badge>
+              {!hidden && (
                 <Link
-                  href={`/blog/${post.slug}`}
+                  href={post.href}
                   className="text-xs text-muted underline underline-offset-4"
                 >
                   view
                 </Link>
               )}
+              <CodePostToggle slug={post.slug} hidden={hidden} />
             </li>
-          ))}
-        </ul>
-      )}
+          );
+        })}
+      </ul>
+      <p className="mt-2 text-xs leading-relaxed text-subtle">
+        Posts marked &quot;in code&quot; have hand-built layouts: hide or show
+        them here; to change their text, dictate the edit and it ships within
+        minutes.
+      </p>
 
       {(editing || isNew) && (
         <section className="mt-8 border-t border-border pt-6">

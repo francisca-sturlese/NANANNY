@@ -45,7 +45,7 @@ declare
     'is_conversation_participant',
     -- Checks is_admin() itself, like every other admin capability.
     'admin_update_reminders', 'admin_update_publishing',
-    'admin_save_blog_post', 'admin_delete_blog_post',
+    'admin_save_blog_post', 'admin_delete_blog_post', 'admin_set_code_post_hidden',
     -- Checks is_admin() itself. Called from the page an admin is already on,
     -- so it has to be reachable from a session: it records the reading that is
     -- happening rather than granting one.
