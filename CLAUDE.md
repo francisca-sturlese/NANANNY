@@ -391,6 +391,23 @@ assistant described in the PRD is out of scope, and nothing that reaches a
 family may be generated. If a feature seems to need a model, it needs a
 different design instead.
 
+**Never say the product finds, selects, matches or places anybody.** Mediation
+for domestic workers is a licensed activity in the UAE, penalties run to seven
+figures, and "match" is that activity's vocabulary. The model here is defensible
+precisely because families and nannies do the finding themselves: no placement
+fee, no sponsorship, no commission, nobody negotiating on anyone's behalf. So
+the copy is always self-serve. Families "compare", "discover" and "contact
+directly"; a nanny "makes herself discoverable" and is never told we will find
+her a job. This is about wording, not features: the score, the filters and the
+ranking all stay exactly as they are. Federico's call after taking legal advice,
+alongside a request to MoHRE for a formal classification.
+
+**Say what exists, especially on the pricing page.** It advertised "AI matching"
+on the paid plan. There is no AI in this product by decision, so that was a
+feature sold to somebody about to pay which does not exist, and it was the
+licensed vocabulary as well. What it actually is: best fits, scored and
+explained from weights an administrator sets.
+
 **The match score is computed in the database, never by a model.**
 `compute_match()` reads the weights from `matching_weights`, which an admin can
 change, and returns the score together with the sentences that produced it. A

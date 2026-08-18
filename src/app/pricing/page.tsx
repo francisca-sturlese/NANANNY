@@ -49,7 +49,17 @@ export default async function PricingPage() {
     "Unlimited nanny contacts",
     "Unlimited messaging",
     "Advanced filters",
-    "AI matching",
+    /**
+     * Was "AI matching", which was wrong twice over.
+     *
+     * There is no AI in this product and there is not going to be: that was
+     * decided, and selling a feature on the pricing page that does not exist is
+     * a false claim made to somebody about to pay. And "matching" is the
+     * vocabulary of licensed domestic worker mediation in the UAE, which is not
+     * what this does. What it actually does is score and explain, from weights
+     * an administrator sets, and the family decides.
+     */
+    "Best fits, scored and explained",
     "Unlimited shortlist",
     "Job posting",
   ];

@@ -105,7 +105,7 @@ export function ContactSheet({
                 <div className="flex items-start justify-between gap-3 px-5 py-3">
                   <h2 className="text-lg font-semibold">
                     {showPaywall
-                      ? "You've found another great match."
+                      ? "You've found somebody else worth talking to."
                       : `Message ${nannyName}`}
                   </h2>
                   <button
