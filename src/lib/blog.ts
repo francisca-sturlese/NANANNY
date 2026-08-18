@@ -19,6 +19,22 @@ export type BlogPost = {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: "live-in-vs-live-out-nanny-dubai",
+    href: "/blog/live-in-vs-live-out-nanny-dubai",
+    title: "Live-in or live-out nanny in Dubai: how to choose",
+    description:
+      "Costs, space, privacy and the law: the honest trade-offs, with real salary expectations from live profiles.",
+    published: "2026-08-18",
+  },
+  {
+    slug: "nanny-interview-questions",
+    href: "/blog/nanny-interview-questions",
+    title: "12 questions that actually matter in a nanny interview",
+    description:
+      "Get past rehearsed answers: what to ask, and what you are really listening for.",
+    published: "2026-08-18",
+  },
+  {
     slug: "nanny-salary-dubai-2026",
     href: "/blog/nanny-salary-dubai-2026",
     title: "Nanny salaries in Dubai and the UAE, 2026: real numbers",

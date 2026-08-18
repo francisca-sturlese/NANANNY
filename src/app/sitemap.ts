@@ -55,6 +55,8 @@ const STATIC_PAGES: { path: string; priority: number; changeFrequency: MetadataR
   { path: "/partnerships", priority: 0.5, changeFrequency: "monthly" },
   { path: "/blog", priority: 0.6, changeFrequency: "weekly" },
   { path: "/blog/nanny-salary-dubai-2026", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/blog/live-in-vs-live-out-nanny-dubai", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/blog/nanny-interview-questions", priority: 0.7, changeFrequency: "monthly" },
   { path: "/support", priority: 0.4, changeFrequency: "yearly" },
   { path: "/terms", priority: 0.2, changeFrequency: "yearly" },
   { path: "/privacy", priority: 0.2, changeFrequency: "yearly" },
