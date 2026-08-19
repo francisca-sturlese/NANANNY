@@ -128,14 +128,16 @@ export async function sendEmail(options: {
  * Written to read like a person, because that is what decides the Gmail tab.
  * Gmail files branded cards with buttons under Updates however well they are
  * built; what it files under Primary is correspondence: plain paragraphs, one
- * link, a sender who signs with a name and can be replied to. Replies are the
- * strongest signal it learns from, so every mail now invites one, and the
- * invitation is honest: hello@ forwards to Federico, who answers.
+ * link, a sender who can be replied to. Replies are the strongest signal it
+ * learns from, so every mail now invites one, and the invitation is honest:
+ * hello@ forwards to a person who answers.
  *
  * The register changes, the facts do not. The cap line and the way out stay
  * exactly where they were, because looking personal is a tone, not a disguise,
  * and the mail still says it is automated where that fact matters to the
- * reader.
+ * reader. It signs as NaNanny, not as a person: whose name a mail goes out
+ * under is the owner's call on the exact words, made per text, never assumed
+ * from a style choice.
  */
 function personalEmail(opts: {
   greeting: string | null;
@@ -156,7 +158,6 @@ function personalEmail(opts: {
     "",
     reply,
     "",
-    "Federico",
     "NaNanny",
     ...(opts.footer.length ? ["", ...opts.footer] : []),
     ...(opts.unsubscribe ? ["", `${opts.unsubscribe.label}: ${opts.unsubscribe.url}`] : []),
@@ -183,7 +184,7 @@ function personalEmail(opts: {
       ${opts.paragraphs.map((p) => para(escapeHtml(p))).join("\n      ")}
       ${para(`<a href="${opts.link}" style="color:#1a5fb4">${escapeHtml(opts.linkLabel)}</a>`)}
       ${para(escapeHtml(reply))}
-      ${para("Federico<br />NaNanny")}
+      ${para("NaNanny")}
       ${smallPrint.length ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#8a8a8a">${smallPrint.join("<br />")}</p>` : ""}
     </div>
   </body>
