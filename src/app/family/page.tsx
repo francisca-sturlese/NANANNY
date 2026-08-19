@@ -8,6 +8,9 @@ import { CompletionCard } from "@/components/app/completion-card";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { InviteCard } from "@/components/referral/invite-card";
+import { claimPendingReferral } from "@/lib/referral/claim";
+import { absoluteUrl } from "@/lib/seo/site";
 
 export const metadata: Metadata = { title: "Your dashboard" };
 
@@ -20,6 +23,16 @@ export default async function FamilyDashboard({
   const user = await requireRole("family", "/family");
   if (!user.emailVerified) redirect("/verify-email");
 
+  /**
+   * Before anything is read, in case this family arrived through a link.
+   *
+   * Here rather than in the signup path because there is no family row to
+   * attach an invitation to until onboarding has begun, and because a family
+   * who confirmed their email on a different device would otherwise never be
+   * recorded. It does nothing at all when there is no pending code.
+   */
+  await claimPendingReferral();
+
   const supabase = await createServerSupabase();
 
   const { data: profile } = await supabase
@@ -30,9 +43,10 @@ export default async function FamilyDashboard({
 
   if (!profile) redirect("/family/onboarding");
 
-  const [{ data: completion }, { data: contactState }, { data: waiting }] = await Promise.all([
+  const [{ data: completion }, { data: contactState }, { data: referral }, { data: waiting }] = await Promise.all([
     supabase.rpc("family_profile_completion", { p_family_id: profile.id }),
     supabase.rpc("my_contact_state"),
+    supabase.rpc("my_referral_summary"),
     /**
      * Nannies who applied and have had no answer.
      *
@@ -51,6 +65,31 @@ export default async function FamilyDashboard({
 
   const done = completion as { percent: number; missing: string[]; can_match: boolean } | null;
   const contacts = Array.isArray(contactState) ? contactState[0] : contactState;
+
+  const invite = referral as {
+    code: string | null;
+    joined: number;
+    qualified: number;
+    bonus: number;
+    enabled: boolean;
+    reward: number;
+    max: number;
+  } | null;
+
+  /**
+   * Minted here, the first time a family sees the card.
+   *
+   * The code cannot be made while reading, because the summary is a stable
+   * function and stable functions do not write. So the one family who has the
+   * mechanic switched on and no code yet gets one extra statement, once, and
+   * never again. Doing it lazily on the share button instead would mean an
+   * await inside the tap, and Safari drops the native share sheet when the
+   * gesture is broken by one.
+   */
+  const inviteCode =
+    invite?.enabled && !invite.code
+      ? ((await supabase.rpc("my_referral_code")).data as string | null)
+      : (invite?.code ?? null);
 
   const applications = waiting ?? [];
   const jobsWithApplications = new Set(applications.map((a) => a.job_id));
@@ -181,6 +220,23 @@ export default async function FamilyDashboard({
           </CardBody>
         </Card>
       </div>
+
+      {/* Below the contact meter, because it only means something to somebody
+          who has understood what a contact is, and above the navigation cards,
+          because a family that has just run out is the one most likely to send
+          it. */}
+      {invite?.enabled && inviteCode && (
+        <div className="mt-5">
+          <InviteCard
+            code={inviteCode}
+            url={absoluteUrl(`/invite/${inviteCode}`)}
+            reward={invite.reward}
+            qualified={invite.qualified}
+            bonus={invite.bonus}
+            max={invite.max}
+          />
+        </div>
+      )}
 
       <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[

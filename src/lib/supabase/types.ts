@@ -608,6 +608,7 @@ export type Database = {
           onboarding_step: number
           photo_url: string | null
           profile_completion: number
+          referral_code: string | null
           updated_at: string
           user_id: string
         }
@@ -627,6 +628,7 @@ export type Database = {
           onboarding_step?: number
           photo_url?: string | null
           profile_completion?: number
+          referral_code?: string | null
           updated_at?: string
           user_id: string
         }
@@ -646,6 +648,7 @@ export type Database = {
           onboarding_step?: number
           photo_url?: string | null
           profile_completion?: number
+          referral_code?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -655,6 +658,39 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_referrals: {
+        Row: {
+          created_at: string
+          referred_family_id: string
+          referrer_family_id: string
+        }
+        Insert: {
+          created_at?: string
+          referred_family_id: string
+          referrer_family_id: string
+        }
+        Update: {
+          created_at?: string
+          referred_family_id?: string
+          referrer_family_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_referrals_referred_family_id_fkey"
+            columns: ["referred_family_id"]
+            isOneToOne: true
+            referencedRelation: "family_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_referrals_referrer_family_id_fkey"
+            columns: ["referrer_family_id"]
+            isOneToOne: false
+            referencedRelation: "family_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1626,6 +1662,9 @@ export type Database = {
           promo_ends_at: string | null
           promo_label: string | null
           promo_starts_at: string | null
+          referral_bonus_contacts: number
+          referral_bonus_max: number
+          referral_enabled: boolean
           updated_at: string
           updated_by: string | null
           weekly_enabled: boolean
@@ -1641,6 +1680,9 @@ export type Database = {
           promo_ends_at?: string | null
           promo_label?: string | null
           promo_starts_at?: string | null
+          referral_bonus_contacts?: number
+          referral_bonus_max?: number
+          referral_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
           weekly_enabled?: boolean
@@ -1656,6 +1698,9 @@ export type Database = {
           promo_ends_at?: string | null
           promo_label?: string | null
           promo_starts_at?: string | null
+          referral_bonus_contacts?: number
+          referral_bonus_max?: number
+          referral_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
           weekly_enabled?: boolean
@@ -2392,6 +2437,7 @@ export type Database = {
         Args: { p_blocked_id: string; p_reason?: string }
         Returns: Json
       }
+      claim_referral: { Args: { p_code: string }; Returns: Json }
       claim_reminder: {
         Args: {
           p_dedupe_key: string
@@ -2432,6 +2478,7 @@ export type Database = {
           plan: Database["public"]["Enums"]["subscription_plan"]
           promo_active: boolean
           promo_ends_at: string
+          referral_bonus: number
           subscription_active: boolean
         }[]
       }
@@ -2443,6 +2490,7 @@ export type Database = {
         Args: { p_family_id: string }
         Returns: string
       }
+      family_referral_bonus: { Args: { p_family_id: string }; Returns: number }
       has_active_subscription: {
         Args: { p_family_id: string }
         Returns: boolean
@@ -2475,12 +2523,15 @@ export type Database = {
           plan: Database["public"]["Enums"]["subscription_plan"]
           promo_active: boolean
           promo_ends_at: string
+          referral_bonus: number
           subscription_active: boolean
         }[]
       }
       my_family_id: { Args: never; Returns: string }
       my_nanny_id: { Args: never; Returns: string }
       my_notifications: { Args: { p_limit?: number }; Returns: Json }
+      my_referral_code: { Args: never; Returns: string }
+      my_referral_summary: { Args: never; Returns: Json }
       nanny_profile_completion: { Args: { p_nanny_id: string }; Returns: Json }
       normalise_phone: { Args: { p_raw: string }; Returns: string }
       notify_application_email: { Args: { p_job_id: string }; Returns: Json }

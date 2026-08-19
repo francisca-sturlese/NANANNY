@@ -164,7 +164,7 @@ await page.locator('textarea[name="firstMessage"]').fill("Hello, are you availab
 await page.getByRole("button", { name: "Send message" }).click();
 
 // The sheet becomes the paywall in place — no navigation.
-await page.getByText("You've found another great match.").waitFor({ timeout: 15000 });
+await page.getByText("You've found somebody else worth talking to.").waitFor({ timeout: 15000 });
 check("the paywall appears on the next contact", true);
 await shot("03-paywall");
 

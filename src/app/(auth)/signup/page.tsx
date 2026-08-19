@@ -29,8 +29,8 @@ export default async function SignUpPage({
         <blockquote className="max-w-sm">
           <p className="text-2xl leading-snug font-medium">Families pay. Nannies are free.</p>
           <footer className="mt-4 text-sm text-muted">
-            Nannies never pay to create a profile, appear in search, receive matches or reply
-            to families.
+            Nannies never pay to create a profile, appear in search, be found by
+            families or reply to them.
           </footer>
         </blockquote>
       }

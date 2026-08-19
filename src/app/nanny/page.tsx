@@ -10,6 +10,8 @@ import { CompletionCard } from "@/components/app/completion-card";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge, VerificationBadge, type VerificationBadgeKey } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ShareCard } from "@/components/referral/invite-card";
+import { absoluteUrl } from "@/lib/seo/site";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 import { ShareProfile } from "@/components/nanny/share-profile";
 
@@ -195,8 +197,9 @@ export default async function NannyDashboard({
           <CardBody>
             <h2 className="text-base font-semibold">NaNanny is free for you</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              You never pay to create a profile, appear in search, receive matches, apply to
-              jobs or reply to families. There is no commission on your salary.
+              You never pay to create a profile, appear in search, be found by
+              families, apply to jobs or reply to them. There is no commission
+              on your salary.
             </p>
             <p className="mt-4 text-xs text-subtle">
               NaNanny is a technology platform, not your employer. Any job you take is agreed
@@ -204,6 +207,12 @@ export default async function NannyDashboard({
             </p>
           </CardBody>
         </Card>
+
+        {/* No reward on this side, and that is the honest shape of it: a nanny
+            pays for nothing, so a free contact would buy her nothing. What she
+            gets is the same one tap way to pass the site on, which is how most
+            of this side of the marketplace has arrived so far. */}
+        <ShareCard url={absoluteUrl("/for-nannies")} />
       </div>
     </AppShell>
   );

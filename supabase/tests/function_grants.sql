@@ -60,7 +60,12 @@ declare
     'admin_traffic', 'admin_traffic_sources',
     -- Acts only on the caller, refuses anything but the typed confirmation,
     -- and is how somebody leaves. It has to be reachable from a session.
-    'delete_my_account'
+    'delete_my_account',
+    -- The referral mechanic. All four act on the caller's own family and
+    -- hand back counts rather than rows: who invited whom is not something a
+    -- session gets to read directly, which is why the table has no policies.
+    'my_referral_code', 'claim_referral', 'my_referral_summary',
+    'family_referral_bonus'
   ];
 begin
   select coalesce(array_agg(distinct p.proname order by p.proname), '{}')
