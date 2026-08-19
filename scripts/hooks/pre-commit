@@ -8,7 +8,17 @@
 # version collision. `npm run clean:dupes` removes them from disk, but the disk
 # is not where they do harm.
 #
-# Not installed by the repo: git hooks are per checkout. See docs/deployment.md.
+# Run straight from here, not from a copy in .git/hooks.
+#
+# `scripts/install-hooks.mjs` points git's core.hooksPath at this directory, so
+# the file that runs is the file in the repository. The copying it used to do
+# drifted in silence: on 2026-08-19 a migration collision reached the remote
+# with this guard already written and merged, because the installed copy was
+# two days old and nobody had run npm install since.
+#
+# A self check inside the hook cannot fix that, since a copy older than the
+# check does not contain it. Removing the copy removes the whole class.
+
 
 dupes=$(git diff --cached --name-only --diff-filter=A | grep -E ' [0-9]+\.[A-Za-z]+$')
 
