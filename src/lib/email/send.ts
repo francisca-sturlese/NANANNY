@@ -127,17 +127,14 @@ export async function sendEmail(options: {
  *
  * Written to read like a person, because that is what decides the Gmail tab.
  * Gmail files branded cards with buttons under Updates however well they are
- * built; what it files under Primary is correspondence: plain paragraphs, one
- * link, a sender who can be replied to. Replies are the strongest signal it
- * learns from, so every mail now invites one, and the invitation is honest:
- * hello@ forwards to a person who answers.
+ * built; what it files under Primary is correspondence: plain paragraphs and
+ * one link said as a sentence.
  *
- * The register changes, the facts do not. The cap line and the way out stay
- * exactly where they were, because looking personal is a tone, not a disguise,
- * and the mail still says it is automated where that fact matters to the
- * reader. It signs as NaNanny, not as a person: whose name a mail goes out
- * under is the owner's call on the exact words, made per text, never assumed
- * from a style choice.
+ * Every sentence in here is Federico's to approve, word for word, before it
+ * ships. An earlier version added a "just reply to this email" line nobody
+ * approved; it went out under his product's name and he ordered it removed.
+ * The mail signs as NaNanny, never as a person, and the opt-out link stays
+ * on every template that has one.
  */
 function personalEmail(opts: {
   greeting: string | null;
@@ -145,35 +142,29 @@ function personalEmail(opts: {
   /** The one link, said as a sentence rather than pressed as a button. */
   linkLabel: string;
   link: string;
-  /** Small print under the signature, e.g. the one a day promise. */
-  footer: string[];
+  /**
+   * The only thing under the signature, by Federico's order: the way out,
+   * and nothing else. There is deliberately no other footer parameter.
+   */
   unsubscribe?: { label: string; url: string } | null;
 }): { html: string; text: string } {
-  const reply = "If you need anything, just reply to this email. A real person reads it.";
-
   const text = [
     ...(opts.greeting ? [opts.greeting, ""] : []),
     ...opts.paragraphs.flatMap((p) => [p, ""]),
     `${opts.linkLabel}: ${opts.link}`,
     "",
-    reply,
-    "",
     "NaNanny",
-    ...(opts.footer.length ? ["", ...opts.footer] : []),
     ...(opts.unsubscribe ? ["", `${opts.unsubscribe.label}: ${opts.unsubscribe.url}`] : []),
   ].join("\n");
 
   const para = (content: string) =>
     `<p style="margin:0 0 16px;font-size:16px;line-height:1.6">${content}</p>`;
 
-  const smallPrint = [
-    ...opts.footer.map((line) => escapeHtml(line)),
-    ...(opts.unsubscribe
-      ? [
-          `<a href="${opts.unsubscribe.url}" style="color:#8a8a8a">${escapeHtml(opts.unsubscribe.label)}</a>`,
-        ]
-      : []),
-  ];
+  const smallPrint = opts.unsubscribe
+    ? [
+        `<a href="${opts.unsubscribe.url}" style="color:#8a8a8a">${escapeHtml(opts.unsubscribe.label)}</a>`,
+      ]
+    : [];
 
   const html = `
 <!doctype html>
@@ -183,7 +174,6 @@ function personalEmail(opts: {
       ${opts.greeting ? para(escapeHtml(opts.greeting)) : ""}
       ${opts.paragraphs.map((p) => para(escapeHtml(p))).join("\n      ")}
       ${para(`<a href="${opts.link}" style="color:#1a5fb4">${escapeHtml(opts.linkLabel)}</a>`)}
-      ${para(escapeHtml(reply))}
       ${para("NaNanny")}
       ${smallPrint.length ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#8a8a8a">${smallPrint.join("<br />")}</p>` : ""}
     </div>
@@ -239,7 +229,6 @@ export function newMessageEmail(params: {
       paragraphs: [line, nudge],
       linkLabel: "Read it and reply here",
       link,
-      footer: ["You get at most one of these a day, however many messages arrive."],
       unsubscribe: params.unsubscribeUrl
         ? { label: "Stop activity emails like this one", url: params.unsubscribeUrl }
         : null,
@@ -414,7 +403,6 @@ export function reminderEmail(params: {
       paragraphs: [copy.line],
       linkLabel: copy.button,
       link,
-      footer: [],
       unsubscribe: params.unsubscribeUrl
         ? { label: "Stop these reminders", url: params.unsubscribeUrl }
         : null,
@@ -488,7 +476,6 @@ export function applicationEmail(params: {
       paragraphs: [line, nudge],
       linkLabel: "Read the applications",
       link,
-      footer: ["You get at most one of these a day, however many applications arrive."],
       unsubscribe: params.unsubscribeUrl
         ? { label: "Stop activity emails like this one", url: params.unsubscribeUrl }
         : null,
