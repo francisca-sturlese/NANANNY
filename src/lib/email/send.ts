@@ -122,6 +122,76 @@ export async function sendEmail(options: {
  * a nanny's comes from her profile, a family's from its display name, both of
  * which a human reviews.
  */
+/**
+ * One shape for everything we mail a family or a nanny.
+ *
+ * Written to read like a person, because that is what decides the Gmail tab.
+ * Gmail files branded cards with buttons under Updates however well they are
+ * built; what it files under Primary is correspondence: plain paragraphs, one
+ * link, a sender who signs with a name and can be replied to. Replies are the
+ * strongest signal it learns from, so every mail now invites one, and the
+ * invitation is honest: hello@ forwards to Federico, who answers.
+ *
+ * The register changes, the facts do not. The cap line and the way out stay
+ * exactly where they were, because looking personal is a tone, not a disguise,
+ * and the mail still says it is automated where that fact matters to the
+ * reader.
+ */
+function personalEmail(opts: {
+  greeting: string | null;
+  paragraphs: string[];
+  /** The one link, said as a sentence rather than pressed as a button. */
+  linkLabel: string;
+  link: string;
+  /** Small print under the signature, e.g. the one a day promise. */
+  footer: string[];
+  unsubscribe?: { label: string; url: string } | null;
+}): { html: string; text: string } {
+  const reply = "If you need anything, just reply to this email. A real person reads it.";
+
+  const text = [
+    ...(opts.greeting ? [opts.greeting, ""] : []),
+    ...opts.paragraphs.flatMap((p) => [p, ""]),
+    `${opts.linkLabel}: ${opts.link}`,
+    "",
+    reply,
+    "",
+    "Federico",
+    "NaNanny",
+    ...(opts.footer.length ? ["", ...opts.footer] : []),
+    ...(opts.unsubscribe ? ["", `${opts.unsubscribe.label}: ${opts.unsubscribe.url}`] : []),
+  ].join("\n");
+
+  const para = (content: string) =>
+    `<p style="margin:0 0 16px;font-size:16px;line-height:1.6">${content}</p>`;
+
+  const smallPrint = [
+    ...opts.footer.map((line) => escapeHtml(line)),
+    ...(opts.unsubscribe
+      ? [
+          `<a href="${opts.unsubscribe.url}" style="color:#8a8a8a">${escapeHtml(opts.unsubscribe.label)}</a>`,
+        ]
+      : []),
+  ];
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000">
+    <div style="max-width:520px;margin:0 auto">
+      ${opts.greeting ? para(escapeHtml(opts.greeting)) : ""}
+      ${opts.paragraphs.map((p) => para(escapeHtml(p))).join("\n      ")}
+      ${para(`<a href="${opts.link}" style="color:#1a5fb4">${escapeHtml(opts.linkLabel)}</a>`)}
+      ${para(escapeHtml(reply))}
+      ${para("Federico<br />NaNanny")}
+      ${smallPrint.length ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#8a8a8a">${smallPrint.join("<br />")}</p>` : ""}
+    </div>
+  </body>
+</html>`.trim();
+
+  return { html, text };
+}
+
 export function newMessageEmail(params: {
   /** Their first name, when we have one. No greeting rather than a placeholder. */
   name?: string | null;
@@ -161,49 +231,19 @@ export function newMessageEmail(params: {
   const nudge =
     "People arranging childcare talk to several others at the same time. Replying quickly is most of what decides how it goes.";
 
-  const text = [
-    ...(greeting ? [greeting, ""] : []),
-    line,
-    "",
-    nudge,
-    "",
-    `Read it and reply here: ${link}`,
-    "",
-    "NaNanny UAE",
-    "You get at most one of these a day, however many messages arrive.",
-    ...(params.unsubscribeUrl
-      ? ["", `Stop activity emails like this one: ${params.unsubscribeUrl}`]
-      : []),
-  ].join("\n");
-
-  const html = `
-<!doctype html>
-<html lang="en">
-  <body style="margin:0;padding:24px;background:#faf9f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000">
-    <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
-      <tr>
-        <td style="padding:28px">
-          ${greeting ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(greeting)}</p>` : ""}
-          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(line)}</p>
-          <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#555">${escapeHtml(nudge)}</p>
-          <p style="margin:0">
-            <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">Read and reply</a>
-          </p>
-        </td>
-      </tr>
-    </table>
-    <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE<br />
-      You get at most one of these a day, however many messages arrive.${
-        params.unsubscribeUrl
-          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop activity emails like this one</a>`
-          : ""
-      }
-    </p>
-  </body>
-</html>`.trim();
-
-  return { subject, html, text };
+  return {
+    subject,
+    ...personalEmail({
+      greeting,
+      paragraphs: [line, nudge],
+      linkLabel: "Read it and reply here",
+      link,
+      footer: ["You get at most one of these a day, however many messages arrive."],
+      unsubscribe: params.unsubscribeUrl
+        ? { label: "Stop activity emails like this one", url: params.unsubscribeUrl }
+        : null,
+    }),
+  };
 }
 
 
@@ -219,11 +259,6 @@ function escapeHtml(value: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-/** A newline in a header is header injection. */
-function escapeHeader(value: string): string {
-  return value.replace(/[\r\n]+/g, " ").slice(0, 80);
 }
 
 /**
@@ -371,40 +406,19 @@ export function reminderEmail(params: {
             button: "Finish your profile",
           };
 
-  const text = [
-    ...(greeting ? [greeting, ""] : []),
-    copy.line,
-    "",
-    `${copy.button}: ${link}`,
-    "",
-    "NaNanny UAE",
-    ...(params.unsubscribeUrl
-      ? ["", `Stop these reminders: ${params.unsubscribeUrl}`]
-      : []),
-  ].join("\n");
-
-  const html = `
-<!doctype html>
-<html lang="en">
-  <body style="margin:0;padding:24px;background:#faf9f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000">
-    <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
-      <tr>
-        <td style="padding:28px">
-          ${greeting ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(greeting)}</p>` : ""}
-          <p style="margin:0 0 24px;font-size:16px;line-height:1.5">${escapeHtml(copy.line)}</p>
-          <p style="margin:0">
-            <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">${escapeHtml(copy.button)}</a>
-          </p>
-        </td>
-      </tr>
-    </table>
-    <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE${params.unsubscribeUrl ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop these reminders</a>` : ""}
-    </p>
-  </body>
-</html>`.trim();
-
-  return { subject: copy.subject, html, text };
+  return {
+    subject: copy.subject,
+    ...personalEmail({
+      greeting,
+      paragraphs: [copy.line],
+      linkLabel: copy.button,
+      link,
+      footer: [],
+      unsubscribe: params.unsubscribeUrl
+        ? { label: "Stop these reminders", url: params.unsubscribeUrl }
+        : null,
+    }),
+  };
 }
 
 /**
@@ -466,47 +480,17 @@ export function applicationEmail(params: {
     ? "Nannies looking for work talk to several families at once. The ones who reply first are the ones who hire."
     : "Replying quickly is what gets you the nanny you want.";
 
-  const text = [
-    ...(greeting ? [greeting, ""] : []),
-    line,
-    "",
-    nudge,
-    "",
-    `Read the applications: ${link}`,
-    "",
-    "NaNanny UAE",
-    "You get at most one of these a day, however many applications arrive.",
-    ...(params.unsubscribeUrl
-      ? ["", `Stop activity emails like this one: ${params.unsubscribeUrl}`]
-      : []),
-  ].join("\n");
-
-  const html = `
-<!doctype html>
-<html lang="en">
-  <body style="margin:0;padding:24px;background:#faf9f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000">
-    <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e6e1;border-radius:12px">
-      <tr>
-        <td style="padding:28px">
-          ${greeting ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(greeting)}</p>` : ""}
-          <p style="margin:0 0 16px;font-size:16px;line-height:1.5">${escapeHtml(line)}</p>
-          <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#555">${escapeHtml(nudge)}</p>
-          <p style="margin:0">
-            <a href="${link}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:600">Read the applications</a>
-          </p>
-        </td>
-      </tr>
-    </table>
-    <p style="max-width:520px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#8a8a8a;text-align:center">
-      NaNanny UAE<br />
-      You get at most one of these a day, however many applications arrive.${
-        params.unsubscribeUrl
-          ? `<br /><a href="${params.unsubscribeUrl}" style="color:#8a8a8a">Stop activity emails like this one</a>`
-          : ""
-      }
-    </p>
-  </body>
-</html>`.trim();
-
-  return { subject, html, text };
+  return {
+    subject,
+    ...personalEmail({
+      greeting,
+      paragraphs: [line, nudge],
+      linkLabel: "Read the applications",
+      link,
+      footer: ["You get at most one of these a day, however many applications arrive."],
+      unsubscribe: params.unsubscribeUrl
+        ? { label: "Stop activity emails like this one", url: params.unsubscribeUrl }
+        : null,
+    }),
+  };
 }

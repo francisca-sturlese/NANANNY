@@ -29,7 +29,9 @@
   // absent, every application email and reminder composes and silently skips.
   // Found live on the 16th, two real application emails skipped before it was.
   "vars": {
-    "EMAIL_FROM": "NaNanny UAE <hello@nananny.com>",
+    // A person's name, because Gmail tabs mail by who it reads as being from.
+    // Replies land on hello@, which forwards to Federico, so the name is true.
+    "EMAIL_FROM": "Federico from NaNanny <hello@nananny.com>",
     "EMAIL_REPLY_TO_BILLING": "billing@nananny.com",
     "VAPID_SUBJECT": "mailto:hello@nananny.com"
   },
