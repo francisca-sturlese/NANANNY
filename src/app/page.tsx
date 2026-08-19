@@ -244,7 +244,18 @@ export default async function HomePage() {
                   {/* Vertical on purpose: side-by-side text next to a photo
                       wraps long names into ragged card heights on a phone.
                       Photo on top, one line of name, one line of facts, all
-                      truncated, every card the same shape. */}
+                      truncated, every card the same shape.
+
+                      The photo box is portrait because the photos are. Every
+                      one of these is a phone picture of a person standing up,
+                      typically 3:8 to 3:4, and a landscape window cut the top
+                      off: on the day this was reported the first card showed a
+                      woman from the chin down. Nudging object-position upwards
+                      was the obvious fix and the wrong one, because it is a
+                      constant applied to photos framed differently. Tried on
+                      the three real ones, it rescued the distant shot and beat
+                      the passport photo into a black band. A taller window
+                      needs no such guess: it simply cuts less. */}
                   <Link
                     href={`/nannies/${nanny.id}`}
                     className="block h-full overflow-hidden rounded-lg border border-border bg-surface-raised transition-shadow hover:shadow-card"
@@ -257,12 +268,12 @@ export default async function HomePage() {
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        width={320}
-                        height={240}
-                        className="aspect-[4/3] w-full object-cover"
+                        width={240}
+                        height={320}
+                        className="aspect-[3/4] w-full object-cover"
                       />
                     ) : (
-                      <NannyPhotoFallback className="aspect-[4/3] w-full rounded-none" />
+                      <NannyPhotoFallback className="aspect-[3/4] w-full rounded-none" />
                     )}
                     <div className="min-w-0 p-3">
                       <h3 className="truncate text-sm font-semibold">
