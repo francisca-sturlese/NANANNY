@@ -117,6 +117,55 @@ export async function sendMailAction(
  * mailbox: admin_mail_delete_thread checks the caller and records who
  * deleted a thread with whom before the rows go.
  */
+/**
+ * Bulk forward is a redirect, not a send: it gathers the selection and lands
+ * on the compose page with every selected conversation quoted, where the
+ * operator still writes the address and presses Send. Nothing leaves here.
+ */
+export async function bulkForwardAction(formData: FormData): Promise<void> {
+  await requireAdmin("/admin/email");
+  const selected = formData.getAll("sel").map(String).filter(Boolean).slice(0, 20);
+  if (selected.length === 0) redirect("/admin/email");
+  redirect(`/admin/email/new?sel=${selected.map(encodeURIComponent).join(",")}`);
+}
+
+/**
+ * The row's own delete, submitted through the list's form: the button carries
+ * the thread key as its name/value pair, so no nested form is needed.
+ */
+export async function rowDeleteAction(formData: FormData): Promise<void> {
+  await requireAdmin("/admin/email");
+  const threadKey = String(formData.get("threadKey") ?? "");
+  if (!threadKey) redirect("/admin/email");
+
+  const supabase = await createServerSupabase();
+  await supabase.rpc("admin_mail_delete_thread", { p_thread_key: threadKey });
+
+  revalidatePath("/admin/email");
+  redirect("/admin/email");
+}
+
+/** Same rule as the single delete: audited per thread, forever means forever. */
+export async function bulkDeleteAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin("/admin/email");
+  const selected = formData.getAll("sel").map(String).filter(Boolean);
+  if (selected.length === 0) return { error: "Nothing selected" };
+
+  const supabase = await createServerSupabase();
+  for (const key of selected) {
+    const { error } = await supabase.rpc("admin_mail_delete_thread", {
+      p_thread_key: key,
+    });
+    if (error) return { error: error.message.replace(/^.*?:\s*/, "") };
+  }
+
+  revalidatePath("/admin/email");
+  redirect("/admin/email");
+}
+
 export async function deleteMailThreadAction(
   _prev: ActionState,
   formData: FormData,

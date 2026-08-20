@@ -4,7 +4,9 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
-import { DeleteThreadControl } from "@/components/admin/mail-thread-actions";
+import { SubmitButton } from "@/components/auth/form-parts";
+import { rowDeleteAction } from "@/app/admin/email/actions";
+import { MailBulkBar } from "@/components/admin/mail-bulk-bar";
 
 export const metadata: Metadata = { title: "Email" };
 
@@ -92,7 +94,8 @@ export default async function AdminEmailPage({
         </TabLink>
       </div>
 
-      <div className="mt-4 space-y-2">
+      <form className="mt-4 space-y-2">
+        {list.length > 0 && <MailBulkBar />}
         {list.length === 0 && (
           <p className="rounded-md border border-border bg-background p-4 text-sm text-muted">
             {direction === "in" ? "Nothing in the inbox yet." : "Nothing sent from here yet."}
@@ -108,6 +111,13 @@ export default async function AdminEmailPage({
               {/* The row is not one big link any more: the actions live on it,
                   and a button inside a link is a tap that does two things. */}
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <input
+                  type="checkbox"
+                  name="sel"
+                  value={latest.thread_key}
+                  aria-label={`Select the conversation with ${counterpart}`}
+                  className="size-4 flex-shrink-0 self-center accent-black"
+                />
                 <Link
                   href={`/admin/email/thread/${encodeURIComponent(latest.thread_key)}`}
                   className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-1"
@@ -149,13 +159,32 @@ export default async function AdminEmailPage({
                   >
                     Forward
                   </Link>
-                  <DeleteThreadControl threadKey={latest.thread_key} compact />
+                  {/* No nested form: the button posts the list's own form,
+                      carrying the thread key as its name/value. */}
+                  <details>
+                    <summary className="cursor-pointer list-none text-xs text-muted underline underline-offset-4">
+                      Delete
+                    </summary>
+                    <span className="mt-1 flex items-center gap-2">
+                      <span className="text-xs text-muted">No undo.</span>
+                      <SubmitButton
+                        size="sm"
+                        variant="outline"
+                        name="threadKey"
+                        value={latest.thread_key}
+                        formAction={rowDeleteAction}
+                        pendingLabel="…"
+                      >
+                        Delete forever
+                      </SubmitButton>
+                    </span>
+                  </details>
                 </span>
               </div>
             </div>
           );
         })}
-      </div>
+      </form>
     </AdminShell>
   );
 }

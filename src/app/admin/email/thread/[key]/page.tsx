@@ -67,7 +67,7 @@ export default async function MailThreadPage({
             }`}
           >
             <p className="text-xs text-subtle">
-              {m.direction === "out" ? "NaNanny" : m.from_address} ·{" "}
+              {m.direction === "out" ? "NaNanny helpcenter" : m.from_address} ·{" "}
               {new Date(m.created_at).toLocaleString("en-GB", {
                 day: "2-digit",
                 month: "short",

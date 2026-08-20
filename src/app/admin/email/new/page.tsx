@@ -16,13 +16,29 @@ export const metadata: Metadata = { title: "New email" };
 export default async function ComposeMailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ thread?: string; fwd?: string }>;
+  searchParams: Promise<{ thread?: string; fwd?: string; sel?: string }>;
 }) {
   const admin = await requireAdmin("/admin/email/new");
-  const { thread, fwd } = await searchParams;
+  const { thread, fwd, sel } = await searchParams;
 
   let subject: string | undefined;
   let body: string | undefined;
+
+  const quote = (m: {
+    direction: string;
+    from_address: string;
+    subject: string;
+    text_body: string;
+    created_at: string;
+  }) =>
+    [
+      "---------- Forwarded message ----------",
+      `From: ${m.direction === "in" ? m.from_address : "hello@nananny.com"}`,
+      `Date: ${new Date(m.created_at).toLocaleString("en-GB")}`,
+      `Subject: ${m.subject}`,
+      "",
+      m.text_body,
+    ].join("\n");
 
   if (thread && fwd) {
     const supabase = await createServerSupabase();
@@ -34,16 +50,28 @@ export default async function ComposeMailPage({
       subject = /^\s*fwd?\s*:/i.test(original.subject)
         ? original.subject
         : `Fwd: ${original.subject}`;
-      body = [
-        "",
-        "",
-        "---------- Forwarded message ----------",
-        `From: ${original.direction === "in" ? original.from_address : "hello@nananny.com"}`,
-        `Date: ${new Date(original.created_at).toLocaleString("en-GB")}`,
-        `Subject: ${original.subject}`,
-        "",
-        original.text_body,
-      ].join("\n");
+      body = `\n\n${quote(original)}`;
+    }
+  } else if (sel) {
+    // The bulk path: every selected conversation, every message, in order.
+    // Capped at twenty threads by the action that built this URL.
+    const keys = sel.split(",").map(decodeURIComponent).filter(Boolean).slice(0, 20);
+    const supabase = await createServerSupabase();
+    const parts: string[] = [];
+    let firstSubject: string | undefined;
+    for (const key of keys) {
+      const { data } = await supabase.rpc("admin_mail_thread", { p_thread_key: key });
+      for (const m of data ?? []) {
+        firstSubject ??= m.subject;
+        parts.push(quote(m));
+      }
+    }
+    if (parts.length > 0) {
+      subject =
+        keys.length === 1
+          ? `Fwd: ${firstSubject ?? ""}`
+          : `Fwd: ${keys.length} conversations from the NaNanny mailbox`;
+      body = `\n\n${parts.join("\n\n")}`;
     }
   }
 
