@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
+import { DeleteThreadControl } from "@/components/admin/mail-thread-actions";
 
 export const metadata: Metadata = { title: "Email" };
 
@@ -100,41 +101,58 @@ export default async function AdminEmailPage({
         {list.map(({ latest, unread, count }) => {
           const counterpart = direction === "in" ? latest.from_address : latest.to_address;
           return (
-            <Link
+            <div
               key={latest.thread_key}
-              href={`/admin/email/thread/${encodeURIComponent(latest.thread_key)}`}
-              className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md border border-border bg-background p-4 hover:border-border-strong"
+              className="rounded-md border border-border bg-background p-4 hover:border-border-strong"
             >
-              <span
-                className={`min-w-0 flex-shrink-0 truncate text-sm sm:w-56 ${unread ? "font-semibold" : "text-muted"}`}
-              >
-                {counterpart}
-              </span>
-              <span className={`min-w-0 flex-1 truncate text-sm ${unread ? "font-semibold" : ""}`}>
-                {latest.subject || "(no subject)"}
-                <span className="ml-2 font-normal text-subtle">
-                  {latest.text_body.slice(0, 90)}
+              {/* The row is not one big link any more: the actions live on it,
+                  and a button inside a link is a tap that does two things. */}
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <Link
+                  href={`/admin/email/thread/${encodeURIComponent(latest.thread_key)}`}
+                  className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-1"
+                >
+                  <span
+                    className={`min-w-0 flex-shrink-0 truncate text-sm sm:w-56 ${unread ? "font-semibold" : "text-muted"}`}
+                  >
+                    {counterpart}
+                  </span>
+                  <span className={`min-w-0 flex-1 truncate text-sm ${unread ? "font-semibold" : ""}`}>
+                    {latest.subject || "(no subject)"}
+                    <span className="ml-2 font-normal text-subtle">
+                      {latest.text_body.slice(0, 90)}
+                    </span>
+                  </span>
+                  {count > 1 && (
+                    <Badge variant="neutral" size="sm">
+                      {count}
+                    </Badge>
+                  )}
+                  {unread > 0 && (
+                    <Badge variant="butter" size="sm">
+                      new
+                    </Badge>
+                  )}
+                  <span className="text-xs whitespace-nowrap text-subtle">
+                    {new Date(latest.created_at).toLocaleString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </Link>
+                <span className="flex flex-shrink-0 items-baseline gap-3">
+                  <Link
+                    href={`/admin/email/new?thread=${encodeURIComponent(latest.thread_key)}&fwd=${latest.id}`}
+                    className="text-xs text-muted underline underline-offset-4"
+                  >
+                    Forward
+                  </Link>
+                  <DeleteThreadControl threadKey={latest.thread_key} compact />
                 </span>
-              </span>
-              {count > 1 && (
-                <Badge variant="neutral" size="sm">
-                  {count}
-                </Badge>
-              )}
-              {unread > 0 && (
-                <Badge variant="butter" size="sm">
-                  new
-                </Badge>
-              )}
-              <span className="text-xs whitespace-nowrap text-subtle">
-                {new Date(latest.created_at).toLocaleString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </Link>
+              </div>
+            </div>
           );
         })}
       </div>

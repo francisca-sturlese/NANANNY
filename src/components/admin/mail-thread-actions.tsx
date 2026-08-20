@@ -10,13 +10,22 @@ import { SubmitButton, FormError } from "@/components/auth/form-parts";
  * avoids everywhere; a disclosure that opens to say what will happen, with
  * the real button inside it. One extra tap, zero accidental deletions.
  */
-export function DeleteThreadControl({ threadKey }: { threadKey: string }) {
+export function DeleteThreadControl({
+  threadKey,
+  compact,
+}: {
+  threadKey: string;
+  /** On a list row: a short label, and the confirmation opens under the row. */
+  compact?: boolean;
+}) {
   const [state, action] = useActionState<ActionState, FormData>(deleteMailThreadAction, {});
 
   return (
     <details className="group">
-      <summary className="cursor-pointer list-none text-sm text-muted underline underline-offset-4">
-        Delete forever
+      <summary
+        className={`cursor-pointer list-none text-muted underline underline-offset-4 ${compact ? "text-xs" : "text-sm"}`}
+      >
+        {compact ? "Delete" : "Delete forever"}
       </summary>
       <form
         action={action}
