@@ -174,7 +174,7 @@ export default async function FamilyDashboard({
           percent={done?.percent ?? 0}
           missing={done?.missing ?? []}
           editHref="/family/onboarding"
-          blurb="The more we know, the better your matches."
+          blurb="The more we know, the better we can rank who fits."
         />
 
         {/* The free-contact counter, shown discreetly (PRD §17). */}

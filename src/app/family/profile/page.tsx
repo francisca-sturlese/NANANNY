@@ -63,7 +63,7 @@ export default async function FamilyProfilePage() {
           percent={done?.percent ?? 0}
           missing={done?.missing ?? []}
           editHref={step(FAMILY_STEPS[0].slug)}
-          blurb="The more we know, the better your matches."
+          blurb="The more we know, the better we can rank who fits."
         />
       </div>
 

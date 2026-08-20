@@ -100,8 +100,9 @@ export default function PrivacyPage() {
 
       <Section title="Why we use your data">
         <p>
-          To run the service you signed up for: showing profiles, delivering messages,
-          matching families and nannies. To keep the platform safe: reviewing profiles and
+          To run the service you signed up for: showing profiles, delivering
+          messages, and scoring profiles against what a family said it was
+          looking for. To keep the platform safe: reviewing profiles and
           documents, handling reports, preventing abuse. To take payments when you choose a
           plan. To meet the legal obligations that apply to a UAE company. We do not sell
           your data and we do not show ads.

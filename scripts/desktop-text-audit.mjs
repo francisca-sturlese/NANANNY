@@ -112,6 +112,54 @@ for (const [role, paths] of Object.entries(PAGES)) {
         return text.length > 70 ? `${text.slice(0, 70)}...` : text;
       };
 
+      /**
+       * Form controls, which the first version of this walked straight past.
+       *
+       * It looked at "body *" and read scrollWidth, and a <select> does not
+       * report its chosen option that way: the option can need 108px in a
+       * 99px cell and scrollWidth still says everything fits. So the site had
+       * one genuinely truncated control on the homepage and this tool called
+       * the site clean. Measured here by rendering the selected option's text
+       * into a canvas at the element's own font and comparing.
+       */
+      const fit = document.createElement("canvas").getContext("2d");
+      for (const el of document.querySelectorAll("select, button, option")) {
+        const style = getComputedStyle(el);
+        if (style.display === "none" || style.visibility === "hidden") continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0) continue;
+
+        const shown = el.tagName === "SELECT"
+          ? (el.options[el.selectedIndex]?.text ?? "")
+          : (el.textContent ?? "").trim();
+        if (!shown) continue;
+
+        fit.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        const needed = fit.measureText(shown).width;
+        const padding =
+          parseFloat(style.paddingLeft || "0") + parseFloat(style.paddingRight || "0");
+        /**
+         * The arrow, counted once.
+         *
+         * A native select draws its arrow outside the padding box; this one is
+         * `appearance-none` with `pr-10`, so the room for the chevron is
+         * already in paddingRight. Subtracting a fixed allowance on top of
+         * that took 24px away twice and reported five perfectly fine filters
+         * as truncated. Only allow for an arrow when the padding is too small
+         * to be holding one.
+         */
+        const chrome = el.tagName === "SELECT" && parseFloat(style.paddingRight || "0") < 24 ? 20 : 0;
+        const room = rect.width - padding - chrome;
+
+        if (needed > room + 1) {
+          out.push({
+            kind: "CLIPPED",
+            text: shown,
+            detail: `${el.tagName.toLowerCase()} needs ${Math.round(needed)}px, has ${Math.round(room)}px`,
+          });
+        }
+      }
+
       for (const el of document.querySelectorAll("body *")) {
         const style = getComputedStyle(el);
         if (style.display === "none" || style.visibility === "hidden") continue;
