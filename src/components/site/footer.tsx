@@ -65,7 +65,7 @@ export function SiteFooter() {
         {/* PRD §56: this wording is a legal position, not marketing copy.
             It must stay consistent everywhere it appears. */}
         <div className="mt-12 border-t border-border pt-8">
-          <p className="max-w-3xl text-xs leading-relaxed text-subtle">
+          <p className="text-xs leading-relaxed text-subtle">
             NaNanny is a technology platform. NaNanny does not employ nannies, does not
             sponsor nannies, and does not negotiate employment contracts. Employment
             arrangements are made directly between families and nannies, who remain
