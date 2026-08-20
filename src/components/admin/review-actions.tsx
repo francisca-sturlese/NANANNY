@@ -89,8 +89,19 @@ export function ReviewActions({
         )}
       </div>
       <div className="flex flex-wrap gap-2">
+        {/* "Start review" changed a status and opened nothing, so pressing it
+            appeared to do nothing at all. It does one real thing, which is to
+            say out loud that somebody is looking, and it only means anything
+            when more than one person reviews. The label now says that, and the
+            work of reviewing happens by opening her profile from the name
+            above. */}
         {status === "submitted" && (
-          <StatusForm action={action} nannyId={nannyId} status="under_review" label="Start review" />
+          <StatusForm
+            action={action}
+            nannyId={nannyId}
+            status="under_review"
+            label="Mark as being reviewed"
+          />
         )}
         {status !== "approved" && (
           <StatusForm
