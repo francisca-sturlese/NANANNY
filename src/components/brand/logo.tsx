@@ -59,7 +59,7 @@ export function LogoMark({
 
 /**
  * Horizontal lockup: mark + "NaNanny" + the ruled "U A E" line.
- * `withTagline` adds FIND. MATCH. CONNECT. underneath.
+ * `withTagline` adds FIND. COMPARE. CONNECT. underneath.
  */
 export function Logo({
   tone = "brand",
@@ -104,7 +104,7 @@ export function Logo({
             className="mt-1.5 text-[0.5rem] font-medium tracking-[0.24em]"
             style={{ color: c.text, opacity: 0.6 }}
           >
-            FIND. MATCH. CONNECT.
+            FIND. COMPARE. CONNECT.
           </span>
         )}
       </span>
