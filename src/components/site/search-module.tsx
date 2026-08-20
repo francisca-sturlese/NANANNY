@@ -69,12 +69,12 @@ export function SearchModule() {
         </div>
 
         <Button type="submit" size="lg" className="hidden sm:inline-flex">
-          Find Matches
+          Find nannies
         </Button>
       </div>
 
       {/* ---- Desktop: the rest of the filters, laid out inline ---- */}
-      <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-3">
         <FilterFields />
       </div>
 
