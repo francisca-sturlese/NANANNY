@@ -27,14 +27,14 @@ export default async function AdminPricingPage() {
   if (!config) return null;
 
   return (
-    <AdminShell active="/admin/pricing" name={admin.firstName ?? "Admin"}>
+    <AdminShell narrow active="/admin/pricing" name={admin.firstName ?? "Admin"}>
       <h1 className="text-2xl font-semibold sm:text-3xl">Pricing</h1>
-      <p className="mt-1 max-w-2xl text-sm text-muted">
+      <p className="mt-1 text-sm text-muted">
         These values are read by every screen that shows a price. Nothing is hardcoded, so
         a change here is live everywhere the moment you save it.
       </p>
 
-      <div className="mt-6 max-w-xl">
+      <div className="mt-6">
         <Card>
           <CardBody>
             <PricingForm
@@ -49,7 +49,7 @@ export default async function AdminPricingPage() {
         </Card>
       </div>
 
-      <div className="mt-6 max-w-xl">
+      <div className="mt-6">
         <Card>
           <CardBody>
             <h2 className="text-base font-semibold">Launch window</h2>
@@ -68,7 +68,7 @@ export default async function AdminPricingPage() {
         </Card>
       </div>
 
-      <section className="mt-8 max-w-xl">
+      <section className="mt-8">
         <h2 className="eyebrow">Recent changes</h2>
         {recentChanges && recentChanges.length > 0 ? (
           <ul className="mt-3 space-y-2">

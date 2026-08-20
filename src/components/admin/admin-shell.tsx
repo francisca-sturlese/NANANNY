@@ -36,6 +36,7 @@ export async function AdminShell({
   pendingReview,
   openReports,
   openSupport,
+  narrow,
   children,
 }: {
   active: string;
@@ -43,6 +44,13 @@ export async function AdminShell({
   pendingReview?: number;
   openReports?: number;
   openSupport?: number;
+  /**
+   * Centres the page as one column instead of the full 6xl frame. For the
+   * settings pages, which are a heading and one or two cards: left in a 6xl
+   * frame they sat pressed against the left edge of a desktop screen with
+   * half the width empty. Tables and dashboards keep the full frame.
+   */
+  narrow?: boolean;
   children: React.ReactNode;
 }) {
   /**
@@ -107,7 +115,7 @@ export async function AdminShell({
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8"><PushPrompt />
-        {children}</main>
+        {narrow ? <div className="mx-auto w-full max-w-2xl">{children}</div> : children}</main>
     </div>
   );
 }

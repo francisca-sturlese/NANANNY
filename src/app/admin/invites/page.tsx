@@ -36,9 +36,9 @@ export default async function AdminInvitesPage() {
   };
 
   return (
-    <AdminShell active="/admin/invites" name={admin.firstName ?? "Admin"}>
+    <AdminShell narrow active="/admin/invites" name={admin.firstName ?? "Admin"}>
       <h1 className="text-2xl font-semibold sm:text-3xl">Invites</h1>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+      <p className="mt-2 text-sm leading-relaxed text-muted">
         Invite somebody to the team by email. The role is attached to the address and
         applied automatically when that exact address signs up. Every invite,
         acceptance and revocation is written to the audit log.
