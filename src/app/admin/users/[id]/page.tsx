@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 import { Badge } from "@/components/ui/badge";
 import { UserActions } from "@/components/admin/user-actions";
 
@@ -121,9 +122,21 @@ export default async function AdminUserPage({
           </p>
           {nanny.headline && <p className="mt-2 text-sm">{nanny.headline}</p>}
           <div className="mt-3 flex flex-wrap gap-3 text-sm">
-            <Link href={`/nannies/${nanny.id}`} className="underline underline-offset-4">
-              Open her profile page
-            </Link>
+            {/* Only when the page exists. A rejected or draft profile is not
+                discoverable, so this link answered 404, and an admin reading
+                "open her profile page" next to a rejected profile reasonably
+                concludes the rejected profile is still up. Federico did. */}
+            {DISCOVERABLE_STATUSES.includes(
+              nanny.status as (typeof DISCOVERABLE_STATUSES)[number],
+            ) ? (
+              <Link href={`/nannies/${nanny.id}`} className="underline underline-offset-4">
+                Open her profile page
+              </Link>
+            ) : (
+              <span className="text-muted">
+                Not visible to families while {nanny.status.replace("_", " ")}
+              </span>
+            )}
             {nanny.status === "submitted" && (
               <Link href="/admin/review" className="underline underline-offset-4">
                 She is waiting in the review queue

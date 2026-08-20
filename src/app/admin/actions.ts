@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { sendEmail } from "@/lib/email/send";
+import { sendEmail, rejectionEmail } from "@/lib/email/send";
 import { createServiceClient } from "@/lib/supabase/service";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -58,8 +58,71 @@ export async function setNannyStatusAction(
 
   if (error) return { error: error.message.replace(/^.*?:\s*/, "") };
 
+  /**
+   * A rejection is told, not only recorded.
+   *
+   * It used to write a notification inside the app and stop there, which
+   * reaches a nanny only if she comes back on her own. One was rejected for a
+   * photo that was not hers and still did not know two days later, which makes
+   * the rejection a silence rather than a request.
+   *
+   * After the status write, never instead of it: a mail server having a bad
+   * afternoon must not turn into a rejection that did not happen. If the send
+   * fails the administrator is told, because a rejection she never hears about
+   * is worse than one nobody sent.
+   */
+  let mailNote = "";
+  if (parsed.data.status === "rejected") {
+    const service = createServiceClient();
+    const { data: nanny } = await service
+      .from("nanny_profiles")
+      .select("first_name, user_id")
+      .eq("id", parsed.data.nannyId)
+      .maybeSingle();
+
+    const { data: account } = nanny?.user_id
+      ? await service.from("users").select("email").eq("id", nanny.user_id).maybeSingle()
+      : { data: null };
+
+    if (account?.email) {
+      const mail = rejectionEmail({
+        name: nanny?.first_name,
+        reason: parsed.data.reason ?? "",
+      });
+      const result = await sendEmail({ to: account.email, ...mail });
+      const skipped = result.ok && "skipped" in result;
+
+      /**
+       * Recorded in the same register as every other send, so "what did she
+       * actually receive" is answerable from one place. The key carries the
+       * moment: a second rejection is a second thing to tell her, not a
+       * duplicate of the first.
+       */
+      await service.from("email_events").insert({
+        user_id: nanny?.user_id ?? null,
+        email_type: "profile_rejected",
+        recipient: account.email,
+        subject: mail.subject,
+        status: result.ok ? (skipped ? "skipped" : "sent") : "failed",
+        error: result.ok ? null : result.error,
+        idempotency_key: `profile_rejected:${parsed.data.nannyId}:${new Date().toISOString()}`,
+        metadata: { subject: mail.subject, text: mail.text },
+      });
+
+      mailNote = result.ok
+        ? skipped
+          ? " She was not emailed: this machine cannot send."
+          : " She has been emailed the reason."
+        : ` She was NOT emailed: ${result.error}`;
+    } else {
+      mailNote = " She has no address on file, so nothing was emailed.";
+    }
+  }
+
   revalidatePath("/admin");
-  return { message: `Profile moved to ${parsed.data.status.replace("_", " ")}.` };
+  return {
+    message: `Profile moved to ${parsed.data.status.replace("_", " ")}.${mailNote}`,
+  };
 }
 
 

@@ -430,6 +430,47 @@ export function reminderEmail(params: {
  * email, same reason: an email that genuinely came from us is the best phishing
  * envelope this product could hand anybody.
  */
+/**
+ * Her profile was rejected, and this is how she finds out.
+ *
+ * Until now a rejection wrote a notification inside the app and nothing else,
+ * so a nanny who did not come back never learned why her profile had gone
+ * quiet. Leticia was rejected on 18 August for a photo that was not hers and
+ * had not been told two days later.
+ *
+ * The reason is the administrator's own words, copied exactly. That is not a
+ * breach of "an email never carries text another user typed": it is our text,
+ * written by us about our decision, and paraphrasing it would mean telling her
+ * something slightly different from what the screen shows her.
+ *
+ * No unsubscribe link, deliberately. This is not activity or news, it is the
+ * reason her profile is not visible and the way to fix it. Offering to stop
+ * sending it would be offering to stop telling her.
+ */
+export function rejectionEmail(params: {
+  name?: string | null;
+  /** Exactly what the administrator wrote in the rejection box. */
+  reason: string;
+}): { subject: string; html: string; text: string } {
+  const named = params.name?.trim();
+  const greeting = named && named.toLowerCase() !== "there" ? `Hello ${named},` : null;
+
+  return {
+    subject: "Your NaNanny profile needs one change",
+    ...personalEmail({
+      greeting,
+      paragraphs: [
+        "Thank you for putting your profile together. We look at every profile before it goes in front of families, and yours needs one thing changed before we can show it.",
+        `What we need: ${params.reason}`,
+        "Once you have updated it, your profile goes back in the queue and we look at it again. Nothing else you have written is lost.",
+      ],
+      linkLabel: "Update your profile here",
+      link: absoluteUrl("/nanny/profile"),
+      unsubscribe: null,
+    }),
+  };
+}
+
 export function applicationEmail(params: {
   /** Same rule as the reminder: no name means no greeting, never a placeholder. */
   name?: string | null;

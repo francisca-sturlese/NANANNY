@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { signedUrls } from "@/lib/storage/private-assets";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
+import { ReviewPhoto, ReviewProfileDetail } from "@/components/admin/review-card";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ReviewActions } from "@/components/admin/review-actions";
@@ -34,7 +34,7 @@ export default async function AdminPage() {
   const { data: profiles } = await supabase
     .from("nanny_profiles")
     .select(
-      "id, user_id, first_name, status, photo_url, emirate, nationality, years_experience, profile_completion, headline, submitted_at, rejection_reason",
+      "id, user_id, first_name, status, photo_url, emirate, nationality, years_experience, profile_completion, headline, submitted_at, rejection_reason, description, visa_status, arrangement, available_from, salary_expectation_min_aed, salary_expectation_max_aed, languages, english_level, uae_experience_years, education, certificates, newborn_experience, toddler_experience, school_age_experience, special_needs_experience, has_driving_licence, can_cook, can_housekeep, first_aid_certified",
     )
     .in("status", [...QUEUE_ORDER])
     .order("submitted_at", { ascending: true, nullsFirst: false })
@@ -109,26 +109,7 @@ export default async function AdminPage() {
                   <div className="flex flex-wrap items-start justify-between gap-5">
                     <div className="flex min-w-0 items-start gap-4">
                       {photo ? (
-                        /* The photo opens full size in a new tab.
-                           At 56px across you cannot tell a real photograph
-                           from a screenshot of a document, which is one of the
-                           two things a review is actually for. */
-                        <a
-                          href={photo}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="Open the photo full size"
-                          className="shrink-0"
-                        >
-                          <Image
-                            src={photo}
-                            alt=""
-                            width={56}
-                            height={56}
-                            unoptimized
-                            className="size-14 rounded-full border border-border object-cover transition-opacity hover:opacity-80"
-                          />
-                        </a>
+                        <ReviewPhoto src={photo} name={row.first_name ?? "this nanny"} />
                       ) : (
                         <span className="grid size-14 shrink-0 place-items-center rounded-full bg-surface text-[0.6rem] text-subtle">
                           No photo
@@ -136,28 +117,8 @@ export default async function AdminPage() {
                       )}
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          {/* The whole point of the queue: read her profile
-                              before deciding. Without this the only things on
-                              screen were a name, a headline and three facts,
-                              which is approving blind. Discoverable profiles
-                              open as a family sees them; a rejected one is not
-                              reachable there, so it opens in the back office
-                              instead. */}
-                          <a
-                            href={
-                              DISCOVERABLE_STATUSES.includes(
-                                row.status as (typeof DISCOVERABLE_STATUSES)[number],
-                              )
-                                ? `/nannies/${row.id}`
-                                : `/admin/users/${row.user_id}`
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-semibold underline decoration-border underline-offset-4 hover:decoration-foreground"
-                          >
-                            {row.first_name ?? "Unnamed"}
-                          </a>
-                          <Badge variant={BADGE_FOR[row.status]} size="sm">
+                          <h2 className="font-semibold">{row.first_name ?? "Unnamed"}</h2>
+                                                    <Badge variant={BADGE_FOR[row.status]} size="sm">
                             {row.status.replace("_", " ")}
                           </Badge>
                           <span className="text-xs text-muted">
@@ -184,6 +145,34 @@ export default async function AdminPage() {
                             Last rejection: {row.rejection_reason}
                           </p>
                         )}
+
+                        <ReviewProfileDetail
+                          profile={{
+                            description: row.description,
+                            visa_status: row.visa_status,
+                            arrangement: row.arrangement,
+                            available_from: row.available_from,
+                            salary_min: row.salary_expectation_min_aed,
+                            salary_max: row.salary_expectation_max_aed,
+                            languages: row.languages,
+                            english_level: row.english_level,
+                            uae_years: row.uae_experience_years,
+                            education: row.education,
+                            certificates: row.certificates,
+                            cares_for: [
+                              row.newborn_experience ? "newborn" : null,
+                              row.toddler_experience ? "toddler" : null,
+                              row.school_age_experience ? "school age" : null,
+                              row.special_needs_experience ? "special needs" : null,
+                            ].filter(Boolean) as string[],
+                            can: [
+                              row.has_driving_licence ? "drive" : null,
+                              row.can_cook ? "cook" : null,
+                              row.can_housekeep ? "housekeep" : null,
+                              row.first_aid_certified ? "first aid" : null,
+                            ].filter(Boolean) as string[],
+                          }}
+                        />
                       </div>
                     </div>
 
