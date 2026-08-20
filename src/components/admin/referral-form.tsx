@@ -48,20 +48,30 @@ export function ReferralForm({
         </p>
       </div>
 
-      <label className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          name="enabled"
-          checked={on}
-          onChange={(e) => setOn(e.target.checked)}
-          className="mt-1 size-5 shrink-0 rounded-sm border-border-strong"
-        />
+      {/* A switch that says what it switches. This was a checkbox labelled
+          "Give the extra contacts", which reads as a sub option: Federico
+          looked for the way to turn the referral program on and did not
+          recognise it. The control is still the same form field. */}
+      <label className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-4 py-3">
         <span className="text-sm leading-relaxed">
-          <span className="font-medium">Give the extra contacts</span>
+          <span className="font-medium">Referral program</span>
           <span className="block text-muted">
             Nothing is granted until the invited family finishes setting up, which is
             what publishes their job post. A signup on its own earns nobody anything.
           </span>
+        </span>
+        <span className="relative inline-flex shrink-0">
+          <input
+            type="checkbox"
+            name="enabled"
+            role="switch"
+            aria-checked={on}
+            checked={on}
+            onChange={(e) => setOn(e.target.checked)}
+            className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0"
+          />
+          <span className="block h-7 w-12 rounded-full bg-border-strong transition-colors peer-checked:bg-sage-deep" aria-hidden />
+          <span className="pointer-events-none absolute left-1 top-1 size-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" aria-hidden />
         </span>
       </label>
 

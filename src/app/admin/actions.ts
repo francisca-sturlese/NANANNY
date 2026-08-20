@@ -271,7 +271,7 @@ export async function updateReferralAction(
   });
   if (error) return { error: cleanMessage(error.message) };
 
-  revalidatePath("/admin/pricing");
+  revalidatePath("/admin/referral");
   revalidatePath("/family");
   revalidatePath("/invite-a-family");
   return {

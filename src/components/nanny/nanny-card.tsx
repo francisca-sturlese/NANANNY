@@ -85,12 +85,6 @@ export function NannyCard({
               </span>
             </div>
 
-            {nanny.headline && (
-              <p className="mt-0.5 line-clamp-2 text-sm leading-snug text-muted">
-                {nanny.headline}
-              </p>
-            )}
-
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
               {/* First fact on the row: in this market it is the first
                   question a family asks, and the competitor cards lead with
@@ -120,6 +114,20 @@ export function NannyCard({
             </ul>
           </div>
         </div>
+
+        {/* Full width, under the photo rather than beside it.
+            In the right hand column this sentence had about 230px on any
+            screen, because three cards in a row are narrow whether the window
+            is 390px or 1920px, so it truncated mid word with the rest of the
+            card empty underneath. Given the whole card it gets roughly half as
+            much room again, which is the difference between "Warm, organised
+            nanny with nine years caring for young children in..." and the
+            sentence she actually wrote. */}
+        {nanny.headline && (
+          <p className="mt-2.5 line-clamp-2 text-sm leading-snug text-muted">
+            {nanny.headline}
+          </p>
+        )}
 
         {/* Salary is the second thing a family looks for, so it gets its own line. */}
         {nanny.salaryMin != null && (

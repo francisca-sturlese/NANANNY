@@ -76,7 +76,10 @@ export default async function PricingPage() {
         <h1 className="text-3xl leading-tight font-semibold sm:text-5xl">
           {promo.active ? "Right now it is all free." : "Find your nanny. Start for free."}
         </h1>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
+        {/* Wider than a reading measure on purpose. Under a heading that runs
+            the width of the page, a 576px sentence wrapping after six words
+            reads as cramped rather than as considered. */}
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
           {promo.active ? (
             <>
               Every nanny contact is free while we are launching
@@ -155,10 +158,13 @@ export default async function PricingPage() {
 
         <div className="mt-10 rounded-xl bg-sage-wash p-6 sm:p-8">
           <h2 className="text-xl font-semibold sm:text-2xl">Nannies never pay.</h2>
-          <p className="mt-2 max-w-xl leading-relaxed text-muted">
-            No fee to create a profile, appear in search, receive matches, apply to jobs or
-            reply to families. And no commission on her salary. What a family agrees with
-            her is what she is paid.
+          {/* max-w-2xl, not xl. In a full width tinted box a 576px paragraph
+              left the right half of the box empty, which reads as a mistake
+              rather than as a measure. */}
+          <p className="mt-2 max-w-2xl leading-relaxed text-muted">
+            No fee to create a profile, appear in search, be found by families,
+            apply to jobs or reply to them. And no commission on her salary.
+            What a family agrees with her is what she is paid.
           </p>
         </div>
 
