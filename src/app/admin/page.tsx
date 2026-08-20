@@ -7,6 +7,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatAed } from "@/lib/utils";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Overview" };
 
@@ -227,7 +228,7 @@ export default async function AdminOverviewPage() {
                           </Badge>
                           <span className="text-xs text-subtle">{person.email}</span>
                           <span className="ml-auto text-xs text-subtle">
-                            {new Date(person.created_at).toLocaleDateString("en-GB")}
+                            {whenDay(person.created_at)}
                           </span>
                         </li>
                       ))}

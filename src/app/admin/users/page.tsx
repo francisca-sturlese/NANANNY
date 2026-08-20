@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/field";
 import { UserActions } from "@/components/admin/user-actions";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Users" };
 
@@ -99,7 +100,7 @@ export default async function AdminUsersPage({
                     {[
                       user.location,
                       user.phone,
-                      `joined ${new Date(user.created_at).toLocaleDateString("en-GB")}`,
+                      `joined ${whenDay(user.created_at)}`,
                     ]
                       .filter(Boolean)
                       .join(" · ")}

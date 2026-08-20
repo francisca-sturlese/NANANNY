@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { whenExact, whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Job conversations" };
 
@@ -129,7 +130,7 @@ export default async function AdminJobConversationsPage({
                     )}
                     {messages.length > 0 && (
                       <span className="ml-auto shrink-0 text-xs text-subtle">
-                        {new Date(messages[messages.length - 1].created_at).toLocaleDateString("en-GB")}
+                        {whenDay(messages[messages.length - 1].created_at)}
                       </span>
                     )}
                   </summary>
@@ -150,7 +151,7 @@ export default async function AdminJobConversationsPage({
                         </p>
                         <p className="mt-0.5 text-sm leading-relaxed">{message.body}</p>
                         <p className="mt-1 text-[0.65rem] text-subtle">
-                          {new Date(message.created_at).toLocaleString("en-GB")}
+                          {whenExact(message.created_at)}
                         </p>
                       </li>
                     );

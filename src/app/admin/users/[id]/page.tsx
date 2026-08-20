@@ -7,6 +7,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { DISCOVERABLE_STATUSES } from "@/lib/nanny/discoverable";
 import { Badge } from "@/components/ui/badge";
 import { UserActions } from "@/components/admin/user-actions";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "User" };
 
@@ -96,7 +97,7 @@ export default async function AdminUserPage({
         {user.phone && <p className="text-muted">{user.phone}</p>}
         <p className="text-muted">
           {user.location ? `${user.location} · ` : ""}joined{" "}
-          {new Date(user.created_at).toLocaleDateString("en-GB")}
+          {whenDay(user.created_at)}
         </p>
         {user.suspended_reason && (
           <p className="rounded-md border border-peach bg-peach-wash px-3 py-2">
@@ -152,7 +153,7 @@ export default async function AdminUserPage({
           <p className="mt-1 text-sm text-muted">
             {[family.area, family.emirate].filter(Boolean).join(", ") || "No area given"}
             {` · ${family.children_count} ${family.children_count === 1 ? "child" : "children"}`}
-            {` · family since ${new Date(family.created_at).toLocaleDateString("en-GB")}`}
+            {` · family since ${whenDay(family.created_at)}`}
           </p>
           {(jobs ?? []).length > 0 ? (
             <ul className="mt-3 space-y-1 text-sm">
@@ -204,7 +205,7 @@ export default async function AdminUserPage({
               <li key={note.id} className="rounded-md border border-border p-3 text-sm">
                 <p>{note.body}</p>
                 <p className="mt-1 text-xs text-muted">
-                  {new Date(note.created_at).toLocaleDateString("en-GB")}
+                  {whenDay(note.created_at)}
                 </p>
               </li>
             ))}

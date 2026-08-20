@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { SupportRequestActions } from "@/components/admin/support-request-actions";
+import { whenExact } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Support" };
 
@@ -151,7 +152,7 @@ export default async function AdminSupportPage({
                       {request.contact_email}
                     </a>
                     {" · "}
-                    {new Date(request.created_at).toLocaleString("en-GB")}
+                    {whenExact(request.created_at)}
                     {!request.user_id && " · not logged in"}
                   </p>
 

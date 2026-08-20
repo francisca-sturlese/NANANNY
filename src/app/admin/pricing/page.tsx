@@ -6,6 +6,7 @@ import { PricingForm } from "@/components/admin/pricing-form";
 import { PromoForm } from "@/components/admin/promo-form";
 import { getPromo } from "@/lib/promo";
 import { Card, CardBody } from "@/components/ui/card";
+import { whenExact } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Pricing" };
 
@@ -78,7 +79,7 @@ export default async function AdminPricingPage() {
               return (
                 <li key={i} className="rounded-md border border-border bg-background p-3 text-sm">
                   <p className="text-xs text-subtle">
-                    {new Date(change.created_at).toLocaleString("en-GB")}
+                    {whenExact(change.created_at)}
                   </p>
                   <p className="mt-1">
                     {String(before?.free_contacts ?? "?")} free contacts,{" "}

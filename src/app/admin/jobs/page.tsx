@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/field";
 import { JobModeration } from "@/components/admin/job-moderation";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Jobs" };
 
@@ -169,7 +170,7 @@ export default async function AdminJobsPage({
                     {` · ${[job.area, job.emirate].filter(Boolean).join(", ")}`}
                     {job.salary_min_aed != null &&
                       ` · AED ${job.salary_min_aed.toLocaleString("en-AE")}`}
-                    {` · ${new Date(job.created_at).toLocaleDateString("en-GB")}`}
+                    {` · ${whenDay(job.created_at)}`}
                   </p>
                   {job.responsibilities && (
                     <p className="mt-2 line-clamp-2 text-sm text-muted">{job.responsibilities}</p>
@@ -225,7 +226,7 @@ export default async function AdminJobsPage({
                             {[fam.area, fam.emirate].filter(Boolean).join(", ") || "No area given"}
                             {` · ${fam.children_count} ${fam.children_count === 1 ? "child" : "children"}`}
                             {ages.length > 0 && ` (ages ${ages.join(", ")})`}
-                            {` · joined ${new Date(fam.created_at).toLocaleDateString("en-GB")}`}
+                            {` · joined ${whenDay(fam.created_at)}`}
                           </p>
                           {fam.users?.email && (
                             <Link
@@ -283,7 +284,7 @@ export default async function AdminJobsPage({
                                 {a.status}
                               </Badge>
                               <span className="text-xs text-muted">
-                                {new Date(a.created_at).toLocaleDateString("en-GB")}
+                                {whenDay(a.created_at)}
                               </span>
                             </li>
                           ))}

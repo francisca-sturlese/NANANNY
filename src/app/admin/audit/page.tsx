@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
+import { whenExact } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Audit log" };
 
@@ -66,7 +67,7 @@ export default async function AdminAuditPage() {
                     {ACTION_LABEL[entry.action] ?? entry.action}
                   </Badge>
                   <span className="text-xs text-subtle">
-                    {new Date(entry.created_at).toLocaleString("en-GB")}
+                    {whenExact(entry.created_at)}
                   </span>
                   <span className="text-xs text-muted">
                     by {actorName.get(entry.actor_id ?? "") ?? "system"}

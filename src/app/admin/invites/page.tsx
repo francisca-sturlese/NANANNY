@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { InviteForm, RevokeInviteButton } from "@/components/admin/invite-actions";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Invites" };
 
@@ -71,9 +72,9 @@ export default async function AdminInvitesPage() {
                 <p className="truncate text-sm font-medium">{invite.email}</p>
                 <p className="text-xs text-muted">
                   {invite.role === "super_admin" ? "super admin" : "admin"} · invited{" "}
-                  {new Date(invite.created_at).toLocaleDateString("en-GB")}
+                  {whenDay(invite.created_at)}
                   {state === "pending" &&
-                    ` · expires ${new Date(invite.expires_at).toLocaleDateString("en-GB")}`}
+                    ` · expires ${whenDay(invite.expires_at)}`}
                 </p>
               </div>
 

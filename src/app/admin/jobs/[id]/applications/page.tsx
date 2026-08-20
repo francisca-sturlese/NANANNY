@@ -8,6 +8,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NannyPhotoFallback } from "@/components/nanny/photo-fallback";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Applications as the family sees them" };
 
@@ -116,7 +117,7 @@ export default async function AdminJobApplicationsPage({
                         {application.status}
                       </Badge>
                       <span className="text-xs text-muted">
-                        {new Date(application.created_at).toLocaleDateString("en-GB")}
+                        {whenDay(application.created_at)}
                       </span>
                     </div>
                     {nanny.headline && (

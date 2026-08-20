@@ -5,6 +5,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { ReportActions } from "@/components/admin/report-actions";
+import { whenExact } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Reports" };
 
@@ -111,7 +112,7 @@ export default async function AdminReportsPage({
                     <p className="mt-2 text-sm leading-relaxed text-muted">{report.details}</p>
                   )}
                   <p className="mt-2 text-xs text-subtle">
-                    Reported {new Date(report.created_at).toLocaleString("en-GB")}
+                    Reported {whenExact(report.created_at)}
                   </p>
                   {report.resolution && (
                     <p className="mt-2 rounded-md bg-surface p-2.5 text-xs text-muted">

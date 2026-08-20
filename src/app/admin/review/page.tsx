@@ -8,6 +8,7 @@ import { ReviewPhoto, ReviewProfileDetail } from "@/components/admin/review-card
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ReviewActions } from "@/components/admin/review-actions";
+import { whenDay } from "@/lib/admin/when";
 
 export const metadata: Metadata = { title: "Review queue" };
 
@@ -134,7 +135,7 @@ export default async function AdminPage() {
                             row.nationality,
                             row.years_experience ? `${row.years_experience} yrs` : null,
                             row.submitted_at
-                              ? `submitted ${new Date(row.submitted_at).toLocaleDateString("en-GB")}`
+                              ? `submitted ${whenDay(row.submitted_at)}`
                               : null,
                           ]
                             .filter(Boolean)
