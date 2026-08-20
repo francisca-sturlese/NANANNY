@@ -2350,6 +2350,10 @@ export type Database = {
         Returns: string
       }
       admin_invite_revoke: { Args: { p_invite_id: string }; Returns: undefined }
+      admin_mail_delete_thread: {
+        Args: { p_thread_key: string }
+        Returns: number
+      }
       admin_mail_list: {
         Args: { p_direction?: string; p_limit?: number }
         Returns: {

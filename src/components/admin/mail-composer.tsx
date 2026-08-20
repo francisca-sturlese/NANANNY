@@ -14,10 +14,13 @@ import { SubmitButton, FormError, FormMessage } from "@/components/auth/form-par
 export function MailComposer({
   to,
   subject,
+  body,
   compact,
 }: {
   to?: string;
   subject?: string;
+  /** Prefill for forwarding: the original, quoted, still editable. */
+  body?: string;
   compact?: boolean;
 }) {
   const [state, action] = useActionState<ActionState, FormData>(sendMailAction, {});
@@ -57,7 +60,7 @@ export function MailComposer({
         required
         error={state.fieldErrors?.body}
       >
-        <Textarea id="mail-body" name="body" required rows={compact ? 5 : 10} />
+        <Textarea id="mail-body" name="body" required rows={compact ? 5 : 10} defaultValue={body ?? ""} />
       </Field>
 
       <FormError message={state.error} />

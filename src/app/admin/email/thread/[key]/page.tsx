@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { MailComposer } from "@/components/admin/mail-composer";
+import { DeleteThreadControl } from "@/components/admin/mail-thread-actions";
 
 export const metadata: Metadata = { title: "Email" };
 
@@ -83,12 +84,24 @@ export default async function MailThreadPage({
                 {m.attachments.map((a) => a.name).join(", ")}
               </p>
             )}
+            <p className="mt-3">
+              <Link
+                href={`/admin/email/new?thread=${encodeURIComponent(m.thread_key)}&fwd=${m.id}`}
+                className="text-xs text-muted underline underline-offset-4"
+              >
+                Forward
+              </Link>
+            </p>
           </article>
         ))}
       </div>
 
       <div className="mt-6">
         <MailComposer to={counterpart} subject={replySubject} compact />
+      </div>
+
+      <div className="mt-8">
+        <DeleteThreadControl threadKey={threadKey} />
       </div>
     </AdminShell>
   );

@@ -1,13 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/send";
 import type { ActionState } from "@/lib/auth/actions";
 
 /**
- * The mailbox's one write: sending.
+ * The mailbox's writes: sending, and deleting forever.
  *
  * The words are typed by the administrator for this one message, which is what
  * keeps this inside the rule about outbound text: nothing templated, nothing
@@ -108,4 +110,27 @@ export async function sendMailAction(
 
   revalidatePath("/admin/email");
   return { message: "skipped" in result ? "Composed, not sent from this machine." : "Sent." };
+}
+
+/**
+ * Deleting is forever, and it says so in the audit log rather than in the
+ * mailbox: admin_mail_delete_thread checks the caller and records who
+ * deleted a thread with whom before the rows go.
+ */
+export async function deleteMailThreadAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin("/admin/email");
+  const threadKey = String(formData.get("threadKey") ?? "");
+  if (!threadKey) return { error: "Missing thread" };
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.rpc("admin_mail_delete_thread", {
+    p_thread_key: threadKey,
+  });
+  if (error) return { error: error.message.replace(/^.*?:\s*/, "") };
+
+  revalidatePath("/admin/email");
+  redirect("/admin/email");
 }
