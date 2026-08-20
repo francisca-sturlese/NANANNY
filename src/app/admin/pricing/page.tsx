@@ -4,7 +4,6 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PricingForm } from "@/components/admin/pricing-form";
 import { PromoForm } from "@/components/admin/promo-form";
-import { ReferralForm } from "@/components/admin/referral-form";
 import { getPromo } from "@/lib/promo";
 import { Card, CardBody } from "@/components/ui/card";
 
@@ -14,7 +13,7 @@ export default async function AdminPricingPage() {
   const admin = await requireAdmin("/admin/pricing");
   const supabase = await createServerSupabase();
 
-  const [{ data: config }, { data: recentChanges }, promo, { data: referralStats }] = await Promise.all([
+  const [{ data: config }, { data: recentChanges }, promo] = await Promise.all([
     supabase.from("pricing_config").select("*").single(),
     supabase
       .from("audit_logs")
@@ -23,7 +22,6 @@ export default async function AdminPricingPage() {
       .order("created_at", { ascending: false })
       .limit(5),
     getPromo(),
-    supabase.rpc("admin_referral_stats"),
   ]);
 
   if (!config) return null;
@@ -65,36 +63,6 @@ export default async function AdminPricingPage() {
               endsAt={promo.endsAt}
               label={promo.label}
               active={promo.active}
-            />
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* After the launch window on purpose. While that window is open nothing
-          is consumed, so an extra contact is worth nothing until it closes:
-          reading them in this order is reading them in the order they start to
-          matter. */}
-      <div className="mt-6 max-w-xl">
-        <Card>
-          <CardBody>
-            <h2 className="text-base font-semibold">Invitations</h2>
-            <p className="mt-1 mb-5 text-sm leading-relaxed text-muted">
-              A family that brings another family. Both sides get extra free
-              contacts, and only once the invited family has finished setting up,
-              so a signup on its own earns nobody anything.
-            </p>
-            <ReferralForm
-              enabled={config.referral_enabled}
-              bonusContacts={config.referral_bonus_contacts}
-              bonusMax={config.referral_bonus_max}
-              stats={
-                (referralStats as {
-                  claimed: number;
-                  qualified: number;
-                  families_earning: number;
-                  contacts_granted: number;
-                }) ?? { claimed: 0, qualified: 0, families_earning: 0, contacts_granted: 0 }
-              }
             />
           </CardBody>
         </Card>
