@@ -69,7 +69,9 @@ declare
     -- Checks is_admin() itself and writes the audit row, like every other
     -- administrative capability. The switch that starts giving contacts away
     -- is the one that most needs a name against it.
-    'admin_update_referral', 'admin_referral_stats'
+    'admin_update_referral', 'admin_referral_stats',
+    'admin_mail_list', 'admin_mail_thread', 'admin_mail_mark_read',
+    'admin_mail_unread_count'
   ];
 begin
   select coalesce(array_agg(distinct p.proname order by p.proname), '{}')

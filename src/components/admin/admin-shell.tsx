@@ -13,6 +13,7 @@ const SECTIONS = [
   { href: "/admin/invites", label: "Invites" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/support", label: "Support" },
+  { href: "/admin/email", label: "Email" },
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/pricing", label: "Pricing" },
@@ -62,7 +63,7 @@ export async function AdminShell({
    * number can still pass it and win.
    */
   const supabase = await createServerSupabase();
-  const [reviewRes, reportsRes, supportRes] = await Promise.all([
+  const [reviewRes, reportsRes, supportRes, mailRes] = await Promise.all([
     supabase
       .from("nanny_profiles")
       .select("*", { count: "exact", head: true })
@@ -75,12 +76,14 @@ export async function AdminShell({
       .from("support_requests")
       .select("*", { count: "exact", head: true })
       .in("status", ["open", "in_progress"]),
+    supabase.rpc("admin_mail_unread_count"),
   ]);
 
   const counts: Record<string, number> = {
     "/admin/review": pendingReview ?? reviewRes.count ?? 0,
     "/admin/reports": openReports ?? reportsRes.count ?? 0,
     "/admin/support": openSupport ?? supportRes.count ?? 0,
+    "/admin/email": mailRes.data ?? 0,
   };
 
   return (

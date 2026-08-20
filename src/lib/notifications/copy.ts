@@ -115,6 +115,15 @@ export function describe(row: NotificationRow): NotificationText {
         href,
       };
 
+    // Deliberately wordless about the mail itself: an inbound subject and
+    // sender are a stranger's words, and a push that repeats them is a
+    // phishing envelope signed by us. The mailbox shows them as a stranger's.
+    case "admin_mail_received":
+      return {
+        text: "New email in the NaNanny mailbox.",
+        href,
+      };
+
     default:
       // A kind added in the database and not here. Better a vague line that
       // still opens the right page than a gap in the list.

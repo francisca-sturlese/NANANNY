@@ -1056,6 +1056,54 @@ export type Database = {
           },
         ]
       }
+      mail_messages: {
+        Row: {
+          attachments: Json
+          created_at: string
+          direction: string
+          from_address: string
+          id: string
+          in_reply_to: string | null
+          message_id: string | null
+          provider_id: string | null
+          read_at: string | null
+          subject: string
+          text_body: string
+          thread_key: string
+          to_address: string
+        }
+        Insert: {
+          attachments?: Json
+          created_at?: string
+          direction: string
+          from_address: string
+          id?: string
+          in_reply_to?: string | null
+          message_id?: string | null
+          provider_id?: string | null
+          read_at?: string | null
+          subject?: string
+          text_body?: string
+          thread_key: string
+          to_address: string
+        }
+        Update: {
+          attachments?: Json
+          created_at?: string
+          direction?: string
+          from_address?: string
+          id?: string
+          in_reply_to?: string | null
+          message_id?: string | null
+          provider_id?: string | null
+          read_at?: string | null
+          subject?: string
+          text_body?: string
+          thread_key?: string
+          to_address?: string
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           breakdown: Json
@@ -2302,6 +2350,59 @@ export type Database = {
         Returns: string
       }
       admin_invite_revoke: { Args: { p_invite_id: string }; Returns: undefined }
+      admin_mail_list: {
+        Args: { p_direction?: string; p_limit?: number }
+        Returns: {
+          attachments: Json
+          created_at: string
+          direction: string
+          from_address: string
+          id: string
+          in_reply_to: string | null
+          message_id: string | null
+          provider_id: string | null
+          read_at: string | null
+          subject: string
+          text_body: string
+          thread_key: string
+          to_address: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "mail_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_mail_mark_read: {
+        Args: { p_thread_key: string }
+        Returns: undefined
+      }
+      admin_mail_thread: {
+        Args: { p_thread_key: string }
+        Returns: {
+          attachments: Json
+          created_at: string
+          direction: string
+          from_address: string
+          id: string
+          in_reply_to: string | null
+          message_id: string | null
+          provider_id: string | null
+          read_at: string | null
+          subject: string
+          text_body: string
+          thread_key: string
+          to_address: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "mail_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_mail_unread_count: { Args: never; Returns: number }
       admin_mark_document_reviewed: {
         Args: { p_document_id: string; p_reviewed?: boolean }
         Returns: Json
