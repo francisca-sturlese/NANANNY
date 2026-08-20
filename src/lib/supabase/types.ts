@@ -2307,6 +2307,7 @@ export type Database = {
         Returns: Json
       }
       admin_metrics: { Args: never; Returns: Json }
+      admin_referral_stats: { Args: never; Returns: Json }
       admin_resolve_report: {
         Args: {
           p_report_id: string
@@ -2386,6 +2387,14 @@ export type Database = {
       }
       admin_update_publishing: {
         Args: { p_enabled: boolean; p_min_completion_percent: number }
+        Returns: Json
+      }
+      admin_update_referral: {
+        Args: {
+          p_bonus_contacts: number
+          p_bonus_max: number
+          p_enabled: boolean
+        }
         Returns: Json
       }
       admin_update_reminders: {

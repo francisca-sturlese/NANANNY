@@ -65,7 +65,11 @@ declare
     -- hand back counts rather than rows: who invited whom is not something a
     -- session gets to read directly, which is why the table has no policies.
     'my_referral_code', 'claim_referral', 'my_referral_summary',
-    'family_referral_bonus'
+    'family_referral_bonus',
+    -- Checks is_admin() itself and writes the audit row, like every other
+    -- administrative capability. The switch that starts giving contacts away
+    -- is the one that most needs a name against it.
+    'admin_update_referral', 'admin_referral_stats'
   ];
 begin
   select coalesce(array_agg(distinct p.proname order by p.proname), '{}')

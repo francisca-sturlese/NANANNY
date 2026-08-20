@@ -386,6 +386,27 @@ cooldown is the unique index on `email_events.idempotency_key` with a fifteen
 minute bucket in the key, not a timer: nothing is shared between requests on
 the deployment target. Proven by `supabase/tests/notifications.sql`.
 
+**Nothing that reaches a real person goes out without Federico approving the
+exact words.** His rule, and it is about who is speaking rather than about
+quality. Every product email, notification and piece of copy that lands in
+somebody's inbox is sent under his company's name, so the person who answers
+for it is him. Choosing a direction is not approving a text: he picked "make
+the emails personal" and that was read as permission to sign them in his name,
+which is a different decision and was never his to have taken for him.
+
+Three things follow, and none of them has an exception for being in a hurry.
+His name never appears as a sender, a signature or an author anywhere without
+his say-so on the exact wording. A test send is a send: no email goes to a real
+address to see how it looks, not to a stranger and not to Federico himself,
+without asking first, because an email cannot be recalled. And a template
+changed is a text changed, even when the mechanism around it is untouched.
+
+This was written down on 2026-08-19, after it had been broken twice by two
+different sessions, which is the point: it had only ever been said in a chat,
+so it bound whoever happened to be in that conversation and nobody else. The
+three templates that predate it were written without his approval too, and are
+listed for him to read rather than quietly left alone.
+
 **No LLM anywhere in this product.** Decided 2026-08-14. The free text
 assistant described in the PRD is out of scope, and nothing that reaches a
 family may be generated. If a feature seems to need a model, it needs a

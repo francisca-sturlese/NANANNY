@@ -235,6 +235,52 @@ const promoSchema = z.object({
   label: z.string().trim().max(80),
 });
 
+const referralSchema = z.object({
+  enabled: z.boolean(),
+  bonusContacts: z.coerce.number().int().min(0).max(10),
+  bonusMax: z.coerce.number().int().min(0).max(100),
+});
+
+/**
+ * The switch that starts giving free contacts away.
+ *
+ * Kept apart from the pricing form on purpose. Changing a price changes what
+ * somebody pays; this changes how many people never reach the paywall at all,
+ * and the two deserve separate deliberate presses.
+ */
+export async function updateReferralAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = referralSchema.safeParse({
+    enabled: formData.get("enabled") === "on",
+    bonusContacts: formData.get("bonusContacts") ?? "1",
+    bonusMax: formData.get("bonusMax") ?? "10",
+  });
+  if (!parsed.success) {
+    return { error: "A reward is 0 to 10 contacts, and the ceiling is 0 to 100." };
+  }
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.rpc("admin_update_referral", {
+    p_enabled: parsed.data.enabled,
+    p_bonus_contacts: parsed.data.bonusContacts,
+    p_bonus_max: parsed.data.bonusMax,
+  });
+  if (error) return { error: cleanMessage(error.message) };
+
+  revalidatePath("/admin/pricing");
+  revalidatePath("/family");
+  revalidatePath("/invite-a-family");
+  return {
+    message: parsed.data.enabled
+      ? "Invitations are on. Both families get their extra contact once the invited one finishes setting up."
+      : "Invitations are off. Links still work and still record who invited whom, and nothing is granted.",
+  };
+}
+
 export async function updatePromoAction(
   _prev: ActionState,
   formData: FormData,

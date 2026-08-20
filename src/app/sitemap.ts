@@ -106,6 +106,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    * post resolves to the same page: Next serves the static route and the
    * dynamic one never runs, so listing both would advertise one page twice.
    */
+  /**
+   * The invitations page, listed only while invitations are switched on.
+   *
+   * The page itself 404s when they are off, so listing it unconditionally
+   * would advertise a 404 to a crawler: the same disagreement between page and
+   * sitemap the filter landings avoid by counting rather than listing.
+   */
+  try {
+    const { data: pricing } = await createServiceClient()
+      .from("pricing_config")
+      .select("referral_enabled, referral_bonus_contacts")
+      .single();
+    if (pricing?.referral_enabled && pricing.referral_bonus_contacts >= 1) {
+      pages.push({
+        url: absoluteUrl("/invite-a-family"),
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.6,
+      });
+    }
+  } catch (error) {
+    console.error("[sitemap] could not read the referral switch:", error);
+  }
+
   try {
     const service = createServiceClient();
     const [{ data: posts }, { data: hiddenRows }] = await Promise.all([
