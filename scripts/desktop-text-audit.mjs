@@ -236,6 +236,45 @@ for (const [role, paths] of Object.entries(PAGES)) {
            * like.
            */
           const own = rect.width;
+          const parentWidth = parent.getBoundingClientRect().width;
+
+          /**
+           * Compressed: a long text capped far below the column it sits in.
+           *
+           * This is the check the first version of this file had, which I
+           * removed on the grounds that a reading measure is a decision and
+           * not a defect. That was right about prose and wrong about the
+           * footer, where the legal paragraph was capped at max-w-3xl inside a
+           * container half as wide again while everything above it ran the
+           * full width. Federico called it truncated. Nothing was cut: it was
+           * squeezed into a column for no reason anybody could see, which is
+           * what a person means by the word.
+           *
+           * Reported as a candidate rather than a failure, because telling the
+           * two apart is a judgement. Every real defect found on the day this
+           * was written was found by a person reading a screenshot, and every
+           * one of this tool's own first findings was an artefact. It lists;
+           * somebody decides.
+           */
+          /**
+           * The threshold, set by the case rather than by taste.
+           *
+           * The first attempt used 70%, and the footer paragraph this check
+           * exists for sat at 70.6%: written, committed and useless. Found by
+           * putting the defect back and running the check against it, which is
+           * the only way to know a check works. 85% catches it with room, and
+           * anything above that is close enough to full width to be nobody's
+           * complaint.
+           */
+          if (own > 320 && own / parentWidth < 0.85 && text.length > 120) {
+            out.push({
+              kind: "COMPRESSED",
+              text: label(el),
+              detail: `${Math.round(own)}px of a ${Math.round(parentWidth)}px column (${Math.round((own / parentWidth) * 100)}%), ${lines.length} lines`,
+              candidate: true,
+            });
+          }
+
           const use = longest / own;
           if (use < 0.75 && own > 480) {
             out.push({
@@ -270,8 +309,13 @@ await browser.close();
  * which is the whole reason the grid reads as a grid. Failing on it would mean
  * failing on the design rather than on a defect.
  */
-const faults = findings.filter((f) => !f.deliberate);
+const faults = findings.filter((f) => !f.deliberate && !f.candidate);
 const byKind = faults.reduce((acc, f) => ({ ...acc, [f.kind]: (acc[f.kind] ?? 0) + 1 }), {});
-const clamps = findings.length - faults.length;
-console.log(`\n${faults.length} faults at ${WIDTH}px:`, JSON.stringify(byKind), `(plus ${clamps} deliberate clamps, listed above and not counted)`);
+const clamps = findings.filter((f) => f.deliberate).length;
+const candidates = findings.filter((f) => f.candidate).length;
+console.log(
+  `\n${faults.length} faults at ${WIDTH}px:`,
+  JSON.stringify(byKind),
+  `(plus ${clamps} deliberate clamps and ${candidates} compressed candidates, listed above and not counted)`,
+);
 process.exit(faults.length ? 1 : 0);
