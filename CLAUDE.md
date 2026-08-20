@@ -386,6 +386,21 @@ cooldown is the unique index on `email_events.idempotency_key` with a fifteen
 minute bucket in the key, not a timer: nothing is shared between requests on
 the deployment target. Proven by `supabase/tests/notifications.sql`.
 
+**Everything signs itself NaNanny helpcenter. Never a person's name.**
+Federico's standing instruction, 2026-08-20, given in those words and meant to
+outlast every session: no email, notification, reply or piece of copy is ever
+signed "Federico" or "Francisca", or sent as though a named person wrote it.
+
+It is not modesty. A one person company that signs with that person's name
+tells every reader how small it is, and it makes the founder personally the
+support desk for a marketplace he wants to leave running. "NaNanny helpcenter"
+is a desk, and a desk can be staffed by anybody tomorrow.
+
+It had already gone wrong once by the time the rule was written: the emails
+were changed to read "Federico from NaNanny", his name went out on real mail
+without his approval, and he had to be told about it afterwards rather than
+asked before.
+
 **Nothing that reaches a real person goes out without Federico approving the
 exact words.** His rule, and it is about who is speaking rather than about
 quality. Every product email, notification and piece of copy that lands in

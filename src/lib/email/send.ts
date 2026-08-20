@@ -33,6 +33,8 @@ export async function sendEmail(options: {
   html: string;
   text: string;
   replyTo?: string;
+  /** Put in the List-Unsubscribe header as well as in the footer. */
+  unsubscribeUrl?: string | null;
 }): Promise<SendResult> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
@@ -90,6 +92,27 @@ export async function sendEmail(options: {
         html: options.html,
         text: options.text,
         ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+        /**
+         * The way out, said in the header as well as in the body.
+         *
+         * Gmail and the rest read `List-Unsubscribe` directly and treat it as
+         * one of the strongest signals that a sender is behaving: it is what
+         * turns "this is junk" into one tap that costs the sender nothing. We
+         * already offer the link in the footer; without the header, the only
+         * way somebody can stop us is the spam button, and the spam button is
+         * the thing that damages every other email we send.
+         *
+         * `One-Click` with the POST form, because a provider that has to open
+         * a page to unsubscribe somebody often does not bother.
+         */
+        ...(options.unsubscribeUrl
+          ? {
+              headers: {
+                "List-Unsubscribe": `<${options.unsubscribeUrl}>`,
+                "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+              },
+            }
+          : {}),
       }),
     });
 
@@ -147,13 +170,13 @@ function personalEmail(opts: {
    * and nothing else. There is deliberately no other footer parameter.
    */
   unsubscribe?: { label: string; url: string } | null;
-}): { html: string; text: string } {
+}): { html: string; text: string; unsubscribeUrl?: string | null } {
   const text = [
     ...(opts.greeting ? [opts.greeting, ""] : []),
     ...opts.paragraphs.flatMap((p) => [p, ""]),
     `${opts.linkLabel}: ${opts.link}`,
     "",
-    "NaNanny",
+    "NaNanny helpcenter",
     ...(opts.unsubscribe ? ["", `${opts.unsubscribe.label}: ${opts.unsubscribe.url}`] : []),
   ].join("\n");
 
@@ -174,13 +197,13 @@ function personalEmail(opts: {
       ${opts.greeting ? para(escapeHtml(opts.greeting)) : ""}
       ${opts.paragraphs.map((p) => para(escapeHtml(p))).join("\n      ")}
       ${para(`<a href="${opts.link}" style="color:#1a5fb4">${escapeHtml(opts.linkLabel)}</a>`)}
-      ${para("NaNanny")}
+      ${para("NaNanny helpcenter")}
       ${smallPrint.length ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#8a8a8a">${smallPrint.join("<br />")}</p>` : ""}
     </div>
   </body>
 </html>`.trim();
 
-  return { html, text };
+  return { html, text, unsubscribeUrl: opts.unsubscribe?.url ?? null };
 }
 
 export function newMessageEmail(params: {

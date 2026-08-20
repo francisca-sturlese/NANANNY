@@ -289,4 +289,56 @@ begin
   end if;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- 10. One reminder per person, whatever they qualify for
+-- ---------------------------------------------------------------------------
+-- On 20 August two nannies each received "you have unread messages" and
+-- "finish your profile" in the same minute, from a domain six days old. Each
+-- branch of due_reminders carried its own dedupe key, so the once-per-window
+-- guard was once per REASON.
+--
+-- The first fix checked email_events for a reminder already sent, and passed
+-- every test while changing nothing: two rows born in the same pass have
+-- nothing to find there. It was only caught by building this case. Build it
+-- again before believing a change to that function.
+do $$
+declare
+  v_nanny uuid; v_nanny_user uuid; v_family uuid; v_family_user uuid;
+  v_convo uuid; v_rows int; v_reason text;
+begin
+  update public.reminder_config set audience = 'everyone';
+  update public.users set created_at = now() - interval '10 days';
+  update public.nanny_profiles set created_at = now() - interval '10 days';
+  update public.family_profiles set created_at = now() - interval '10 days';
+
+  -- A nanny who is both behind on her profile and owed an answer.
+  select n.id, n.user_id into v_nanny, v_nanny_user
+    from public.nanny_profiles n
+   where not (public.nanny_profile_completion(n.id) ->> 'can_submit')::boolean
+   limit 1;
+  select f.id, f.user_id into v_family, v_family_user from public.family_profiles f limit 1;
+
+  if v_nanny is null or v_family is null then
+    raise notice 'SKIP 10  no incomplete nanny in the seed to build the case with';
+    return;
+  end if;
+
+  insert into public.conversations (family_id, nanny_id) values (v_family, v_nanny)
+  returning id into v_convo;
+  insert into public.messages (conversation_id, sender_id, body, created_at)
+  values (v_convo, v_family_user, 'Are you available?', now() - interval '5 days');
+
+  select count(*), min(e->>'reason') into v_rows, v_reason
+    from jsonb_array_elements(public.due_reminders(500)) e
+   where (e->>'user_id')::uuid = v_nanny_user;
+
+  if v_rows = 1 and v_reason = 'unread' then
+    raise notice 'PASS 10  one reminder, and it is the person waiting rather than the nudge';
+  elsif v_rows > 1 then
+    raise notice 'FAIL 10  % reminders for the same person in one pass', v_rows;
+  else
+    raise notice 'FAIL 10  % rows, reason %', v_rows, coalesce(v_reason, 'none');
+  end if;
+end $$;
+
 rollback;
